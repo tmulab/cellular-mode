@@ -2,7 +2,8 @@
 
 **Current verdict: no technical blocker left.** R-1 was resolved on 2026-10-02 (item 15):
 the typecheck leg is real and reports 0 errors, and `check-all.mjs --release` exits 0. What
-remains is human-only authorization: a security contact (6), push and publish (28–29).
+remains is human-only authorization: publication (29). Security contact (6) set and push (28)
+authorized on 2026-10-02 to a PRIVATE repository.
 The local repository and its first commit were authorized and made on 2026-10-02 (26–27). Labels: ✅ VERIFIED (a command was run, or a file
 was read end to end) · ⚠️ partial / caveated · ❌ not satisfied · UNKNOWN (not established —
 and UNKNOWN is never green).
@@ -18,7 +19,7 @@ and UNKNOWN is never green).
 | 3 | No third-party code bundled; the notices say so | ✅ VERIFIED | `THIRD_PARTY_NOTICES.md`; `npm run gates` (deps) finds zero dependencies |
 | 4 | Contribution licensing stated (Apache-2.0 §5, no CLA) | ✅ VERIFIED | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
 | 5 | 👤 Author identity and the TMU-LAB attribution are what the author wants published | ⚠️ needs a human read-through | `README.md`, `NOTICE` — names and `https://tmulab.org` appear; only the author can confirm |
-| 6 | 👤 Security contact published (not a placeholder) | ❌ | [`SECURITY.md`](SECURITY.md) points at `https://tmulab.org` with no address. Needs a real private channel |
+| 6 | 👤 Security contact published (not a placeholder) | ✅ VERIFIED | role address set in [`SECURITY.md`](SECURITY.md) (decision of 2026-10-02); the leak test allows exactly that address in exactly that file |
 
 ## Original projects
 
@@ -81,7 +82,7 @@ node tools/gates/check-all.mjs --release   -> exit 0
 
 ## Who must decide what
 
-1. **Security contact** (item 6) — provide a private channel.
+1. **Security contact** (item 6) — done: role address set on 2026-10-02.
 2. **Push and publish** (items 28–29) — two separate authorizations (init and the first
    local commit were authorized and done on 2026-10-02).
 

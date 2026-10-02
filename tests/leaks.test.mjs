@@ -37,13 +37,34 @@ const LITERALS = [
 // blocks, provider API keys, forge tokens) moved to tools/gates/secrets.mjs, which
 // this file now calls instead of keeping a second copy: two lists of the same thing
 // drift, and the one that drifts is always the one nobody runs.
+// One exception, as narrow as it can be: the public security ROLE address (not a person),
+// approved by the author on 2026-10-02, allowed in SECURITY.md only. Any other address,
+// or this one in any other file, is still an offence.
+const ROLE_ADDRESS = j('security', '@', 'tmulab.org');
+/** @type {{ re: RegExp, why: string, allow?: { file: string, match: string } }[]} */
 const PATTERNS = [
-  { re: new RegExp(j('\\b', 'n', 'll', '\\b'), 'i'), why: 'private project code name' },
+  { re: new RegExp(j('\\b', 'n', 'll', '\\b'), 'gi'), why: 'private project code name' },
   {
-    re: new RegExp(j('[A-Za-z0-9._%+-]+', '@', '[A-Za-z0-9.-]+', '\\.', '[A-Za-z]{2,}')),
-    why: 'e-mail address (the repository must contain none)',
+    re: new RegExp(j('[A-Za-z0-9._%+-]+', '@', '[A-Za-z0-9.-]+', '\\.', '[A-Za-z]{2,}'), 'g'),
+    why: 'e-mail address (the repository must contain none but the approved role address)',
+    allow: { file: 'SECURITY.md', match: ROLE_ADDRESS },
   },
 ];
+
+/** @type {(rel: string, text: string) => string[]} */
+function patternOffenders(rel, text) {
+  /** @type {string[]} */
+  const out = [];
+  text.split('\n').forEach((line, i) => {
+    for (const { re, why, allow } of PATTERNS) {
+      for (const m of line.matchAll(re)) {
+        const allowed = allow && rel === allow.file && m[0].toLowerCase() === allow.match;
+        if (!allowed) out.push(`${rel}:${i + 1}: ${why}`);
+      }
+    }
+  });
+  return out;
+}
 
 const files = allFiles().filter(isTextFile);
 
@@ -68,16 +89,16 @@ test('leaks · no forbidden literal appears in any file', () => {
 
 test('leaks · no forbidden pattern appears in any file', () => {
   /** @type {string[]} */
-  const offenders = [];
-  for (const rel of files) {
-    const lines = read(rel).split('\n');
-    for (const { re, why } of PATTERNS) {
-      lines.forEach((line, i) => {
-        if (re.test(line)) offenders.push(`${rel}:${i + 1}: ${why}`);
-      });
-    }
-  }
+  const offenders = files.flatMap((rel) => patternOffenders(rel, read(rel)));
   assert.deepEqual(offenders, [], report('forbidden patterns', offenders));
+});
+
+test('leaks · the role-address exception is exactly one address in exactly one file', () => {
+  const other = j('jane', '@', 'tmulab.org');
+  assert.deepEqual(patternOffenders('SECURITY.md', `write to ${ROLE_ADDRESS}`), []);
+  assert.equal(patternOffenders('README.md', `write to ${ROLE_ADDRESS}`).length, 1);
+  assert.equal(patternOffenders('SECURITY.md', `write to ${other}`).length, 1);
+  assert.equal(patternOffenders('SECURITY.md', `${ROLE_ADDRESS} or ${other}`).length, 1);
 });
 
 test('leaks · no credential shape appears anywhere (delegated to the secrets gate)', () => {

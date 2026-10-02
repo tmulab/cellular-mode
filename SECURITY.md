@@ -97,10 +97,9 @@ and reviewed, untrusted plugin execution stays off:
 
 ## Reporting a vulnerability
 
-Report privately, not through a public issue. Use the private contact route at
-**<https://tmulab.org>** (TMU-LAB — The Machine Unconscious Lab). *No security contact
-address is published yet; this is a placeholder and a release blocker tracked in
-[`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md).*
+Report privately, not through a public issue: e-mail **security@tmulab.org**
+(TMU-LAB — The Machine Unconscious Lab, <https://tmulab.org>). This is a role address,
+not a personal one.
 
 Please include what you ran, what you expected and what happened. There is no bounty, and
 no commitment to a response window pre-1.0. Findings about the documented gaps above are

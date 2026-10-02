@@ -27,3 +27,4 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [Typecheck enablement](cells/typecheck-enablement.md) | jsconfig.json, package.json, tools/gates/typecheck.mjs, JSDoc across the codebase | ✔ | 2026-10-02 | — |
 | [Log redaction](cells/log-redaction.md) | vault/state/log.md, vault/state/cells/stage-2-inspection.md, policy/relaxations.md | ✔ | 2026-10-02 | — |
 | [First local commit](cells/first-local-commit.md) | git (local only) | ✔ | 2026-10-02 | — |
+| [Private GitHub repository](cells/private-github-repository.md) | SECURITY.md, tests/leaks.test.mjs, RELEASE_CHECKLIST.md, git remote | ✔ | 2026-10-02 | — |

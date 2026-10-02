@@ -172,3 +172,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** push and publish remain separate human authorizations
 **Build:** green
 **Next step:** —
+
+---
+## 2026-10-02 17:57 · Cell: Private GitHub repository
+**Status:** ✔
+**Facts:** SECURITY.md role address set; leaks test allows exactly that address in exactly SECURITY.md (mutation dropping the file restriction went red); repository owner tmulab is a GitHub user account, not an organization, use confirmed by the author; private repo created and main pushed
+**Decisions:** visibility stays private until the author authorizes public release; no release, no package publish
+**Build:** green
+**Next step:** —
