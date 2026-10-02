@@ -1,0 +1,21 @@
+{
+  "//": "R-1 resolved: the real typecheck leg. JavaScript project, so jsconfig.json is the honest name. Every flag here is a strengthening, never a relaxation: see policy/typecheck-proposal.md (IMPLEMENTED) and tools/gates/README.md.",
+  "compilerOptions": {
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "types": ["node"],
+    "skipLibCheck": false
+  },
+  "include": ["**/*.mjs", "**/*.js", "**/*.cjs"],
+  "exclude": ["node_modules"]
+}

@@ -1,0 +1,21 @@
+{
+  "comment": "Dependency integrity. The project claims ZERO RUNTIME dependencies and the deps gate turns that claim into a check: any name listed here is permitted in package.json dependencies/devDependencies AND as a bare import specifier; anything else is a finding. Exactly two entries exist, both devDependencies, both for verification, both pinned exactly (no ^, no ~) so a type error can never arrive from a background upgrade. R-1 in policy/relaxations.md is WITHDRAWN because of them. package-lock.json exists now and is expected: something is installed, so it is pinned.",
+  "allowed": [
+    {
+      "name": "typescript",
+      "version": "5.9.3",
+      "scope": "devDependencies",
+      "license": "Apache-2.0",
+      "approvedBy": "Hudson A. R. Bonomo 2026-10-02",
+      "rationale": "The type checker for the Trilateral typecheck leg; it resolves R-1. The only checker that can check JavaScript through `checkJs`, and `tsc --noEmit` is the command tools/gates/typecheck.mjs runs. No runtime code depends on it and `noEmit` means it never produces an artefact. 5.9.3 rather than the current 7.0.2: every type in this project is JSDoc on .mjs files, TypeScript 7 is a new native rewrite, and a verification gate is the wrong place to be an early adopter."
+    },
+    {
+      "name": "@types/node",
+      "version": "24.19.1",
+      "scope": "devDependencies",
+      "license": "MIT",
+      "approvedBy": "Hudson A. R. Bonomo 2026-10-02",
+      "rationale": "Declarations for the node: built-ins this project already imports; without them `node:fs/promises`, `process` and `URL` are errors and the leg would report noise instead of signal. Major 24 matches the local Node major (v24.19.0). It pulls one transitive package, undici-types (MIT), which nothing imports and which is recorded in THIRD_PARTY_NOTICES.md."
+    }
+  ]
+}

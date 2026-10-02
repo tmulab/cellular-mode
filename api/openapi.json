@@ -1,0 +1,241 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "EIP host API",
+    "version": "1.0.0",
+    "summary": "Local HTTP edge over the Everything Is a Plugin runtime.",
+    "description": "Hand-written contract: it is the source, not a generated artefact. Every schema below is written in the SDK schema subset (type, properties, required, additionalProperties:false, items, enum, minLength, maxLength, minimum, maximum, maxItems) so the contract test can validate real responses against this document with the runtime's own validator. The host binds 127.0.0.1 only and sends no CORS headers: a browser application consumes this API through its own server-side route handler, never directly. Consequential capabilities need a verdict from a human approver the host supplies; an HTTP caller can never approve its own call, so a host started without an approver answers 403 APPROVAL_REQUIRED. Diagnostics pages under /dev are deliberately NOT part of this contract.",
+    "license": { "name": "Apache-2.0", "identifier": "Apache-2.0" }
+  },
+  "servers": [
+    { "url": "http://127.0.0.1:3100", "description": "Default local host (node eip/host/cli.mjs)" }
+  ],
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "operationId": "getHealth",
+        "summary": "Liveness plus the keys actually loaded in this composition.",
+        "responses": {
+          "200": {
+            "description": "The host is up; `plugins` lists the loaded keys and `devUi` says whether diagnostics pages are served.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HealthResult" } } }
+          },
+          "405": {
+            "description": "Wrong method. The response carries an `Allow` header.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/plugins": {
+      "get": {
+        "operationId": "listPlugins",
+        "summary": "Public metadata of every registered plugin: no executable, no dev-UI body.",
+        "responses": {
+          "200": {
+            "description": "One entry per plugin. `capabilities`, `inject` and `config` are keyed by name, so they are described as open objects.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PluginListResult" } } }
+          },
+          "405": {
+            "description": "Wrong method. The response carries an `Allow` header.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } }
+          }
+        }
+      }
+    },
+    "/api/v1/plugins/{key}/capabilities/{cap}": {
+      "post": {
+        "operationId": "executeCapability",
+        "summary": "Call one capability of one plugin.",
+        "description": "The body is exactly {\"input\": object}. A body carrying `approval` is refused with 403 APPROVAL_REQUIRED: consent is issued by the host's approver, never by the caller. Unknown fields are refused with 400.",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "description": "The plugin key, e.g. `text.stats`.",
+            "schema": { "type": "string", "minLength": 3, "maxLength": 80 }
+          },
+          {
+            "name": "cap",
+            "in": "path",
+            "required": true,
+            "description": "The capability id, e.g. `count-words`.",
+            "schema": { "type": "string", "minLength": 1, "maxLength": 80 }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CallEnvelope" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "The capability ran and its output passed the declared output schema.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CallResult" } } }
+          },
+          "400": {
+            "description": "INPUT_INVALID — the input breaks the capability's input schema, the body is not JSON, or it carries an unknown field.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } }
+          },
+          "403": {
+            "description": "APPROVAL_REQUIRED, APPROVAL_DENIED or PERMISSION_DENIED — a consequential act without a human verdict, a refused verdict, or a port the plugin may not use.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } }
+          },
+          "404": {
+            "description": "NOT_FOUND — no such key, or the plugin declares no such capability.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } }
+          },
+          "405": {
+            "description": "Wrong method. The response carries an `Allow` header.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } }
+          },
+          "409": {
+            "description": "DEPENDENCY_IN_USE — the composition cannot change while a loaded plugin requires the key.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } }
+          },
+          "413": {
+            "description": "The request body exceeds 65536 bytes.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } }
+          },
+          "415": {
+            "description": "This API speaks application/json only.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } }
+          },
+          "500": {
+            "description": "PLUGIN_ERROR, OUTPUT_INVALID, CONTRACT_INVALID, DUPLICATE_KEY or DEPENDENCY_CYCLE — a fault on the server side, reported without a stack.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } }
+          },
+          "503": {
+            "description": "CANCELLED or DEPENDENCY_MISSING — the call did not complete. 499 is not an IANA status, so a cancelled call is reported as 503.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } }
+          },
+          "504": {
+            "description": "TIMEOUT — the call exceeded its deadline.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthResult": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "enum": [true] },
+          "value": {
+            "type": "object",
+            "properties": {
+              "status": { "type": "string", "enum": ["ok"] },
+              "sdk": { "type": "string", "minLength": 1 },
+              "devUi": { "type": "boolean" },
+              "plugins": { "type": "array", "items": { "type": "string", "minLength": 3 } }
+            },
+            "required": ["status", "sdk", "devUi", "plugins"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["ok", "value"],
+        "additionalProperties": false
+      },
+      "PluginListResult": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "enum": [true] },
+          "value": {
+            "type": "object",
+            "properties": {
+              "plugins": { "type": "array", "items": { "$ref": "#/components/schemas/PluginDescription" } }
+            },
+            "required": ["plugins"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["ok", "value"],
+        "additionalProperties": false
+      },
+      "PluginDescription": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 3 },
+          "version": { "type": "string", "minLength": 5 },
+          "sdk": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 },
+          "inject": { "type": "object" },
+          "permissions": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "capabilities": { "type": "object" },
+          "config": { "type": "object" },
+          "devUi": {
+            "type": "object",
+            "properties": { "title": { "type": "string", "minLength": 1 } },
+            "required": ["title"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["name", "version", "sdk", "description", "inject", "permissions", "capabilities"]
+      },
+      "CallEnvelope": {
+        "type": "object",
+        "properties": { "input": { "type": "object" } },
+        "required": ["input"],
+        "additionalProperties": false
+      },
+      "CallResult": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "enum": [true] },
+          "value": { "type": "object" }
+        },
+        "required": ["ok", "value"],
+        "additionalProperties": false
+      },
+      "ErrorEnvelope": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "enum": [false] },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "CONTRACT_INVALID",
+                  "DUPLICATE_KEY",
+                  "NOT_FOUND",
+                  "DEPENDENCY_MISSING",
+                  "DEPENDENCY_CYCLE",
+                  "INPUT_INVALID",
+                  "OUTPUT_INVALID",
+                  "APPROVAL_REQUIRED",
+                  "APPROVAL_DENIED",
+                  "PERMISSION_DENIED",
+                  "CANCELLED",
+                  "TIMEOUT",
+                  "PLUGIN_ERROR",
+                  "DEPENDENCY_IN_USE"
+                ]
+              },
+              "message": { "type": "string", "minLength": 1 },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "path": { "type": "string" },
+                    "message": { "type": "string", "minLength": 1 }
+                  },
+                  "required": ["path", "message"],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": ["code", "message"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["ok", "error"],
+        "additionalProperties": false
+      }
+    }
+  }
+}

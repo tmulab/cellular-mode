@@ -1,0 +1,20 @@
+{
+  "name": "cellular-mode",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "typecheck": "tsc -p jsconfig.json",
+    "gates": "node tools/gates/check-all.mjs",
+    "trilateral": "node tools/gates/trilateral.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1",
+    "typescript": "5.9.3"
+  }
+}

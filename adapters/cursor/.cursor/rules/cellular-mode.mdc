@@ -1,0 +1,13 @@
+---
+description: Cellular Mode — canonical entry point for this project (any agent).
+alwaysApply: true
+---
+
+# Cellular Mode
+
+Read `AGENTS.md` at the repository root in full and follow it. It is the canonical
+entry point: the seven rules, where state lives, and what to load next.
+
+Cell procedures live in `skills/cell/SKILL.md` and `skills/pause/SKILL.md`. Follow
+`skills/cell/SKILL.md` at session start or when asked to resume, and
+`skills/pause/SKILL.md` on any stop signal.

@@ -1,0 +1,8 @@
+[
+  {
+    "path": "_example_only_remove_when_first_real_exception_is_added",
+    "limit": 0,
+    "rationale": "Shape documentation. Every real entry needs path, limit, rationale and approvedBy. An entry missing any of them is itself a gate finding, so tolerance can never be silent. limit 0 and a path that cannot exist make this entry inert.",
+    "approvedBy": "n/a - inert shape example"
+  }
+]

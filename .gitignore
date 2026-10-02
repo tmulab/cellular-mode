@@ -1,0 +1,12 @@
+# Installed packages. `package.json` + `package-lock.json` are the record; the tree
+# itself is reproducible with `npm ci` and must never be committed.
+#
+# This file exists because resolving R-1 (policy/relaxations.md) introduced the first
+# node_modules/ this repository has ever had. The gates already skip it — see
+# tools/gates/scan.mjs SKIP_DIRS and tests/helpers.mjs — but a gate skipping a
+# directory is not the same as version control ignoring it.
+node_modules/
+
+# OS and editor noise.
+.DS_Store
+Thumbs.db
