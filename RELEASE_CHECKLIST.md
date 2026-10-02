@@ -61,7 +61,7 @@ and UNKNOWN is never green).
 |---|---|---|---|
 | 26 | Git repository initialized | ✅ VERIFIED | authorized 2026-10-02; branch `main`, no remote; `.gitignore` (node_modules) and `.gitattributes` (LF, keeps the LICENSE hash stable) |
 | 27 | First commit made | ✅ VERIFIED | authorized 2026-10-02, made after every mandatory gate and the release gate passed; staged set reviewed for secrets, personal and private data, dependencies, artifacts (private names redacted per R-3) |
-| 28 | Remote added, branch pushed | ❌ not done | **no push without authorization** |
+| 28 | Remote added, branch pushed | ✅ VERIFIED | authorized 2026-10-02: PRIVATE repository https://github.com/tmulab/cellular-mode (owner `tmulab` is a GitHub user account, confirmed by the author); `main` pushed; visibility and remote commit verified before and after the push |
 | 29 | Published (npm, GitHub release, announcement) | ❌ not done | **no publish without authorization.** Items 15, 17 and 6 must be green first |
 | 30 | Version and pre-1.0 scope stated at the top of the README | ✅ VERIFIED | `README.md` status line points here |
 
