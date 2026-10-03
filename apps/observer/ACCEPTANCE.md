@@ -32,6 +32,7 @@ else. Rendering by a real browser is NOT machine-verifiable here: it lives in
 | D18 | The AUDIT area renders verdicts, not a mood | one tile per status with every status present (a zero count is shown, not omitted); one row per finding carrying its evidence lines, its explanation and its suggested action; filters by status and by scope, both clearable; the area is labelled DETERMINISTIC in the markup |
 | D19 | UNAVAILABLE is never rendered as PASS | the five verdicts differ in WORD, SYMBOL and tone, not in colour alone; UNAVAILABLE additionally carries a dashed outline; a status this build does not recognise is treated as unavailable, never as a pass; the `run audit` button calls the read-only `run-audit` capability and the auditor performs no suggested action |
 | D20 | The ADVISOR area is visibly not a measurement | the area is `data-origin="ai"` before anything loads and carries the banner `AI-generated interpretation — not a verification`; each recommendation shows a LABEL badge (word + symbol + meaning), its uncertainty and its evidence references, with `cell:` references navigable and everything else shown as the address it is; an unrecognised label is treated as UNKNOWN, never as VERIFIED; a downgrade, a rejection, a removed reference and a dropped context item are each stated; the adapter is named with its network status; `status` is the only call made on load, and every statement is set with `textContent` |
+| D21 | An intentionally empty next step reads as a fact, not as a gap | `nextStepState: 'none'` (a completed cell, or a logged completion) renders as `None — cell completed` and is marked RECORDED; `'not-recorded'` keeps the literal `not recorded` and the absent styling; the cells table, the detail panel and the timeline all read the same state, and a payload without the field is read exactly as before |
 | D15 | One source of colour, and it is legible | the CSS custom properties equal `view/tokens.mjs` value for value; text and status colours reach 4.5:1 against the background and graphic tokens reach 3:1 (computed sRGB luminance, not estimated); exactly one accent hue outside the status palette and the neutrals |
 | D16 | Browser code is type-checked | `npm run typecheck` runs both configurations; the browser configuration uses `lib: DOM + ES2023` with the same four strict flags; the three.js subset is declared by hand, with no `@types/three` dependency |
 | D17 | 3D is optional and secondary | the 2D view is the default; the 3D modules are imported only when the toggle asks for them; no 3D module computes a node position |
@@ -44,6 +45,7 @@ else. Rendering by a real browser is NOT machine-verifiable here: it lives in
 | `object-src 'none'` removed from the CSP | D3 |
 | proxy accepts any `/api/` prefix instead of `/api/v1/` | D4 |
 | `notRecorded()` returns an empty string instead of `not recorded` | D8 |
+| `nextStepField()` maps `'none'` back to `not recorded` | D21 |
 | one byte of `three.core.min.js` changed | D1 |
 | `statusMark()` falls back to the PASS mark for an unknown verdict | D19 |
 | a summary tile whose count is zero is dropped from `summaryTiles()` | D18 |

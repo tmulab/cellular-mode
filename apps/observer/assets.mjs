@@ -27,7 +27,7 @@ const WEB_MODULES = [
 
 /** DOM-free modules shared by the browser and the node tests, served from `view/`. */
 const VIEW_MODULES = [
-  'tokens.mjs', 'view-model.mjs', 'selection.mjs', 'svg-2d.mjs', 'availability.mjs',
+  'tokens.mjs', 'fields.mjs', 'view-model.mjs', 'selection.mjs', 'svg-2d.mjs', 'availability.mjs',
   'audit-view.mjs', 'advisor-view.mjs',
 ];
 

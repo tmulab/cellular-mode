@@ -4,35 +4,23 @@
 //
 // Two decisions carry the whole module:
 //   1. a `null` from the API means THE PROTOCOL DID NOT RECORD IT, and that is rendered
-//      as the literal words — never as an empty cell, a dash, or a plausible guess;
+//      as the literal words of `fields.mjs` — never as an empty cell or a guess;
 //   2. a status is a SHAPE and a WORD before it is a colour. Colour alone fails for a
 //      colour-blind reader, in high contrast mode, and on a printed page.
+import {
+  NONE_COMPLETED, NOT_RECORDED, field, listField, nextStepField,
+} from './fields.mjs';
 
-/** The one phrasing for "the vault does not have this". */
-export const NOT_RECORDED = 'not recorded';
+// Re-exported so the vocabulary has ONE import site for the browser modules and the
+// tests: where the words live is this module's business, not theirs.
+export {
+  NONE_COMPLETED, NOT_RECORDED, field, listField, nextStepField,
+};
+
+/** @typedef {import('./fields.mjs').Field} Field */
 
 /** The note the timeline must always carry (the protocol logs pause and completion). */
 export const TIMELINE_NOTE = 'open/resume not recorded by the protocol';
-
-/** @typedef {{ text: string, recorded: boolean }} Field */
-
-/** PURE. A nullable contract value as a field. Empty strings count as absent: a field
- * the writer left blank is not a fact either.
- * @param {unknown} value @returns {Field} */
-export function field(value) {
-  if (value === null || value === undefined) return { text: NOT_RECORDED, recorded: false };
-  const text = typeof value === 'string' ? value.trim() : String(value);
-  if (text === '') return { text: NOT_RECORDED, recorded: false };
-  return { text, recorded: true };
-}
-
-/** PURE. A list as a field: an empty list is recorded as the explicit absence of edges.
- * @param {unknown} value @param {string} [emptyText] @returns {Field} */
-export function listField(value, emptyText = 'none declared') {
-  if (!Array.isArray(value)) return field(null);
-  if (value.length === 0) return { text: emptyText, recorded: true };
-  return { text: value.map((item) => String(item)).join(', '), recorded: true };
-}
 
 /** Status → the shape and word that carry it without colour.
  * @type {Readonly<Record<string, { shape: string, label: string, symbol: string }>>} */
@@ -114,6 +102,7 @@ export function cellsTableRows(cells) {
       cells: CELL_COLUMNS.map(([key]) => {
         if (key === 'dependencies') return listField(record[key]);
         if (key === 'status') return { text: `${status.symbol} ${status.label}`, recorded: true };
+        if (key === 'nextStep') return nextStepField(record);
         return field(record[key]);
       }),
     };
@@ -145,6 +134,14 @@ function at(source, path) {
   return /** @type {Record<string, unknown>} */ (first)[tail];
 }
 
+/** PURE. One detail field as a Field: two of the eighteen are not plain text.
+ * @param {Record<string, unknown>} record @param {string} path @returns {Field} */
+function valueFor(record, path) {
+  if (path === 'dependencies') return listField(at(record, path));
+  if (path === 'nextStep') return nextStepField(record);
+  return field(at(record, path));
+}
+
 /** PURE. @param {unknown} detail
  * @returns {{ rows: Array<{ label: string, value: Field }>, evidence: Array<{ label: string, value: Field }>, unavailable: string[] }} */
 export function detailRows(detail) {
@@ -153,7 +150,7 @@ export function detailRows(detail) {
   return {
     rows: DETAIL_FIELDS.map(([path, label]) => ({
       label,
-      value: path === 'dependencies' ? listField(at(record, path)) : field(at(record, path)),
+      value: valueFor(record, path),
     })),
     evidence: [
       { label: 'log entries', value: field(evidenceSource['logEntries']) },
@@ -181,7 +178,7 @@ export function timelineRows(events) {
         { label: 'facts', value: field(record['facts']) },
         { label: 'decisions', value: field(record['decisions']) },
         { label: 'build', value: field(record['build']) },
-        { label: 'next step', value: field(record['nextStep']) },
+        { label: 'next step', value: nextStepField(record) },
       ],
     };
   });

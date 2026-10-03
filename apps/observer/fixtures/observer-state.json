@@ -12,7 +12,8 @@
         "facts": "Static server and allowlist in place; headers asserted.",
         "decisions": null,
         "build": "typecheck green, 41 tests",
-        "nextStep": "Port the 2D projection."
+        "nextStep": "Port the 2D projection.",
+        "nextStepState": "recorded"
       },
       {
         "at": "2026-10-01 11:05",
@@ -22,7 +23,8 @@
         "facts": "Capability shapes agreed with the frontend cell.",
         "decisions": "Positions are computed server-side.",
         "build": "typecheck green, 266 tests",
-        "nextStep": null
+        "nextStep": null,
+        "nextStepState": "none"
       }
     ],
     "warnings": [
@@ -33,12 +35,12 @@
   },
   "cells": {
     "cells": [
-      { "id": "observer-dashboard", "name": "Observer dashboard", "area": "apps/observer", "status": "active", "statusSymbol": "O", "lastVisit": "2026-10-02 18:40", "nextStep": "Port the 2D projection.", "dependencies": ["observer-contracts"] },
-      { "id": "observer-auditor", "name": "Observer auditor", "area": "eip/plugins", "status": "planned", "statusSymbol": "P", "lastVisit": null, "nextStep": null, "dependencies": ["observer-dashboard"] },
-      { "id": "observer-advisor", "name": "Observer advisor", "area": "eip/plugins", "status": "planned", "statusSymbol": "P", "lastVisit": null, "nextStep": "Write the acceptance criteria.", "dependencies": ["observer-auditor", "model-adapters"] },
-      { "id": "observer-contracts", "name": "Observer contracts", "area": "docs", "status": "done", "statusSymbol": "D", "lastVisit": "2026-10-01 11:05", "nextStep": null, "dependencies": [] },
-      { "id": "vault-projections", "name": "Vault projections", "area": "tools/cellmode", "status": "done", "statusSymbol": "D", "lastVisit": "2026-09-28 09:12", "nextStep": null, "dependencies": [] },
-      { "id": "read-ports", "name": "Read ports", "area": "eip/host", "status": "paused", "statusSymbol": "W", "lastVisit": "2026-09-30 22:03", "nextStep": "Confine listCells to vault/state.", "dependencies": ["observer-contracts"] }
+      { "id": "observer-dashboard", "name": "Observer dashboard", "area": "apps/observer", "status": "active", "statusSymbol": "O", "lastVisit": "2026-10-02 18:40", "nextStep": "Port the 2D projection.", "nextStepState": "recorded", "dependencies": ["observer-contracts"] },
+      { "id": "observer-auditor", "name": "Observer auditor", "area": "eip/plugins", "status": "planned", "statusSymbol": "P", "lastVisit": null, "nextStep": null, "nextStepState": "not-recorded", "dependencies": ["observer-dashboard"] },
+      { "id": "observer-advisor", "name": "Observer advisor", "area": "eip/plugins", "status": "planned", "statusSymbol": "P", "lastVisit": null, "nextStep": "Write the acceptance criteria.", "nextStepState": "recorded", "dependencies": ["observer-auditor", "model-adapters"] },
+      { "id": "observer-contracts", "name": "Observer contracts", "area": "docs", "status": "done", "statusSymbol": "D", "lastVisit": "2026-10-01 11:05", "nextStep": null, "nextStepState": "none", "dependencies": [] },
+      { "id": "vault-projections", "name": "Vault projections", "area": "tools/cellmode", "status": "done", "statusSymbol": "D", "lastVisit": "2026-09-28 09:12", "nextStep": null, "nextStepState": "none", "dependencies": [] },
+      { "id": "read-ports", "name": "Read ports", "area": "eip/host", "status": "paused", "statusSymbol": "W", "lastVisit": "2026-09-30 22:03", "nextStep": "Confine listCells to vault/state.", "nextStepState": "recorded", "dependencies": ["observer-contracts"] }
     ]
   },
   "cell-detail": {
@@ -61,6 +63,7 @@
       "openIssues": "The backend composition option is not in the host yet.",
       "minimalContext": "SPEC3 contracts, the original dashboard modules, apps/observer/ACCEPTANCE.md",
       "nextStep": "Port the 2D projection.",
+      "nextStepState": "recorded",
       "evidence": { "logEntries": 3, "lastStatus": "paused", "lastBuild": "typecheck green, 41 tests" },
       "unavailable": []
     },
@@ -83,6 +86,7 @@
       "openIssues": null,
       "minimalContext": null,
       "nextStep": null,
+      "nextStepState": "not-recorded",
       "evidence": { "logEntries": 0, "lastStatus": null, "lastBuild": null },
       "unavailable": ["lastVisit"]
     }
@@ -107,10 +111,10 @@
   },
   "timeline": {
     "events": [
-      { "at": "2026-10-02 18:40", "cell": "observer-dashboard", "kind": "pause", "status": "paused", "facts": "Static server and allowlist in place; headers asserted.", "decisions": null, "build": "typecheck green, 41 tests", "nextStep": "Port the 2D projection." },
-      { "at": "2026-10-01 11:05", "cell": "observer-contracts", "kind": "complete", "status": "done", "facts": "Capability shapes agreed with the frontend cell.", "decisions": "Positions are computed server-side.", "build": "typecheck green, 266 tests", "nextStep": null },
-      { "at": "2026-09-30 22:03", "cell": "read-ports", "kind": "pause", "status": "paused", "facts": "Path confinement drafted.", "decisions": null, "build": null, "nextStep": "Confine listCells to vault/state." },
-      { "at": "2026-09-28 09:12", "cell": "vault-projections", "kind": "reconstructed", "status": "done", "facts": "Entry rebuilt from the index table; the log line was missing.", "decisions": null, "build": null, "nextStep": null }
+      { "at": "2026-10-02 18:40", "cell": "observer-dashboard", "kind": "pause", "status": "paused", "facts": "Static server and allowlist in place; headers asserted.", "decisions": null, "build": "typecheck green, 41 tests", "nextStep": "Port the 2D projection.", "nextStepState": "recorded" },
+      { "at": "2026-10-01 11:05", "cell": "observer-contracts", "kind": "complete", "status": "done", "facts": "Capability shapes agreed with the frontend cell.", "decisions": "Positions are computed server-side.", "build": "typecheck green, 266 tests", "nextStep": null, "nextStepState": "none" },
+      { "at": "2026-09-30 22:03", "cell": "read-ports", "kind": "pause", "status": "paused", "facts": "Path confinement drafted.", "decisions": null, "build": null, "nextStep": "Confine listCells to vault/state.", "nextStepState": "recorded" },
+      { "at": "2026-09-28 09:12", "cell": "vault-projections", "kind": "reconstructed", "status": "done", "facts": "Entry rebuilt from the index table; the log line was missing.", "decisions": null, "build": null, "nextStep": null, "nextStepState": "not-recorded" }
     ],
     "notRecorded": ["open", "resume"]
   }

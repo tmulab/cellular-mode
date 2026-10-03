@@ -6,7 +6,7 @@
 // `null`, which is exactly the intended meaning and stays inside the subset. The same
 // idiom gives "an object of this shape, or null". `api/openapi.json` repeats these
 // shapes, and a contract test validates real responses against both.
-import { STATUSES } from './model.mjs';
+import { NEXT_STEP_STATES, STATUSES } from './model.mjs';
 import { DEFAULT_TIMELINE_LIMIT, RECENT_LIMIT } from './views.mjs';
 
 /** @typedef {import('../../sdk/types.mjs').Schema} Schema */
@@ -36,6 +36,11 @@ const COUNT = { type: 'integer', minimum: 0 };
 const COORD = { type: 'integer' };
 /** @type {Schema} */
 const STATUS = { type: 'string', enum: [...STATUSES] };
+/** Why a next step is absent, when it is: the protocol's intentional `none` (a
+ * completed cell) is NOT the same fact as `not-recorded`, and a caller must be able to
+ * render them differently without re-deriving it from the status.
+ * @type {Schema} */
+const NEXT_STEP_STATE = { type: 'string', enum: [...NEXT_STEP_STATES] };
 /** @type {Schema} */
 const IDS = { type: 'array', items: ID, maxItems: 500 };
 
@@ -62,7 +67,9 @@ export const EVENT = obj({
   decisions: OPTIONAL_TEXT,
   build: OPTIONAL_TEXT,
   nextStep: OPTIONAL_TEXT,
-}, ['at', 'cell', 'kind', 'status', 'statusSymbol', 'facts', 'decisions', 'build', 'nextStep']);
+  nextStepState: NEXT_STEP_STATE,
+}, ['at', 'cell', 'kind', 'status', 'statusSymbol', 'facts', 'decisions', 'build', 'nextStep',
+  'nextStepState']);
 /** @type {Schema} */
 export const CELL_SUMMARY = obj({
   id: ID,
@@ -72,8 +79,10 @@ export const CELL_SUMMARY = obj({
   statusSymbol: { type: 'string', maxLength: 8 },
   lastVisit: OPTIONAL_TEXT,
   nextStep: OPTIONAL_TEXT,
+  nextStepState: NEXT_STEP_STATE,
   dependencies: IDS,
-}, ['id', 'name', 'area', 'status', 'statusSymbol', 'lastVisit', 'nextStep', 'dependencies']);
+}, ['id', 'name', 'area', 'status', 'statusSymbol', 'lastVisit', 'nextStep', 'nextStepState',
+  'dependencies']);
 /** @type {Schema} */
 export const GRAPH_NODE = obj({
   id: ID,
@@ -136,9 +145,10 @@ export const CAPABILITIES = {
         logEntries: COUNT, lastStatus: OPTIONAL_TEXT, lastBuild: OPTIONAL_TEXT,
       }, ['logEntries', 'lastStatus', 'lastBuild']),
       unavailable: { type: 'array', items: ID, maxItems: 64 },
+      nextStepState: NEXT_STEP_STATE,
       ...Object.fromEntries(DETAIL_FIELDS.map((name) => [name, OPTIONAL_TEXT])),
     }, ['id', 'name', 'status', 'area', 'boundary', 'dependencies', 'evidence', 'unavailable',
-      ...DETAIL_FIELDS]),
+      'nextStepState', ...DETAIL_FIELDS]),
   },
   graph: {
     description: 'Nodes with deterministic server-side positions, and edges from DECLARED dependencies only.',

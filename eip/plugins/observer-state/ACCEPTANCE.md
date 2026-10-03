@@ -92,6 +92,15 @@ the plugin still CANNOT do is claim authority: a thrown `APPROVAL_*` or
   protocol does not define yields `status: null` and `kind: 'reconstructed'` — never an
   invented word. A caller can render `status` verbatim without knowing which
   capability produced it.
+- **O19** `—` is DISAMBIGUATED, never flattened. Beside `nextStep`, every
+  `CellSummary`, every `cell-detail` and every `TimelineEvent` publishes
+  `nextStepState`: `'recorded'` · `'none'` (the protocol's INTENTIONAL emptiness — a
+  cell whose status is `done`, or a logged completion, whose next step is `—`, which is
+  what `cellmode complete` writes) · `'not-recorded'` (a gap in the record: a planned
+  cell, or an active/paused cell the auditor already warns about). `nextStep` stays
+  `null` in both absent cases — no sentinel string. A done cell's empty next step is
+  therefore NOT listed in `cell-detail.unavailable`: the host read it perfectly well.
+  Mutation-proved.
 
 ### Confinement and read-only guarantee
 

@@ -65,8 +65,8 @@ function generated(n, depth) {
 test('O9 declaredEdges: an undeclared pair is no edge, an unknown target is dangling', () => {
   /** @type {import('./types.mjs').Entry[]} */
   const entries = [
-    { id: 'a', name: 'A', area: null, status: 'done', statusSymbol: '✔', lastVisit: null, nextStep: null, dependencies: [], cell: null },
-    { id: 'b', name: 'B', area: null, status: 'active', statusSymbol: '🔵', lastVisit: null, nextStep: null, dependencies: ['a', 'a', 'ghost', 'b'], cell: null },
+    { id: 'a', name: 'A', area: null, status: 'done', statusSymbol: '✔', lastVisit: null, nextStep: null, nextStepState: 'none', dependencies: [], cell: null },
+    { id: 'b', name: 'B', area: null, status: 'active', statusSymbol: '🔵', lastVisit: null, nextStep: null, nextStepState: 'not-recorded', dependencies: ['a', 'a', 'ghost', 'b'], cell: null },
   ];
   const { edges, dangling } = declaredEdges(entries, new Set(['a', 'b']));
   assert.deepEqual(edges, [{ from: 'b', to: 'a' }], 'duplicates collapse; a is declared once');
@@ -76,7 +76,7 @@ test('O9 declaredEdges: an undeclared pair is no edge, an unknown target is dang
 
 test('O9 depthLayers: a cycle neither hangs nor throws, and says it is a cycle', () => {
   /** @type {(id: string, deps: string[]) => import('./types.mjs').Entry} */
-  const entry = (id, deps) => ({ id, name: id, area: null, status: 'planned', statusSymbol: '📋', lastVisit: null, nextStep: null, dependencies: deps, cell: null });
+  const entry = (id, deps) => ({ id, name: id, area: null, status: 'planned', statusSymbol: '📋', lastVisit: null, nextStep: null, nextStepState: 'not-recorded', dependencies: deps, cell: null });
   const entries = [entry('a', ['b']), entry('b', ['a']), entry('c', [])];
   const edges = [{ from: 'a', to: 'b' }, { from: 'b', to: 'a' }];
   const { layerOf, cycle } = depthLayers(entries, edges);

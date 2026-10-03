@@ -5,7 +5,7 @@
 // like data, and an omitted key would look like a bug in the reader. Saying "this is
 // not recorded, and here is its name" is the only honest third option.
 import { slugify } from '../../../tools/cellmode/slug.mjs';
-import { STATUS_BY_SYMBOL, field } from './model.mjs';
+import { STATUS_BY_SYMBOL, field, nextStepState } from './model.mjs';
 
 /** @typedef {import('../../../tools/cellmode/types.mjs').LogEntry} LogEntry */
 /** @typedef {import('./types.mjs').Entry} Entry */
@@ -55,17 +55,23 @@ const idResolver = (model) => {
 export function events(model) {
   const idOf = idResolver(model);
   return model.logEntries
-    .map((e) => ({
-      at: e.timestamp,
-      cell: idOf(e.cell),
-      kind: kindOf(e.status),
-      status: wordOf(e.status),
-      statusSymbol: e.status,
-      facts: field(e.facts),
-      decisions: field(e.decisions),
-      build: field(e.build),
-      nextStep: field(e.next),
-    }))
+    .map((e) => {
+      // A logged COMPLETION with `—` is the protocol saying "there is no next step";
+      // the same dash in a pause entry is a next step the record is missing.
+      const kind = kindOf(e.status);
+      return {
+        at: e.timestamp,
+        cell: idOf(e.cell),
+        kind,
+        status: wordOf(e.status),
+        statusSymbol: e.status,
+        facts: field(e.facts),
+        decisions: field(e.decisions),
+        build: field(e.build),
+        nextStep: field(e.next),
+        nextStepState: nextStepState(e.next, kind === 'complete'),
+      };
+    })
     .reverse();
 }
 
@@ -107,6 +113,7 @@ export function cells(model) {
       statusSymbol: entry.statusSymbol,
       lastVisit: entry.lastVisit,
       nextStep: entry.nextStep,
+      nextStepState: entry.nextStepState,
       dependencies: [...entry.dependencies],
     })),
   };
@@ -153,8 +160,12 @@ export function cellDetail(model, id) {
     nextStep: entry.nextStep,
   };
   const boundary = { in: field(c?.boundaryIn), out: field(c?.boundaryOut) };
+  // `unavailable` means "the host could not read this". A completed cell's empty next
+  // step WAS read, and it says the cell is finished — listing it would turn a recorded
+  // fact into a missing one, which is the same lie in the other direction.
   const unavailable = Object.entries(optional)
-    .filter(([, value]) => value === null)
+    .filter(([name, value]) => value === null
+      && !(name === 'nextStep' && entry.nextStepState === 'none'))
     .map(([name]) => name);
   if (boundary.in === null) unavailable.push('boundary.in');
   if (boundary.out === null) unavailable.push('boundary.out');
@@ -163,6 +174,7 @@ export function cellDetail(model, id) {
     name: entry.name,
     status: entry.status,
     ...optional,
+    nextStepState: entry.nextStepState,
     boundary,
     dependencies: [...entry.dependencies],
     evidence: evidenceFor(model, entry.id),

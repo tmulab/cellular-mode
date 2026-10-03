@@ -32,3 +32,4 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [Observer auditor](cells/observer-auditor.md) | eip/plugins/observer-audit, tools/gates/trilateral.mjs evidence, apps/observer AUDIT area | ✔ | 2026-10-02 | — |
 | [Observer advisor](cells/observer-advisor.md) | eip/plugins/observer-advisor, apps/observer ADVISOR area | ✔ | 2026-10-03 | — |
 | [Stage 3 final validation](cells/stage-3-final-validation.md) | docs/adr/0003, tools/cellmode open, apps/observer/MANUAL-CHECKS.md, reports | ✔ | 2026-10-03 | — |
+| [Done-cell next step wording](cells/done-cell-next-step-wording.md) | eip/plugins/observer-state views, apps/observer view-model | ✔ | 2026-10-03 | — |

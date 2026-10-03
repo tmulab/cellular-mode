@@ -14,11 +14,17 @@
  * @typedef {{ code: string, message: string, cell?: string }} Warning
  */
 
+/** Why a next step is absent, when it is. `'none'` is the protocol's INTENTIONAL
+ * emptiness (a completed cell has no next step); `'not-recorded'` is a gap in the
+ * record. `nextStep` is `null` for both.
+ * @typedef {'recorded' | 'none' | 'not-recorded'} NextStepState
+ */
+
 /** One cell, as the model holds it: the INDEX row and the cell file, reconciled.
  * `cell` is `null` when there is no readable `cells/<id>.md`.
  * @typedef {{ id: string, name: string, area: string | null, status: string,
  *   statusSymbol: string, lastVisit: string | null, nextStep: string | null,
- *   dependencies: string[], cell: Cell | null }} Entry
+ *   nextStepState: NextStepState, dependencies: string[], cell: Cell | null }} Entry
  */
 
 /** The whole vault, read once.
@@ -33,8 +39,8 @@
  * protocol does not define; `statusSymbol` is always what the log actually said.
  * @typedef {{ at: string, cell: string, kind: 'pause' | 'complete' | 'reconstructed',
  *   status: string | null, statusSymbol: string, facts: string | null,
- *   decisions: string | null, build: string | null,
- *   nextStep: string | null }} TimelineEvent
+ *   decisions: string | null, build: string | null, nextStep: string | null,
+ *   nextStepState: NextStepState }} TimelineEvent
  */
 
 /** One node of the graph, with its position already computed — server-side, always.

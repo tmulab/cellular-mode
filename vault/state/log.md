@@ -229,3 +229,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** push waits for a separate authorization; minor: done-cell next step renders as not recorded (proposed cell)
 **Build:** green
 **Next step:** —
+
+---
+## 2026-10-03 07:59 · Cell: Done-cell next step wording
+**Status:** ✔
+**Facts:** observer-state reports nextStepState recorded|none|not-recorded (O19): a completed cell's protocol dash and completion log events are none, planned and active/paused dashes stay not-recorded, done cells no longer list nextStep as unavailable; UI shows None — cell completed as a recorded value (D21, apps/observer/view/fields.mjs); 5 backend tests red before, 10/10 green after, 3 mutations red; verified live via API and a headless screenshot; 514/514 tests, gates and release gate green; prepared for the authorized local commit that follows this entry
+**Decisions:** intentional absence and missing information are distinct values in the API contract, not only in the UI wording
+**Build:** green
+**Next step:** —

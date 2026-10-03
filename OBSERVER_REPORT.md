@@ -126,7 +126,7 @@ grounding. `observer.audit`'s `acceptance-criteria` rule judges one convention (
 2026-10-03** (headless Edge 154 over the DevTools protocol, real WebGL; results per item in `MANUAL-CHECKS.md`).
 They found and fixed five UI defects, worst an infinite recursion on every cell selection that no unit test
 had caught. Items needing human judgement (perceived contrast, screen reader, feel) remain open there.
-Known minor: a completed cell's logged next step "—" (none, by protocol) renders as "not recorded".
+Fixed 2026-10-03: a completed cell's "—" next step is reported as `nextStepState: none` and shown as "None — cell completed", distinct from "not recorded" (O19, D21).
 
 ## 9 · Security limitations
 
@@ -191,7 +191,6 @@ Each is one cell, sized for one session, with a binary done criterion. **None is
 |---|---|
 | **Observer human checks** | the LEFT FOR HUMAN items in `apps/observer/MANUAL-CHECKS.md` are performed by a person and recorded |
 | **Trojan Source gate** (parking lot) | a gate fails on a fixture holding a literal U+200B–200F / 202A–202E / 2066–2069 / FEFF character and passes on the escaped form; removing the rule turns the test red |
-| **Done-cell next step wording** | the timeline renders a completed cell's logged "—" as "none (cell done)", not "not recorded" |
 | **Per-plugin port grants** | `observer.state` cannot see `readRepoFile`/`listRepoFiles` with the auditor loaded, proved by asking from inside the plugin |
 | **POSIX symlink verification** | both read ports' symlink refusals run on Linux or macOS with the output recorded, and removing the guard goes red there |
 | **Stage-3 commit** (human) | the stage-3 tree is committed with explicit authorization; until then `RELEASE_CHECKLIST.md` records it as pending |

@@ -46,6 +46,22 @@ export const field = (value) => {
   return text === '' || text === '—' ? null : text;
 };
 
+/** The three things a next step can be. The symbol `—` is OVERLOADED in the file
+ * format: `cellmode complete` writes it as the next step of a finished cell on purpose
+ * ("there is none"), while anywhere else it means the vault carries nothing. Both keep
+ * `nextStep: null` — a sentinel string would be data pretending to be a value — and
+ * this state is what tells them apart. */
+export const NEXT_STEP_STATES = Object.freeze(['recorded', 'none', 'not-recorded']);
+
+/** Only a COMPLETED cell (or a logged completion) can have an intentional none: an
+ * active or paused cell with `—` is genuinely missing a next step, which is the one the
+ * auditor warns about.
+ * @type {(value: unknown, completed: boolean) => 'recorded' | 'none' | 'not-recorded'} */
+export const nextStepState = (value, completed) => {
+  if (field(value) !== null) return 'recorded';
+  return completed ? 'none' : 'not-recorded';
+};
+
 /** @type {(symbol: string) => string} */
 const wordFor = (symbol) => /** @type {Record<string, string | undefined>} */ (
   STATUS_BY_SYMBOL)[symbol] ?? 'planned';
@@ -100,15 +116,18 @@ export async function readModel(read, list) {
       warnings.push(warning('cell-file-missing',
         `no readable cells/${id}.md, so this cell's detail comes from INDEX.md alone`, id));
     }
+    const status = wordFor(row.status);
+    const step = cell?.nextStep ?? row.nextStep;
     /** @type {Entry} */
     const entry = {
       id,
       name: field(cell?.name ?? row.name) ?? id,
       area: field(cell?.area ?? row.area),
-      status: wordFor(row.status),
+      status,
       statusSymbol: row.status,
       lastVisit: field(row.lastVisit),
-      nextStep: field(cell?.nextStep ?? row.nextStep),
+      nextStep: field(step),
+      nextStepState: nextStepState(step, status === 'done'),
       dependencies: parseDependencies(cell?.dependencies),
       cell,
     };

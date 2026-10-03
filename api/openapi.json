@@ -666,9 +666,10 @@
           "facts": { "maxLength": 4000 },
           "decisions": { "maxLength": 4000 },
           "build": { "maxLength": 4000 },
-          "nextStep": { "maxLength": 4000 }
+          "nextStep": { "maxLength": 4000 },
+          "nextStepState": { "type": "string", "enum": ["recorded", "none", "not-recorded"] }
         },
-        "required": ["at", "cell", "kind", "status", "statusSymbol", "facts", "decisions", "build", "nextStep"],
+        "required": ["at", "cell", "kind", "status", "statusSymbol", "facts", "decisions", "build", "nextStep", "nextStepState"],
         "additionalProperties": false
       },
       "ObserverCellSummary": {
@@ -681,13 +682,14 @@
           "statusSymbol": { "type": "string", "maxLength": 8 },
           "lastVisit": { "maxLength": 4000 },
           "nextStep": { "maxLength": 4000 },
+          "nextStepState": { "type": "string", "enum": ["recorded", "none", "not-recorded"] },
           "dependencies": {
             "type": "array",
             "items": { "type": "string", "minLength": 1, "maxLength": 80 },
             "maxItems": 500
           }
         },
-        "required": ["id", "name", "area", "status", "statusSymbol", "lastVisit", "nextStep", "dependencies"],
+        "required": ["id", "name", "area", "status", "statusSymbol", "lastVisit", "nextStep", "nextStepState", "dependencies"],
         "additionalProperties": false
       },
       "ObserverGraphNode": {
@@ -899,6 +901,7 @@
           "openIssues": { "maxLength": 4000 },
           "minimalContext": { "maxLength": 4000 },
           "nextStep": { "maxLength": 4000 },
+          "nextStepState": { "type": "string", "enum": ["recorded", "none", "not-recorded"] },
           "evidence": {
             "type": "object",
             "properties": {
@@ -915,7 +918,7 @@
             "maxItems": 64
           }
         },
-        "required": ["id", "name", "status", "area", "boundary", "objective", "inputs", "outputs", "allowedOperations", "prohibitedOperations", "dependencies", "doneCriterion", "lastFact", "build", "decisions", "openIssues", "minimalContext", "nextStep", "evidence", "unavailable"],
+        "required": ["id", "name", "status", "area", "boundary", "objective", "inputs", "outputs", "allowedOperations", "prohibitedOperations", "dependencies", "doneCriterion", "lastFact", "build", "decisions", "openIssues", "minimalContext", "nextStep", "nextStepState", "evidence", "unavailable"],
         "additionalProperties": false
       },
       "ObserverGraph": {
