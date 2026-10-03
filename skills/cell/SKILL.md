@@ -66,11 +66,15 @@ Instead of editing the files manually you may run:
 
 ```
 node tools/cellmode/cli.mjs status            # ≤5-line reconnection, or the summary list
-node tools/cellmode/cli.mjs open <name> --area A --objective "..."
+node tools/cellmode/cli.mjs open <name> --area A --objective "..." --next "<first step>"
 node tools/cellmode/cli.mjs resume <name>     # ⏸ → 🔵
 node tools/cellmode/cli.mjs plan <name> --area A
 node tools/cellmode/cli.mjs park "<idea>"
 ```
+
+`--next` on `open` records the FIRST STEP this skill asks for at creation, in the cell
+file, the INDEX row and `CURRENT-CELL.md`; omitting it leaves `—`, and an empty
+`--next ""` is refused. `plan` has no `--next`: a planned cell carries intentions only.
 
 `open` and `resume` refuse while another cell is 🔵 (exit 3: pause it first) and
 `resume` exits 4 listing candidates when the name is ambiguous. Both paths — manual

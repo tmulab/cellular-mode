@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "typecheck": "tsc -p jsconfig.json",
+    "typecheck": "tsc -p jsconfig.json && tsc -p apps/observer/jsconfig.json",
     "gates": "node tools/gates/check-all.mjs",
     "trilateral": "node tools/gates/trilateral.mjs"
   },

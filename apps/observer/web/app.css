@@ -1,0 +1,279 @@
+/* app.css — the stylesheet. Every colour in this file is either one of the custom
+   properties below or a mix of them: the hex values appear EXACTLY ONCE, here, and a test
+   compares them value for value with ../view/tokens.mjs (criterion D15). A second copy of
+   a palette is how a status pill stops matching the node it describes.
+
+   One accent hue outside the status colours and the neutrals. Shape, weight and text carry
+   state; colour only agrees with them. */
+
+:root {
+  color-scheme: dark;
+  --background: #0b0d14;
+  --surface: #12141d;
+  --border: #2e3449;
+  --text: #e8eaf2;
+  --secondary: #9aa3bb;
+  --tertiary: #6b7490;
+  --accent: #7c5cff;
+  --status-done: #3ddc97;
+  --status-active: #4aa8ff;
+  --status-paused: #f5a524;
+  --status-planned: #8892ab;
+  --status-unknown: #a0a8c0;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 0 4rem;
+  background: var(--background);
+  color: var(--text);
+  font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* 320 px first: one column, nothing clipped, no horizontal scroll. The two-column layout
+   is the enhancement, not the baseline. */
+main { display: grid; gap: 1rem; padding: 0 .75rem; max-width: 76rem; margin: 0 auto; }
+@media (min-width: 60rem) { main { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+  .area.project { grid-row: span 2; } }
+
+.skip { position: absolute; left: -9999px; }
+.skip:focus { position: static; display: inline-block; padding: .5rem; color: var(--accent); }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.banner {
+  margin: 0; padding: .6rem .9rem; border-bottom: 1px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--text);
+  font-size: .85rem;
+}
+
+.top { display: grid; gap: .5rem; padding: 1rem .75rem; max-width: 76rem; margin: 0 auto; }
+h1 { margin: 0; font-size: .8rem; font-weight: 650; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--tertiary); }
+.active-cell { display: flex; flex-wrap: wrap; gap: .5rem; align-items: baseline; }
+.active-cell .label { font-size: .68rem; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--accent); }
+.active-cell strong { font-size: clamp(1.1rem, 4vw, 1.6rem); font-weight: 600; }
+
+.tiles { display: flex; flex-wrap: wrap; gap: .5rem; }
+.tile { display: grid; gap: .1rem; min-width: 4.5rem; padding: .4rem .7rem;
+  border: 1px solid var(--border); border-top-width: 2px; border-radius: .6rem;
+  background: var(--surface); }
+.tile b { line-height: 1.1; font-variant-numeric: tabular-nums; }
+.tile-label { font-size: .62rem; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--tertiary); }
+.tile.strong b { font-size: 1.6rem; }
+.tile.quiet { opacity: .66; }
+.tile.quiet b { font-size: 1rem; }
+.tile.status-done { border-top-color: var(--status-done); }
+.tile.status-active { border-top-color: var(--status-active); }
+.tile.status-paused { border-top-color: var(--status-paused); }
+.tile.status-planned { border-top-color: var(--status-planned); }
+.tile.status-done b { color: var(--status-done); }
+.tile.status-active b { color: var(--status-active); }
+.tile.status-paused b { color: var(--status-paused); }
+.tile.status-planned b { color: var(--status-planned); }
+
+.integrity { display: flex; flex-wrap: wrap; gap: .5rem; font-size: .78rem; }
+.integrity .ok { color: var(--status-done); }
+.integrity .not-ok { color: var(--status-paused); }
+.integrity .finding { color: var(--secondary); }
+
+/* An area declares its ORIGIN in its own shape: deterministic panels are solid, the AI area
+   is inset and dashed with a standing label. A reader must not need the legend. */
+.area { border: 1px solid var(--border); border-radius: .8rem; background: var(--surface);
+  padding: .75rem; min-width: 0; }
+.area[data-origin="ai"] { border-style: dashed;
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--border)); }
+.area-head { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.area-head h2 { margin: 0; font-size: .95rem; }
+.origin { padding: .1rem .45rem; border-radius: 999px; border: 1px solid var(--border);
+  font-size: .6rem; letter-spacing: .12em; }
+.origin-deterministic { color: var(--tertiary); }
+.origin-ai { color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--border)); }
+.purpose, .capability { margin: .4rem 0; font-size: .82rem; color: var(--secondary); }
+.probe { margin: .4rem 0 0; font-size: .82rem; }
+.probe-absent { color: var(--status-paused); }
+.probe-unknown { color: var(--status-planned); }
+.probe-available { color: var(--status-done); }
+
+.panel { margin-top: .75rem; padding-top: .6rem; border-top: 1px solid var(--border);
+  min-width: 0; }
+.panel h3 { margin: 0 0 .4rem; font-size: .7rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--tertiary); }
+.panel-head { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.panel-head h3 { margin: 0; }
+.caption { font-size: .74rem; color: var(--secondary); }
+.control { margin-left: auto; padding: .25rem .7rem; border: 1px solid var(--border);
+  border-radius: 999px; background: var(--background); color: var(--accent);
+  font: 650 .66rem ui-sans-serif, system-ui, sans-serif; letter-spacing: .1em;
+  cursor: pointer; }
+.control:hover { border-color: var(--accent); }
+.help { margin: .4rem 0 0; font-size: .72rem; color: var(--tertiary); }
+.help b { color: var(--secondary); }
+
+.canvas { position: relative; height: min(60vh, 28rem); overflow: hidden;
+  border: 1px solid var(--border); border-radius: .6rem; cursor: grab;
+  touch-action: none; }
+.canvas svg { display: block; width: 100%; height: 100%; }
+.edge { stroke: var(--tertiary); stroke-width: 3; fill: none; opacity: .4; }
+.edge.lit { stroke: var(--accent); opacity: .95; }
+.edge.dangling { stroke-dasharray: 10 8; }
+.node { cursor: pointer; }
+.node * { pointer-events: all; }
+.hit { fill: transparent; stroke: none; }
+.glyph { stroke-width: 4; fill: color-mix(in srgb, var(--background) 60%, transparent); }
+.node.status-done .glyph { stroke: var(--status-done); }
+.node.status-active .glyph { stroke: var(--status-active); }
+.node.status-paused .glyph { stroke: var(--status-paused); }
+.node.status-planned .glyph { stroke: var(--status-planned); }
+.node.status-unknown .glyph { stroke: var(--status-unknown); stroke-dasharray: 6 5; }
+.node .name { fill: var(--text); font: 600 26px ui-sans-serif, system-ui, sans-serif;
+  text-anchor: middle; }
+.node .sub { fill: var(--tertiary); font: 20px ui-sans-serif, system-ui, sans-serif;
+  text-anchor: middle; }
+.node.dimmed, .edge.dimmed { opacity: .12; }
+
+.labels { position: absolute; inset: 0; pointer-events: none; }
+.chip { position: absolute; top: 0; left: 0; padding: .15rem .5rem; border-radius: .4rem;
+  border: 1px solid var(--border); border-left-width: 3px; background: var(--surface);
+  color: var(--text); font: 600 .72rem ui-sans-serif, system-ui, sans-serif;
+  white-space: nowrap; will-change: transform; }
+.chip.status-done { border-left-color: var(--status-done); }
+.chip.status-active { border-left-color: var(--status-active); }
+.chip.status-paused { border-left-color: var(--status-paused); }
+.chip.status-planned { border-left-color: var(--status-planned); }
+
+ul, ol { margin: 0; padding: 0; list-style: none; display: grid; gap: .35rem; }
+.warning, .activity, .event { font-size: .82rem; color: var(--secondary); }
+.warning b { color: var(--status-paused); }
+.warning-cell { color: var(--tertiary); }
+.empty { color: var(--tertiary); font-size: .8rem; }
+.at { color: var(--tertiary); font-variant-numeric: tabular-nums; }
+.kind { padding: .05rem .4rem; margin: 0 .4rem; border: 1px solid var(--border);
+  border-radius: 999px; font-size: .64rem; letter-spacing: .08em; }
+.kind-pause { color: var(--status-paused); }
+.kind-complete { color: var(--status-done); }
+.kind-reconstructed { color: var(--status-planned); font-style: italic; }
+/* The cell name and the facts beside it are two different things; with no gap they read as
+   one word ("markdown-parserHeadings and paragraphs parse"). */
+.cell { color: var(--text); margin-right: .4rem; }
+
+/* The table is the alternative that must always work: it scrolls on its own axis at 320 px
+   rather than pushing the page sideways. */
+.cells-host { overflow-x: auto; }
+table.cells { width: 100%; border-collapse: collapse; font-size: .8rem; }
+table.cells caption { text-align: left; padding-bottom: .4rem; color: var(--tertiary);
+  font-size: .74rem; }
+table.cells th { text-align: left; padding: .35rem .5rem; color: var(--tertiary);
+  font-size: .66rem; letter-spacing: .1em; text-transform: uppercase;
+  border-bottom: 1px solid var(--border); }
+table.cells td { padding: .4rem .5rem; border-bottom: 1px solid var(--border);
+  vertical-align: top; }
+table.cells tr.row { cursor: pointer; }
+table.cells tr.row:hover td { background: var(--background); }
+table.cells tr.selected td { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.col-status { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* An absence LOOKS like an absence: lighter, italic, and spelled out. */
+.absent, .value.absent, .absent-row dd .value { color: var(--tertiary); font-style: italic; }
+.failure { color: var(--status-paused); font-size: .85rem; }
+.failure b { color: var(--text); }
+
+.detail-panel { position: fixed; inset: auto 0 0 0; max-height: 72vh; overflow-y: auto;
+  padding: 1rem; background: var(--surface); border-top: 1px solid var(--accent); }
+@media (min-width: 60rem) {
+  .detail-panel { inset: 5rem 1rem auto auto; width: 24rem; max-height: 76vh;
+    border: 1px solid var(--accent); border-radius: .8rem; }
+}
+.detail-head { display: grid; gap: .2rem; }
+.detail-head h3 { margin: 0; font-size: 1.05rem; }
+.detail-head .meta { margin: 0; font-size: .72rem; letter-spacing: .08em;
+  color: var(--tertiary); }
+.detail { display: grid; grid-template-columns: minmax(6rem, 10rem) minmax(0, 1fr);
+  gap: .2rem .6rem; margin: .8rem 0 0; font-size: .82rem; }
+.detail-row { display: contents; }
+.detail dt { color: var(--tertiary); }
+.detail dd { margin: 0; }
+.unavailable { font-size: .78rem; color: var(--status-paused); }
+.unavailable .note { color: var(--tertiary); }
+.close { margin-top: .4rem; justify-self: start; padding: .25rem .7rem;
+  border: 1px solid var(--border); border-radius: .4rem; background: none;
+  color: var(--secondary); cursor: pointer; }
+.protocol-note { margin: 0 0 .5rem; font-size: .78rem; color: var(--tertiary); }
+.protocol-note b { color: var(--status-paused); }
+.event-body { display: grid; grid-template-columns: minmax(4.5rem, 7rem) minmax(0, 1fr);
+  gap: .1rem .5rem; margin: .2rem 0 .6rem; }
+.event-body dt { color: var(--tertiary); font-size: .74rem; }
+.event-body dd { margin: 0; }
+code { font: .88em ui-monospace, SFMono-Regular, Consolas, monospace;
+  color: var(--secondary); }
+
+/* The AUDIT area. Five verdicts, and the one that matters most is UNAVAILABLE: it is NOT a
+   kind of pass, so it is marked by a DASHED outline and a "[?]" glyph as well as by colour —
+   a reader in high contrast mode, on a printed page, or colour-blind must still see the
+   difference. No hex value here: every colour is a token from :root above (criterion D15). */
+.audit-tiles { margin-top: .5rem; }
+.audit-pass { border-top-color: var(--status-done); }
+.audit-fail { border-top-color: var(--accent); }
+.audit-warning { border-top-color: var(--status-paused); }
+.audit-unavailable { border-top-color: var(--status-unknown); border-style: dashed; }
+.audit-na { border-top-color: var(--status-planned); }
+.filter-wrap { display: inline-flex; gap: .3rem; align-items: center; font-size: .72rem;
+  color: var(--tertiary); }
+.filter { padding: .2rem .4rem; border: 1px solid var(--border); border-radius: .4rem;
+  background: var(--background); color: var(--text); font: inherit; }
+.findings { list-style: none; margin: .6rem 0 0; padding: 0; display: grid; gap: .5rem; }
+.finding { padding: .5rem .6rem; border: 1px solid var(--border); border-left-width: 3px;
+  border-radius: .5rem; background: var(--background); }
+.finding.audit-unavailable { border-style: dashed; }
+.finding.audit-pass { border-left-color: var(--status-done); }
+.finding.audit-fail { border-left-color: var(--accent); }
+.finding.audit-warning { border-left-color: var(--status-paused); }
+.finding.audit-unavailable { border-left-color: var(--status-unknown); }
+.finding.audit-na { border-left-color: var(--status-planned); }
+.finding.empty { color: var(--tertiary); font-size: .8rem; border-left-color: var(--border); }
+.finding-head { display: flex; flex-wrap: wrap; gap: .5rem; align-items: baseline;
+  font-size: .78rem; }
+.verdict { font-size: .66rem; letter-spacing: .1em; }
+.verdict.audit-pass { color: var(--status-done); }
+.verdict.audit-fail { color: var(--accent); }
+.verdict.audit-warning { color: var(--status-paused); }
+.verdict.audit-unavailable { color: var(--status-unknown); }
+.verdict.audit-na { color: var(--status-planned); }
+.finding-rule { color: var(--text); }
+.finding-scope, .finding-id { color: var(--tertiary); font-size: .72rem; }
+.finding-why { margin: .3rem 0 0; font-size: .82rem; color: var(--secondary); }
+.evidence { list-style: none; margin: .3rem 0 0; padding: 0; display: grid; gap: .1rem; }
+.evidence li { font-size: .76rem; }
+.finding-action { margin: .35rem 0 0; font-size: .78rem; }
+.action-label { color: var(--tertiary); letter-spacing: .06em; }
+
+/* The ADVISOR area. It must never be readable as a measurement, so the difference from the
+   AUDIT area is in SHAPE first: the section itself is dashed (see [data-origin="ai"] above),
+   a recommendation carries a rounded BADGE rather than a verdict chip, and the only labelled
+   claim that gets the accent is UNKNOWN - the one a reader should look at twice. No hex value
+   here either: every colour is a token from :root (criterion D15). */
+.question { padding: .2rem .4rem; border: 1px solid var(--border); border-radius: .4rem;
+  background: var(--background); color: var(--text); font: inherit; min-width: 14rem; }
+.badge { padding: .1rem .45rem; border-radius: 999px; border: 1px dashed var(--border);
+  font-size: .62rem; letter-spacing: .1em; }
+.badge.advisor-verified { color: var(--status-done); }
+.badge.advisor-inferred { color: var(--status-active); }
+.badge.advisor-proposed { color: var(--secondary); }
+.badge.advisor-unknown { color: var(--accent); border-style: dotted; }
+.finding.advisor-rec { border-left-style: dashed; border-left-color: var(--border); }
+.finding.advisor-unknown { border-left-color: var(--accent); }
+.advisor-uncertainty, .evidence-refs { margin: .3rem 0 0; font-size: .78rem; }
+.advisor-notes { list-style: none; margin: .4rem 0 0; padding: 0; display: grid; gap: .2rem; }
+.advisor-note { font-size: .76rem; color: var(--status-paused); }
+.advisor-adapter { margin: .2rem 0 0; }
+.ref { font: .76em ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--secondary);
+  margin-right: .4rem; }
+.ref-cell { background: none; border: 0; border-bottom: 1px dashed var(--accent);
+  color: var(--accent); cursor: pointer; padding: 0; }
+.probe-answered { color: var(--accent); }
+.probe-quiet { color: var(--tertiary); }

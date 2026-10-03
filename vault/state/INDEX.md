@@ -21,10 +21,14 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [Host API and OpenAPI](cells/host-api-and-openapi.md) | eip/host, api/openapi.json, examples/api-client, docs/adr | ✔ | 2026-10-02 | — |
 | [Orchestration gateway](cells/orchestration-gateway.md) | eip/orchestration | ✔ | 2026-10-02 | — |
 | [Architecture docs and validation](cells/architecture-docs-and-validation.md) | docs/09, ARCHITECTURE_REPORT.md, README, CONTEXT_AUDIT | ✔ | 2026-10-02 | — |
-| [Cellular Observer](cells/cellular-observer.md) | eip/plugins/observer (proposed) | 📋 | — | — |
+| [Cellular Observer](cells/cellular-observer.md) | eip/plugins/observer (proposed) | ✔ | 2026-10-03 | — |
 | [Release verification](cells/release-verification.md) | policy/, tools/gates/release.mjs, eip/host write-port test | ✔ | 2026-10-02 | — |
 | [Release documentation](cells/release-documentation.md) | docs/adr, SECURITY.md, RELEASE_CHECKLIST.md, README, docs/01, docs/09, ARCHITECTURE_REPORT | ✔ | 2026-10-02 | — |
 | [Typecheck enablement](cells/typecheck-enablement.md) | jsconfig.json, package.json, tools/gates/typecheck.mjs, JSDoc across the codebase | ✔ | 2026-10-02 | — |
 | [Log redaction](cells/log-redaction.md) | vault/state/log.md, vault/state/cells/stage-2-inspection.md, policy/relaxations.md | ✔ | 2026-10-02 | — |
 | [First local commit](cells/first-local-commit.md) | git (local only) | ✔ | 2026-10-02 | — |
 | [Private GitHub repository](cells/private-github-repository.md) | SECURITY.md, tests/leaks.test.mjs, RELEASE_CHECKLIST.md, git remote | ✔ | 2026-10-02 | — |
+| [Observer dashboard](cells/observer-dashboard.md) | eip/plugins/observer-state, apps/observer, tools/cellmode (deps option) | ✔ | 2026-10-02 | — |
+| [Observer auditor](cells/observer-auditor.md) | eip/plugins/observer-audit, tools/gates/trilateral.mjs evidence, apps/observer AUDIT area | ✔ | 2026-10-02 | — |
+| [Observer advisor](cells/observer-advisor.md) | eip/plugins/observer-advisor, apps/observer ADVISOR area | ✔ | 2026-10-03 | — |
+| [Stage 3 final validation](cells/stage-3-final-validation.md) | docs/adr/0003, tools/cellmode open, apps/observer/MANUAL-CHECKS.md, reports | ✔ | 2026-10-03 | — |

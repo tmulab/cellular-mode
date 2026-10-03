@@ -95,6 +95,7 @@ line of project code is read is **1,304 lines / 9,252 words / 62,135 bytes**.
 | **Bootstrap subtotal** | **58** | **618** | **4,245** | 52 / 477 / 3,194 |
 | + eleven skill `description` lines (Claude Code preload) | 11 | 380 | 2,610 | 4 / 135 / 929 |
 | **New effective always-loaded** | **69** | **998** | **6,855** | 56 / 612 / 4,123 |
+| **Stage-3 re-measure, 2026-10-03** (`wc -lwc AGENTS.md CLAUDE.md`) | **58** | **618** | **4,245** | **unchanged** — the observer added no bootstrap byte |
 
 The `AGENTS.md` growth is exactly the six-line constitution summary plus the pointer to the
 engineering skills — still a router, not a manual. The larger delta is the seven extra skill

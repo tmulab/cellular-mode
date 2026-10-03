@@ -117,12 +117,19 @@ test('deps · the real repository passes the gate it ships', () => {
   const code = readTuples(undefined, (rel) => /\.(mjs|js)$/.test(rel));
   const findings = checkDeps({ pkg, files: code, policy: readPolicy('allowed-dependencies.json', { allowed: [] }) });
   assert.deepEqual(findings, [], findings.map((f) => `${f.rule} ${f.path}: ${f.detail}`).join('\n'));
+  // The exact script set, so a shortcut cannot be smuggled in beside the gates: no
+  // `prepare`, no `postinstall`, no `--no-verify` wrapper, nothing that runs on install.
+  // `typecheck` runs BOTH configurations — the repository's and the browser one in
+  // apps/observer — because a second config that nobody runs is a second config that rots.
   assert.deepEqual(pkg.scripts, {
     test: 'node --test',
-    typecheck: 'tsc -p jsconfig.json',
+    typecheck: 'tsc -p jsconfig.json && tsc -p apps/observer/jsconfig.json',
     gates: 'node tools/gates/check-all.mjs',
     trilateral: 'node tools/gates/trilateral.mjs',
   });
+  for (const command of Object.values(pkg.scripts)) {
+    assert.doesNotMatch(String(command), /--no-verify|npx |curl |\|\||;/, `suspicious script: ${command}`);
+  }
 });
 
 // ------------------------------------------------- scan: the one disk layer -----

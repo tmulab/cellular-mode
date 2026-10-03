@@ -20,8 +20,8 @@ node tools/cellmode/cli.mjs <command> [options]
 | Command | Options | Effect |
 |---|---|---|
 | `init` | — | Creates `vault/state/{log.md,INDEX.md,CURRENT-CELL.md,parking-lot.md,cells/README.md}`. Refuses if the folder exists. |
-| `plan <name>` | `--area` (required), `--objective` | Adds a 📋 row and a cell file. **No log entry** — a planned cell never ran. |
-| `open <name>` | `--area --objective --in --out --done` | New cell, or 📋 → 🔵. This is an *opening*, not a resume, and writes no log entry. Writes the cell file, the INDEX row and the CURRENT-CELL projection. |
+| `plan <name>` | `--area` (required), `--objective --deps` | Adds a 📋 row and a cell file. **No log entry** — a planned cell never ran. |
+| `open <name>` | `--area --objective --in --out --done --next --deps` | New cell, or 📋 → 🔵. This is an *opening*, not a resume, and writes no log entry. Writes the cell file, the INDEX row and the CURRENT-CELL projection. |
 | `resume <name>` | — | ⏸ → 🔵. Case-insensitive, exact match first, then substring. Prints a ≤5-line reconnection. |
 | `pause` | `--facts` and `--next` (required), `--decisions --build --note` | 🔵 → ⏸. Appends the log entry, rewrites the cell file and the INDEX row, resets CURRENT-CELL to the "no active cell" form. |
 | `complete` | `--facts` and `--confirm` (required), `--decisions --build --note` | 🔵 → ✔, next step `—`. The cell file is kept: a done cell is history. |
@@ -32,6 +32,33 @@ node tools/cellmode/cli.mjs <command> [options]
 
 `--build` defaults to the value already in the cell file (`—` when unknown): the
 tool never claims a green build on your behalf.
+
+## The first step (`--next` on `open`)
+
+The `cell` skill creates a cell with a name, a boundary **and a first step**, so
+`open` accepts `--next "<one concrete action>"` and writes it to the cell file's
+`## ➜ NEXT STEP` section, the `Next step` column of `INDEX.md` and the
+`CURRENT-CELL.md` projection — the same three places a `pause` writes it to, and
+still **no log entry**: an opening is not a closure. It works on a promotion from
+📋 as well. Omitting `--next` is allowed and changes nothing (the step stays `—`),
+but `--next ""` is a usage error: a blank next step is not a next step. `plan` has
+no `--next` on purpose — a planned cell carries intentions, not a first step.
+
+## Declared dependencies (`--deps`)
+
+`plan` and `open` accept `--deps "<a>, <b>"` and write the cell file's
+`**Dependencies:**` field. Values are **normalised to slugs** (the cell ID), so
+`--deps "Reading time, word-count"` is stored as `reading-time, word-count`:
+a slug is what `INDEX.md` links to and what `cells/<slug>.md` is named, while a
+free-form name would resolve to a different cell depending on how it was typed.
+Commas or semicolons separate; duplicates are dropped; order is kept; an empty
+list writes `—`.
+
+Omitting `--deps` on `open` leaves the existing field untouched; `--deps ""`
+clears it. A dependency naming a cell that does not exist is kept as written and
+is **not** invented into existence — a reader of the field (the observer
+dashboard, for instance) reports it as dangling. Nothing else derives an edge
+between two cells: an undeclared dependency is no dependency.
 
 ## Exit codes
 
@@ -68,7 +95,8 @@ a disk. `state.mjs` is the only module that reads or writes vault files.
 | `cli.mjs` | Entry point: sets `process.exitCode` from `main(process.argv)`. |
 | `main.mjs` | Dispatch and usage text; returns an exit code instead of exiting. |
 | `commands.mjs` | `init`, `plan`, `park`, `status`, `check` + the command registry. |
-| `transitions.mjs` | `open`, `resume`, `pause`, `complete` and the shared guard. |
+| `transitions.mjs` | `open`, `resume`, `pause`, `complete`. |
+| `activate.mjs` | The integrity guard, the one-active-cell refusal, the activation write path. |
 | `state.mjs` | All filesystem I/O for `vault/state/`. |
 | `index-table.mjs` | Parse/render `INDEX.md` (escaped pipes, link-form names, several tables). |
 | `log.mjs` | Render/parse log entries; append-only by construction. |

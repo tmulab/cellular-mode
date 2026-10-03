@@ -1,6 +1,7 @@
 # Release checklist — public release
 
-**Current verdict: no technical blocker left.** R-1 was resolved on 2026-10-02 (item 15):
+**Current verdict: no technical blocker left for stages 1-2; stage 3 adds three OPEN items (31-33).**
+R-1 was resolved on 2026-10-02 (item 15):
 the typecheck leg is real and reports 0 errors, and `check-all.mjs --release` exits 0. What
 remains is human-only authorization: publication (29). Security contact (6) set and push (28)
 authorized on 2026-10-02 to a PRIVATE repository.
@@ -16,7 +17,7 @@ and UNKNOWN is never green).
 |---|---|---|---|
 | 1 | `LICENSE` is Apache-2.0 and unmodified | ✅ VERIFIED | `tests/license.test.mjs` asserts the header on every source file |
 | 2 | `NOTICE` and `THIRD_PARTY_NOTICES.md` agree with `LICENSE` and with each other | ✅ VERIFIED | licensing decisions of 2026-10-02, recorded in `MIGRATION_REPORT.md` |
-| 3 | No third-party code bundled; the notices say so | ✅ VERIFIED | `THIRD_PARTY_NOTICES.md`; `npm run gates` (deps) finds zero dependencies |
+| 3 | Third-party code: exactly one vendored directory, declared | ✅ VERIFIED | `three@0.180.0` (MIT), hash-pinned, for the optional 3D view of `apps/observer/`; `THIRD_PARTY_NOTICES.md`, `apps/observer/vendor/VENDOR.md`, `tools/gates/VENDOR-EXCLUSION.md`; `npm run gates` (deps) still finds zero runtime dependencies |
 | 4 | Contribution licensing stated (Apache-2.0 §5, no CLA) | ✅ VERIFIED | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
 | 5 | 👤 Author identity and the TMU-LAB attribution are what the author wants published | ⚠️ needs a human read-through | `README.md`, `NOTICE` — names and `https://tmulab.org` appear; only the author can confirm |
 | 6 | 👤 Security contact published (not a placeholder) | ✅ VERIFIED | role address set in [`SECURITY.md`](SECURITY.md) (decision of 2026-10-02); the leak test allows exactly that address in exactly that file |
@@ -50,7 +51,7 @@ and UNKNOWN is never green).
 |---|---|---|---|
 | 20 | Adapters labelled per tool, not averaged | ✅ VERIFIED | Claude Code: discovery **VERIFIED** and invocation **VERIFIED** for the `cell` skill in a live session (the other ten pointer skills share the identical pointer shape but were not individually invoked). Every other adapter: **UNTESTED**, documented conventions only — [`adapters/README.md`](adapters/README.md), [`docs/08-agent-integration.md`](docs/08-agent-integration.md) |
 | 21 | Implemented / experimental / proposed table is current | ✅ VERIFIED | `README.md` status table; `docs/09-architecture.md` §4 |
-| 22 | Both ADRs accepted by the responsible human | ✅ VERIFIED | [0001](docs/adr/0001-frontend-exception.md), [0002](docs/adr/0002-zero-dependency-kernel.md) — approved by Hudson A. R. Bonomo, 2026-10-02 |
+| 22 | ADRs accepted by the responsible human | ✅ 3 of 3 | [0001](docs/adr/0001-frontend-exception.md), [0002](docs/adr/0002-zero-dependency-kernel.md) — approved by Hudson A. R. Bonomo, 2026-10-02. [0003](docs/adr/0003-observer-frontend.md) — approved 2026-10-03 (item 31) |
 | 23 | `SECURITY.md` exists, with scope, threat model and the trusted-local-plugins statement | ✅ VERIFIED | [`SECURITY.md`](SECURITY.md) |
 | 24 | No module claims isolation it does not have | ✅ VERIFIED | the write port is described as **path-confined**; kernel, host, SDK and README state that permissions are a contract, not a sandbox |
 | 25 | 👤 "Trusted local plugins only" is the approved scope and the docs say so | ✅ VERIFIED | decision of 2026-10-02; stated in `SECURITY.md`, `README.md`, `docs/09` §9, `eip/sdk/README.md`, `eip/host/README.md` |
@@ -80,11 +81,37 @@ node tools/gates/check-all.mjs --release   -> exit 0
   ✅ release: no blockers — every exception approved, every relaxation resolved
 ```
 
+## Stage 3 — the Cellular Observer (added 2026-10-03)
+
+The observer is **optional** and does not gate a release of the method; these items gate any
+claim that stage 3 is finished. Full account: [`OBSERVER_REPORT.md`](OBSERVER_REPORT.md).
+
+| | Item | Status | What is left |
+|---|---|---|---|
+| 31 | 👤 [ADR 0003](docs/adr/0003-observer-frontend.md) confirmed by the responsible human | ✅ VERIFIED | approved by Hudson A. R. Bonomo, 2026-10-03: independent local app, no Next.js in this version; future Next.js apps may register as application-type plugins |
+| 32 | Browser checks performed | ⚠️ automated items PASSED, human items open | headless Edge 154 over the DevTools protocol, real WebGL, 2026-10-03: 2D, 3D, navigation, selection, details, timeline, text view, audit, advisor, 320 px, 500 cells, CSP — per item in [`apps/observer/MANUAL-CHECKS.md`](apps/observer/MANUAL-CHECKS.md); five UI defects found and fixed. 👤 perceived contrast, screen reader and feel remain LEFT FOR HUMAN |
+| 33 | 👤 Stage-3 work committed | ✅ local commit authorized 2026-10-03 | committed locally after the final gates; **push not yet authorized** (pending the human browser items) |
+| 34 | Stage-3 gates and tests green | ✅ VERIFIED 2026-10-03 | the run quoted below |
+| 35 | Trojan Source gate | ❌ not built | literal invisible/bidi characters were found in three files and fixed by hand this stage; the gate is parked in `vault/state/parking-lot.md` |
+
+```
+2026-10-03 run (stage 3, quoted from OBSERVER_REPORT.md §10):
+npm run typecheck                          -> both configurations, 0 errors
+npm test                                   -> 491 pass, 0 fail, 36 suites
+npm run gates                              -> 362 files scanned, no findings, 0 pending exceptions
+node tools/gates/trilateral.mjs --evidence -> typecheck 0 · build 119 modules · tests 491/491 · exit 0
+node tools/gates/check-all.mjs --release   -> exit 0, no blockers
+node tools/cellmode/cli.mjs check          -> passed · 1 active · 25 done · 26 log entries
+node examples/text-stats/reproduce.mjs     -> 8 files identical, exit 0
+node examples/observer-demo/reproduce.mjs  -> 9 files identical, exit 0
+```
+
 ## Who must decide what
 
 1. **Security contact** (item 6) — done: role address set on 2026-10-02.
 2. **Push and publish** (items 28–29) — two separate authorizations (init and the first
    local commit were authorized and done on 2026-10-02).
+3. **ADR 0003** (item 31) and the **stage-3 commit** (item 33) — both open, both human-only.
 
 R-1 (item 15) was decided on 2026-10-02 and is closed. Nothing on this list may be marked
 green by an agent on its own initiative.

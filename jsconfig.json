@@ -17,5 +17,11 @@
     "skipLibCheck": false
   },
   "include": ["**/*.mjs", "**/*.js", "**/*.cjs"],
-  "exclude": ["node_modules"]
+  "//exclude": "Three entries, each a platform fact rather than a relaxation. (1) node_modules is not ours. (2) The two minified three.js builds are vendored upstream artefacts, pinned by SHA-256 and checked by tests/license.test.mjs; type-checking 721 KB of generated code would prove nothing and cost every run (see tools/gates/README.md, 'The vendored three.js directory'). (3) apps/observer/web is BROWSER code: it is type-checked by apps/observer/jsconfig.json, which has lib DOM and the same four strict flags, and `npm run typecheck` runs both configurations. Nothing is left unchecked.",
+  "exclude": [
+    "node_modules",
+    "apps/observer/vendor/three@0.180.0/three.core.min.js",
+    "apps/observer/vendor/three@0.180.0/three.module.min.js",
+    "apps/observer/web"
+  ]
 }

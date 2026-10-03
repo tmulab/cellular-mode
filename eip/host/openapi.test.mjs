@@ -80,7 +80,9 @@ test('H12 real responses validate against the documented schemas', async () => {
       [CAPABILITY, 'POST', CAP, 400, { input: { text: 7 } }],
       ['/api/v1/plugins/no.such/capabilities/x', 'POST', CAP, 404, { input: {} }],
       [SAVE_REPORT, 'POST', CAP, 403, { input: { name: 'a', text: 'b c' }, approval: { approved: true } }],
-      [SAVE_REPORT, 'POST', CAP, 500, { input: { name: '../escape', text: 'b c' } }],
+      // A plugin's own INPUT_INVALID passes through the kernel (K14), so a bad
+      // report name is documented and answered as a 400, not as a server fault.
+      [SAVE_REPORT, 'POST', CAP, 400, { input: { name: '../escape', text: 'b c' } }],
     ];
     for (const [path, method, template, status, payload] of cases) {
       const response = method === 'GET' ? await h.call(path) : await h.post(path, payload);

@@ -9,8 +9,8 @@
 
 // Unicode whitespace, plus the byte-order mark, which is whitespace in practice
 // but not in the White_Space property.
-const SPACE = /[\p{White_Space}﻿]+/u;
-const EDGES = /^[\p{White_Space}﻿]+|[\p{White_Space}﻿]+$/gu;
+const SPACE = /[\p{White_Space}\uFEFF]+/u;
+const EDGES = /^[\p{White_Space}\uFEFF]+|[\p{White_Space}\uFEFF]+$/gu;
 
 /**
  * Number of whitespace-separated words in `text`.

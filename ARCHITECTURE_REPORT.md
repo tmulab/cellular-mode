@@ -190,7 +190,7 @@ Each is sized for one focus session, with a binary done criterion. None is start
 
 | Cell | Objective | Done when |
 |---|---|---|
-| **Cellular Observer** (next stage, PROPOSED — not started) | the first substantial *optional* plugin: port the original 3D dashboard (Modo Celular's painel) as an observation surface, then deterministic auditing, then AI-assisted advisory capabilities | the ported panel observes real vault state through the API; **note:** the original vendors three.js r180 under MIT, so the port requires a `THIRD_PARTY_NOTICES.md` update and the vendoring discipline |
+| **Cellular Observer** — ✔ **done in stage 3 (2026-10-03), reported separately** | three optional plugins (`observer.state`, `observer.audit`, `observer.advisor`) plus the independent `apps/observer/` application, ported from Modo Celular's painel with three.js r180 vendored under MIT | delivered; what was reused, changed, verified and still open is in [`OBSERVER_REPORT.md`](OBSERVER_REPORT.md), and the remaining work is its §11 — this stage-2 report is not updated for it |
 | **Approval provenance** | replace the TTY-only approver with a verdict record: who approved, when, which key#cap, carried into the kernel and the audit | a consequential call produces a durable approval record; a test proves a call with no record is refused |
 | **Durable audit** | append the gateway audit to a file through a host port, append-only like the cell log | the audit survives a restart; a mutation that rewrites history goes red |
 | **Host authentication** | a single shared-secret header checked before routing, documented in `api/openapi.json` | an unauthenticated request gets 401 with the standard envelope; the OpenAPI test still passes both directions |

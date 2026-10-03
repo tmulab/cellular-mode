@@ -24,10 +24,18 @@ export const HOST_ADDRESS = '127.0.0.1';
  *   decision for consequential calls. ABSENT MEANS DENIED: every consequential
  *   capability answers APPROVAL_REQUIRED.
  * @param {boolean} [options.devUi=false] serve /dev/plugins/{key}
- * @param {string} options.reportsDir the only directory plugins may write into
+ * @param {string} [options.reportsDir] the only directory plugins may write into.
+ *   ABSENT MEANS NO WRITE PORT AT ALL: a composition of read-only plugins must not
+ *   have to trust the permission system to hide a writer nobody needs.
+ * @param {Readonly<Record<string, { permission: string, fn: Function }>>} [options.ports]
+ *   extra port descriptors this composition offers. The host stays generic: it knows
+ *   how to hand ports over, not which ones a particular application wants (see
+ *   `eip/host/observer-composition.mjs`).
  * @param {number} [options.defaultTimeoutMs] deadline for calls that give none
  */
-export async function createHost({ plugins, approver, devUi = false, reportsDir, defaultTimeoutMs }) {
+export async function createHost({
+  plugins, approver, devUi = false, reportsDir, ports: extraPorts = {}, defaultTimeoutMs,
+}) {
   if (!Array.isArray(plugins) || plugins.length === 0) {
     throw new TypeError('createHost needs a non-empty array of plugin manifests');
   }
@@ -39,7 +47,10 @@ export async function createHost({ plugins, approver, devUi = false, reportsDir,
 
   // One port map for every plugin. The kernel grants each plugin only the ports
   // whose permission it declared, so least privilege is not the host's discipline.
-  const ports = { writeFile: createWritePort(reportsDir) };
+  const ports = {
+    ...(reportsDir === undefined ? {} : { writeFile: createWritePort(reportsDir) }),
+    ...extraPorts,
+  };
   // Load order is irrelevant (siblings resolve at call time), so registration
   // order is used: a composition that depends on load order is a composition that
   // will break when someone sorts a list.
@@ -90,3 +101,5 @@ export { STATUS_BY_CODE, statusFor } from './errors.mjs';
 export { MAX_BODY_BYTES } from './body.mjs';
 export { ROUTE_TABLE, routeOf } from './router.mjs';
 export { createWritePort } from './write-port.mjs';
+export { createVaultReadPorts } from './read-port.mjs';
+export { createRepoReadPorts } from './repo-read-port.mjs';

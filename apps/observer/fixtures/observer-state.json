@@ -1,0 +1,117 @@
+{
+  "//": "Recorded fixtures of the observer.state contract (stage-3 spec). Hand-written to the published shapes so the interface can be built and reviewed without the backend cell. Positions are server-computed in reality; here they are frozen values, which is the point: the browser never computes one.",
+  "overview": {
+    "counts": { "total": 6, "planned": 2, "active": 1, "paused": 1, "done": 2 },
+    "active": { "id": "observer-dashboard", "name": "Observer dashboard" },
+    "recent": [
+      {
+        "at": "2026-10-02 18:40",
+        "cell": "observer-dashboard",
+        "kind": "pause",
+        "status": "paused",
+        "facts": "Static server and allowlist in place; headers asserted.",
+        "decisions": null,
+        "build": "typecheck green, 41 tests",
+        "nextStep": "Port the 2D projection."
+      },
+      {
+        "at": "2026-10-01 11:05",
+        "cell": "observer-contracts",
+        "kind": "complete",
+        "status": "done",
+        "facts": "Capability shapes agreed with the frontend cell.",
+        "decisions": "Positions are computed server-side.",
+        "build": "typecheck green, 266 tests",
+        "nextStep": null
+      }
+    ],
+    "warnings": [
+      { "code": "DANGLING_DEPENDENCY", "message": "\"observer-advisor\" declares a dependency on \"model-adapters\", which is not a cell", "cell": "observer-advisor" },
+      { "code": "NO_NEXT_STEP", "message": "\"observer-auditor\" records no next step", "cell": "observer-auditor" }
+    ],
+    "integrity": { "ok": true, "findings": [] }
+  },
+  "cells": {
+    "cells": [
+      { "id": "observer-dashboard", "name": "Observer dashboard", "area": "apps/observer", "status": "active", "statusSymbol": "O", "lastVisit": "2026-10-02 18:40", "nextStep": "Port the 2D projection.", "dependencies": ["observer-contracts"] },
+      { "id": "observer-auditor", "name": "Observer auditor", "area": "eip/plugins", "status": "planned", "statusSymbol": "P", "lastVisit": null, "nextStep": null, "dependencies": ["observer-dashboard"] },
+      { "id": "observer-advisor", "name": "Observer advisor", "area": "eip/plugins", "status": "planned", "statusSymbol": "P", "lastVisit": null, "nextStep": "Write the acceptance criteria.", "dependencies": ["observer-auditor", "model-adapters"] },
+      { "id": "observer-contracts", "name": "Observer contracts", "area": "docs", "status": "done", "statusSymbol": "D", "lastVisit": "2026-10-01 11:05", "nextStep": null, "dependencies": [] },
+      { "id": "vault-projections", "name": "Vault projections", "area": "tools/cellmode", "status": "done", "statusSymbol": "D", "lastVisit": "2026-09-28 09:12", "nextStep": null, "dependencies": [] },
+      { "id": "read-ports", "name": "Read ports", "area": "eip/host", "status": "paused", "statusSymbol": "W", "lastVisit": "2026-09-30 22:03", "nextStep": "Confine listCells to vault/state.", "dependencies": ["observer-contracts"] }
+    ]
+  },
+  "cell-detail": {
+    "observer-dashboard": {
+      "id": "observer-dashboard",
+      "name": "Observer dashboard",
+      "status": "active",
+      "area": "apps/observer",
+      "objective": "A local dashboard that shows the vault as it is recorded, and says so when something is not recorded.",
+      "boundary": { "in": "apps/observer, the vendored three.js, the ADR", "out": "the kernel, the vault's contents, anything outside this repository" },
+      "inputs": "observer.state capabilities over the host's HTTP envelope",
+      "outputs": "a static application and its own server",
+      "allowedOperations": "read the API, render, run the gates",
+      "prohibitedOperations": "write to the vault, reach the network, bind a non-loopback address",
+      "dependencies": ["observer-contracts"],
+      "doneCriterion": "Every criterion in apps/observer/ACCEPTANCE.md is green and the manual checks are performed.",
+      "lastFact": "Static server and allowlist in place; headers asserted.",
+      "build": "typecheck green, 41 tests",
+      "decisions": null,
+      "openIssues": "The backend composition option is not in the host yet.",
+      "minimalContext": "SPEC3 contracts, the original dashboard modules, apps/observer/ACCEPTANCE.md",
+      "nextStep": "Port the 2D projection.",
+      "evidence": { "logEntries": 3, "lastStatus": "paused", "lastBuild": "typecheck green, 41 tests" },
+      "unavailable": []
+    },
+    "observer-auditor": {
+      "id": "observer-auditor",
+      "name": "Observer auditor",
+      "status": "planned",
+      "area": "eip/plugins",
+      "objective": null,
+      "boundary": { "in": null, "out": null },
+      "inputs": null,
+      "outputs": null,
+      "allowedOperations": null,
+      "prohibitedOperations": null,
+      "dependencies": ["observer-dashboard"],
+      "doneCriterion": null,
+      "lastFact": null,
+      "build": null,
+      "decisions": null,
+      "openIssues": null,
+      "minimalContext": null,
+      "nextStep": null,
+      "evidence": { "logEntries": 0, "lastStatus": null, "lastBuild": null },
+      "unavailable": ["lastVisit"]
+    }
+  },
+  "graph": {
+    "nodes": [
+      { "id": "observer-contracts", "name": "Observer contracts", "status": "done", "column": "done", "layer": 0, "x": 1800, "y": 600, "z": 0 },
+      { "id": "vault-projections", "name": "Vault projections", "status": "done", "column": "done", "layer": 0, "x": 1800, "y": 0, "z": 0 },
+      { "id": "read-ports", "name": "Read ports", "status": "paused", "column": "paused", "layer": 1, "x": 1200, "y": 300, "z": 200 },
+      { "id": "observer-dashboard", "name": "Observer dashboard", "status": "active", "column": "active", "layer": 1, "x": 600, "y": 600, "z": 200 },
+      { "id": "observer-auditor", "name": "Observer auditor", "status": "planned", "column": "planned", "layer": 2, "x": 0, "y": 300, "z": 400 },
+      { "id": "observer-advisor", "name": "Observer advisor", "status": "planned", "column": "planned", "layer": 3, "x": 0, "y": -300, "z": 600 }
+    ],
+    "edges": [
+      { "from": "observer-dashboard", "to": "observer-contracts" },
+      { "from": "read-ports", "to": "observer-contracts" },
+      { "from": "observer-auditor", "to": "observer-dashboard" },
+      { "from": "observer-advisor", "to": "observer-auditor" }
+    ],
+    "dangling": [{ "from": "observer-advisor", "to": "model-adapters" }],
+    "layout": { "columns": ["planned", "active", "paused", "done"], "layers": 4 }
+  },
+  "timeline": {
+    "events": [
+      { "at": "2026-10-02 18:40", "cell": "observer-dashboard", "kind": "pause", "status": "paused", "facts": "Static server and allowlist in place; headers asserted.", "decisions": null, "build": "typecheck green, 41 tests", "nextStep": "Port the 2D projection." },
+      { "at": "2026-10-01 11:05", "cell": "observer-contracts", "kind": "complete", "status": "done", "facts": "Capability shapes agreed with the frontend cell.", "decisions": "Positions are computed server-side.", "build": "typecheck green, 266 tests", "nextStep": null },
+      { "at": "2026-09-30 22:03", "cell": "read-ports", "kind": "pause", "status": "paused", "facts": "Path confinement drafted.", "decisions": null, "build": null, "nextStep": "Confine listCells to vault/state." },
+      { "at": "2026-09-28 09:12", "cell": "vault-projections", "kind": "reconstructed", "status": "done", "facts": "Entry rebuilt from the index table; the log line was missing.", "decisions": null, "build": null, "nextStep": null }
+    ],
+    "notRecorded": ["open", "resume"]
+  }
+}

@@ -92,11 +92,13 @@ test('T7 a name that is not pattern-safe never reaches the port', async () => {
   for (const name of ['../escape', 'a/b', 'a\\b', 'UPPER', 'with space', 'x'.repeat(41), 'dot.name']) {
     const result = await kernel.execute('text.report', 'save-report', { name, text: 'a b' });
     const failure = errorOf(result, `"${name}" should be refused`);
-    // The schema subset has no `pattern`, so the plugin raises a NAMED error and
-    // the kernel contains it: the code travels in details, never as a stack.
-    const expected = name.length > 40 ? 'INPUT_INVALID' : 'PLUGIN_ERROR';
-    assert.equal(failure.code, expected, `${name}: ${JSON.stringify(failure)}`);
-    if (expected === 'PLUGIN_ERROR') assert.equal(failure.details?.[0]?.path, 'INPUT_INVALID');
+    // The schema subset has no `pattern`, so the plugin raises a NAMED error. Which
+    // GATE caught it differs - the schema's maxLength for the long name, the plugin's
+    // own throw for the charset - and the code a caller sees does not: INPUT_INVALID
+    // is one of the SDK's PASSTHROUGH_CODES (K14), because a bad name is the CLIENT's
+    // mistake and not a fault of this server. No stack travels either way.
+    assert.equal(failure.code, 'INPUT_INVALID', `${name}: ${JSON.stringify(failure)}`);
+    assert.equal(failure.details?.[0]?.path, 'name');
     assert.equal('stack' in failure, false);
   }
   assert.deepEqual(writer.written, [], 'no refused name may reach the filesystem port');

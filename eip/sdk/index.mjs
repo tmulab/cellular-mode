@@ -3,7 +3,10 @@
 // that happens to do the wiring), and never from a sibling plugin's
 // implementation — siblings are known by CONTRACT, through `inject`.
 export { SDK_VERSION } from './version.mjs';
-export { CODES, KernelError, ContractError, isKernelError, messageOf, stackOf } from './errors.mjs';
+export {
+  CODES, PASSTHROUGH_CODES, KernelError, ContractError,
+  isKernelError, messageOf, passthroughOf, stackOf,
+} from './errors.mjs';
 export {
   KEYWORDS as SCHEMA_KEYWORDS,
   TYPES as SCHEMA_TYPES,

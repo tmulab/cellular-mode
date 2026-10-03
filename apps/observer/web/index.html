@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Cellular observer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- No inline script and no inline style anywhere in this document: that is what lets the
+     server send a CSP with plain 'self' and no 'unsafe-inline'. Every asset below is a
+     relative path to a file on the allowlist in ../assets.mjs. -->
+<link rel="stylesheet" href="/web/app.css">
+<script type="module" src="/web/main.mjs"></script>
+</head>
+<body>
+<a class="skip" href="#cells">Skip to the cells table</a>
+
+<p id="fixture-banner" class="banner" hidden>
+  <b>RECORDED FIXTURE</b> — this page is showing sample data from a contract fixture. No
+  vault is being read.
+</p>
+
+<header class="top">
+  <h1>Cellular observer</h1>
+  <div id="active-cell" class="active-cell"></div>
+  <div id="tiles" class="tiles"></div>
+  <div id="integrity" class="integrity"></div>
+</header>
+
+<main>
+  <section class="area project" aria-labelledby="project-title" data-origin="deterministic">
+    <header class="area-head">
+      <h2 id="project-title">Project</h2>
+      <span class="origin origin-deterministic">DETERMINISTIC</span>
+    </header>
+
+    <section class="panel" aria-labelledby="warnings-title">
+      <h3 id="warnings-title">Warnings</h3>
+      <ul id="warnings" class="warnings"></ul>
+    </section>
+
+    <section class="panel" aria-labelledby="activity-title">
+      <h3 id="activity-title">Recent activity</h3>
+      <ul id="activity" class="activity-list"></ul>
+    </section>
+
+    <section class="panel graph-panel" id="graph-panel" aria-labelledby="graph-title" tabindex="0">
+      <div class="panel-head">
+        <h3 id="graph-title">Graph</h3>
+        <span id="graph-caption" class="caption"></span>
+        <button id="fit" class="control" type="button">fit</button>
+        <button id="view-toggle" class="control" type="button" aria-pressed="false">show 3D</button>
+      </div>
+      <div id="graph-flat" class="canvas"></div>
+      <div id="graph-deep" class="canvas" hidden></div>
+      <p class="help">
+        drag <b>moves</b> · wheel <b>zooms</b> · click <b>focuses a cell</b> ·
+        arrows <b>pan</b> · <b>+ / -</b> zoom · <b>0</b> fits · <b>Esc</b> clears
+        <span id="help-3d" hidden>· in 3D: drag <b>rotates</b>, right-drag <b>pans</b>, <b>R</b> resets</span>
+      </p>
+      <p class="help">
+        The table below is the complete textual reading of this graph; the drawing is the
+        optional view.
+      </p>
+    </section>
+
+    <section class="panel" aria-labelledby="cells-title">
+      <h3 id="cells-title">Cells</h3>
+      <div id="cells" class="cells-host"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="timeline-title">
+      <h3 id="timeline-title">Timeline</h3>
+      <div id="timeline"></div>
+    </section>
+  </section>
+
+  <section class="area audit" id="audit" aria-label="Audit"></section>
+  <section class="area advisor" id="advisor" aria-label="Advisor"></section>
+</main>
+
+<aside id="detail" class="detail-panel" aria-label="Cell detail" hidden></aside>
+</body>
+</html>

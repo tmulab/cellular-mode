@@ -7,7 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ROOT, allFiles, isTextFile, read, report } from './helpers.mjs';
 import { checkSecrets } from '../tools/gates/secrets.mjs';
-import { readPolicy } from '../tools/gates/scan.mjs';
+import { isVendored, readPolicy } from '../tools/gates/scan.mjs';
 
 /** @type {(...parts: string[]) => string} */
 const j = (...parts) => parts.join('');
@@ -66,7 +66,13 @@ function patternOffenders(rel, text) {
   return out;
 }
 
-const files = allFiles().filter(isTextFile);
+// The two hash-pinned three.js artefacts are excluded, and by the SAME list the gates use
+// (`tools/gates/scan.mjs`), so the repository has one exclusion and not two. The reason is
+// specific: these privacy heuristics are written for prose and handwritten code, and 721 KB
+// of minified JavaScript trips the drive-letter shape wherever a ternary is followed by a
+// regular-expression literal. What guarantees those bytes instead is stricter than a
+// heuristic — SHA-256 pins, recomputed on every run in license.test.mjs.
+const files = allFiles().filter((rel) => isTextFile(rel) && !isVendored(rel));
 
 test('leaks · the repository is scanned at all', () => {
   assert.ok(files.length > 40, `expected a populated repository, found ${files.length} files in ${ROOT}`);

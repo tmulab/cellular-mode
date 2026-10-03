@@ -67,6 +67,27 @@ export class ContractError extends KernelError {
 }
 
 /**
+ * The ONLY codes a plugin may signal to a caller by throwing. Both are CLIENT errors:
+ * the plugin is the only thing that knows whether an id names anything, so answering
+ * an unknown id as `PLUGIN_ERROR` would make the server at fault for the question the
+ * client asked. Everything else — in particular `APPROVAL_*` and `PERMISSION_DENIED`
+ * — is AUTHORITY, and a plugin able to throw it could claim a human had decided
+ * something. The set is declared here, short, and closed.
+ */
+export const PASSTHROUGH_CODES = Object.freeze(['NOT_FOUND', 'INPUT_INVALID']);
+
+const PASSTHROUGH = new Set(/** @type {readonly string[]} */ (PASSTHROUGH_CODES));
+
+/**
+ * The thrown value, when it is a client error a plugin may report as its own, else
+ * `null`. PURE, so the containment rule can be read without a kernel around it.
+ * @type {(cause: unknown) => KernelError | null}
+ */
+export function passthroughOf(cause) {
+  return cause instanceof KernelError && PASSTHROUGH.has(cause.code) ? cause : null;
+}
+
+/**
  * The message of an unknown thrown value, without pretending it is an `Error`.
  * Same reading as the `cause?.message ?? cause` idiom it replaces: a thrown object
  * with a `message` yields it, anything else is stringified.

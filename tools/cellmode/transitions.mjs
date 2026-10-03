@@ -1,17 +1,22 @@
 // transitions.mjs — the four lifecycle transitions that need the integrity
 // guard: open (new or 📋→🔵), resume (⏸→🔵), pause (🔵→⏸), complete (🔵→✔).
-import { now, today } from './clock.mjs';
+// The guard itself, the one-active-cell refusal and the activation write path are
+// in ./activate.mjs; this file is the four commands and the closing write path.
+import { now } from './clock.mjs';
 import { slugify, findCell } from './slug.mjs';
 import { makeCell } from './cell-file.mjs';
 import { upsertRow } from './index-table.mjs';
 import { reconnectLines } from './projections.mjs';
-import { checkState, formatFindings } from './check.mjs';
+import { renderDependencies } from './deps.mjs';
 import { CliError, EXIT } from './errors.mjs';
 import {
-  readState, readCell, writeCell, writeIndex, writeCurrentActive, writeCurrentIdle, appendLog,
+  readCell, writeCell, writeIndex, writeCurrentIdle, appendLog,
 } from './state.mjs';
 import {
-  assertAllowed, assertNoPositional, requireOption, requireName,
+  activate, guardedState, refuseIfActive, rowSlug,
+} from './activate.mjs';
+import {
+  assertAllowed, assertNoPositional, optionalOption, requireOption, requireName,
 } from './args.mjs';
 
 /** @typedef {import('./types.mjs').Cell} Cell */
@@ -20,59 +25,15 @@ import {
 /** @typedef {import('./types.mjs').ParsedArgs} ParsedArgs */
 /** @typedef {import('./types.mjs').CommandResult} CommandResult */
 
-/** @param {string} root @returns {State} */
-export function guardedState(root) {
-  const st = readState(root);
-  const findings = checkState(st);
-  if (findings.length) {
-    throw new CliError(`integrity check failed — the log is truth, fix the projections:\n${
-      formatFindings(findings)}`, EXIT.INTEGRITY);
-  }
-  return st;
-}
-
-/** @param {State} st */
-function refuseIfActive(st) {
-  const active = st.indexRows.find((r) => r.status === '🔵');
-  if (active) {
-    throw new CliError(`cell "${active.name}" is active (🔵) — pause it first: `
-      + 'cellmode pause --facts "..." --next "..."', EXIT.ACTIVE_CELL);
-  }
-}
-
-/** @type {(row: IndexRow) => string} */
-const rowSlug = (row) => row.slug || slugify(row.name);
-
-// Drop absent options so an unset `--area` never erases what the cell file holds.
-/** @type {(obj: Record<string, unknown>) => Record<string, unknown>} */
-const defined = (obj) => Object.fromEntries(
-  Object.entries(obj).filter(([, v]) => v !== undefined && v !== null && v !== ''),
-);
-
-/** @param {string} root @param {State} st
- * @param {{ row: IndexRow | undefined, name: string, slug: string,
- *   patch: Record<string, unknown>, env: NodeJS.ProcessEnv | undefined }} what @returns {Cell} */
-function activate(root, st, { row, name, slug, patch, env }) {
-  const day = today(env);
-  const prior = readCell(root, slug);
-  const opened = prior && prior.opened !== '—' ? prior.opened : day;
-  const cell = makeCell({
-    ...(prior ?? {}), name, id: slug, ...defined(patch), opened, status: '🔵',
-  });
-  if (!patch.area && row?.area && cell.area === '—') cell.area = row.area;
-  writeCell(root, cell);
-  const rows = upsertRow(st.indexRows, {
-    name: cell.name, slug, area: cell.area, status: '🔵', lastVisit: day, nextStep: cell.nextStep,
-  });
-  writeIndex(root, rows);
-  writeCurrentActive(root, cell);
-  return cell;
-}
-
 /** @param {string} root @param {ParsedArgs} args @param {NodeJS.ProcessEnv} [env] @returns {CommandResult} */
 export function cmdOpen(root, { positional, options }, env) {
-  assertAllowed(options, ['root', 'area', 'objective', 'in', 'out', 'done'], 'open');
+  assertAllowed(options,
+    ['root', 'area', 'objective', 'in', 'out', 'done', 'deps', 'next'], 'open');
   const name = requireName(positional, 'open');
+  // The FIRST STEP the `cell` skill asks for at creation. Validated BEFORE the state is
+  // touched: an opening may omit it, but `--next ""` is a usage error and not a silent
+  // default, because a blank next step leaves the next session exactly as undecided.
+  const next = optionalOption(options, 'next', 'open');
   const st = guardedState(root);
   refuseIfActive(st);
   const slug = slugify(name);
@@ -96,6 +57,10 @@ export function cmdOpen(root, { positional, options }, env) {
       boundaryIn: options.in,
       boundaryOut: options.out,
       doneCriterion: options.done,
+      nextStep: next,
+      // Absent stays absent: `defined()` drops it, so an omitted --deps never
+      // erases a field the cell file already carries. `--deps ""` clears it.
+      dependencies: options.deps === undefined ? undefined : renderDependencies(options.deps),
     },
   });
   const promoted = row?.status === '📋' ? ' — promoted from 📋 (an opening, not a resume)' : '';

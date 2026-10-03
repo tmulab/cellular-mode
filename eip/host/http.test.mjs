@@ -118,8 +118,13 @@ test('H5 consequential over HTTP is fail-closed, then real with an approver', as
     assert.equal(/** @type {{ cap: string }} */ (open.approvals[0]).cap, 'save-report');
 
     const denied = await open.post(SAVE_REPORT, { input: { name: '../escape', text: 'a b' } });
-    assert.equal(denied.status, 500, 'a contained plugin fault is a 500 without a stack');
-    assert.equal(envelope(denied).error?.details?.[0]?.path, 'INPUT_INVALID');
+    // A traversal attempt in the NAME is the caller's mistake, so it is a 400: the
+    // plugin's INPUT_INVALID passes through the kernel (K14) instead of being
+    // reported as this server having faulted. Still no stack, still nothing written.
+    assert.equal(denied.status, 400, 'a client error is a 400 without a stack');
+    assert.equal(envelope(denied).error?.code, 'INPUT_INVALID');
+    assert.equal(envelope(denied).error?.details?.[0]?.path, 'name');
+    assert.equal(denied.text.includes('write-port'), false, 'no stack, no module names');
     assert.deepEqual(await readdir(open.reportsDir), ['daily.json']);
   } finally {
     await open.cleanup();

@@ -19,8 +19,16 @@
 // EXIT CODE: 0 when build and tests are green and typecheck is not a failure.
 // UNAVAILABLE keeps the exit code at 0 but the line stays a warning. Hiding an
 // unverified leg behind a green tick is the thing this rule exists to prevent.
+//
+// `--evidence` additionally writes `.cellular/evidence/trilateral.json` (gitignored) from
+// THE RESULTS THIS RUN COMPUTED — never a synthesised leg. It exists so that a reader
+// which cannot spawn a process, such as `observer.audit`, can report these three legs
+// without pretending to have run them. The shape is `./evidence.mjs`.
 import { spawnSync } from 'node:child_process';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { EVIDENCE_FILE, EVIDENCE_PATH, EVIDENCE_SEGMENTS, evidenceRecord } from './evidence.mjs';
+import { readGitHead } from './git-head.mjs';
 import { ROOT, readTuples } from './scan.mjs';
 import { partitionModules } from './top-level.mjs';
 import { runTypecheck } from './typecheck.mjs';
@@ -69,6 +77,7 @@ function typecheckLeg(files) {
     return {
       status: checked.ok ? 'pass' : 'fail',
       text: `typecheck: ${checked.command} — ${checked.errors} error(s)`,
+      errors: checked.errors,
       ...(checked.ok ? {} : { detail: checked.output.split('\n').slice(0, 25).join('\n  ') }),
     };
   }
@@ -100,6 +109,7 @@ async function buildLeg(files) {
   }
   return {
     status: 'pass',
+    modules: load.length,
     text: `build: no build step — module-load gate: ${load.length} modules imported`
       + ` (${skipped.length} skipped: ${skipped.filter((s) => s.reason.startsWith('test')).length} tests,`
       + ` ${skipped.filter((s) => !s.reason.startsWith('test')).length} entry points)`,
@@ -111,9 +121,16 @@ function testsLeg() {
   const out = run(process.execPath, ['--test', '--test-reporter=tap']);
   const text = `${out.stdout ?? ''}\n${out.stderr ?? ''}`;
   const { pass, fail, total } = parseTestCounts(text);
-  if (pass === null) return { status: 'fail', text: 'tests: could not parse the reporter output', detail: text.slice(-500) };
+  const counts = { passed: pass, failed: fail, total };
+  if (pass === null) {
+    return { status: 'fail', text: 'tests: could not parse the reporter output', counts, detail: text.slice(-500) };
+  }
   const ok = out.status === 0 && fail === 0;
-  return { status: ok ? 'pass' : 'fail', text: `tests: ${pass} passed, ${fail} failed, ${total} total (node --test)` };
+  return {
+    status: ok ? 'pass' : 'fail',
+    counts,
+    text: `tests: ${pass} passed, ${fail} failed, ${total} total (node --test)`,
+  };
 }
 
 /** @returns {Promise<{ typecheck: LegResult, build: LegResult, tests: LegResult }>} */
@@ -122,11 +139,33 @@ export async function trilateral() {
   return { typecheck: typecheckLeg(files), build: await buildLeg(files), tests: testsLeg() };
 }
 
-async function main() {
+/**
+ * Write the record for the legs THIS run computed. The caller passes the very objects it
+ * printed, so the file cannot say something the terminal did not.
+ * @param {{ typecheck: LegResult, build: LegResult, tests: LegResult }} legs
+ * @param {string} [root] @returns {string} the repository-relative path written
+ */
+export function writeEvidence(legs, root = ROOT) {
+  const record = evidenceRecord({
+    legs,
+    at: new Date().toISOString(),
+    head: readGitHead(root),
+  });
+  const dir = join(root, ...EVIDENCE_SEGMENTS);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, EVIDENCE_FILE), `${JSON.stringify(record, null, 2)}\n`, 'utf8');
+  return EVIDENCE_PATH;
+}
+
+/** @param {string[]} [argv] */
+async function main(argv = process.argv.slice(2)) {
   const results = await trilateral();
   for (const key of /** @type {const} */ (['typecheck', 'build', 'tests'])) {
     process.stdout.write(`${line(results[key])}\n`);
     if (results[key].detail) process.stderr.write(`  ${results[key].detail}\n`);
+  }
+  if (argv.includes('--evidence')) {
+    process.stdout.write(`evidence: wrote ${writeEvidence(results)} (gitignored)\n`);
   }
   return exitCodeFor(results);
 }

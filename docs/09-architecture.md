@@ -36,6 +36,7 @@ A cell is not a plugin. A plugin is not an agent. None of the three is a core.
 | Contract floor | `eip/sdk/` | the manifest, the schema subset, the closed error list. Depends on nothing |
 | Kernel | `eip/kernel/` | validate contracts, wire, grant ports, gate consequential acts, emit events |
 | Plugins | `eip/plugins/<name>/` | one domain capability each, replaceable, SDK-only imports |
+| Optional observation | `eip/plugins/observer-{state,audit,advisor}/` + `apps/observer/` | read a vault, audit it, interpret it — the first *optional* plugin set, deletable without touching anything else |
 | Orchestration | `eip/orchestration/` | the single door an agent may use; allow-list + audit |
 | Host / composition | `eip/host/` | the only module that knows every part: transport, ports, approver, dev UI |
 | Published contract | `api/openapi.json` | what an independent application may rely on |
@@ -144,6 +145,15 @@ calls the API from its own server, where it holds credentials and decides what t
 browser may ask for. A plugin's `devUi` is a static fragment for local diagnostics and
 simple admin, capped at 64 KB and served only with `--dev-ui`.
 
+**The first case with teeth — the Cellular Observer.** [ADR 0003](adr/0003-observer-frontend.md) (*Accepted,
+proposed by agent, pending human confirmation*): three optional plugins on this same kernel —
+`observer.state` (reads a vault), `observer.audit` (judges it against rules that already exist) and
+`observer.advisor` (interprets it; **not loaded unless asked for**) — plus an **independent local
+application**, `apps/observer/`, no framework and no build step, served by its own loopback server with an
+`/api/v1` reverse proxy so page and API share one origin. The plugins get read ports and no write port at
+all; the app has no flag that can bind off `127.0.0.1`. Delete all of it and the method, the CLI, the gates
+and the kernel are untouched — [`OBSERVER_REPORT.md`](../OBSERVER_REPORT.md), [`apps/observer/README.md`](../apps/observer/README.md).
+
 ## 8 · Safety and authority boundaries
 
 | Act | Who may authorise it | Fail-closed behaviour |
@@ -166,15 +176,13 @@ approves a consequential act.
 
 ## 9 · Threat model — the new execution capabilities
 
-> **TRUSTED LOCAL PLUGINS ONLY.** Plugins run in-process, with the full privileges of
-> the Node process. Permissions and ports are a *contract* and a *least-privilege*
-> mechanism for what the composition hands over — **they are NOT a security sandbox.** A
-> plugin can `import('node:fs')` directly and ignore every port it was given. Treat
-> plugin code as trusted first-party code, reviewed like any other file in the
-> repository. Do not load a plugin you would not read. **Third-party or untrusted plugin
-> execution must not be enabled without appropriate isolation** — the prerequisites are
-> PROPOSED and listed in [`SECURITY.md`](../SECURITY.md). (Approved scope, Hudson A. R.
-> Bonomo, 2026-10-02. VERIFIED by inspection: there is no isolation mechanism in `eip/`.)
+> **TRUSTED LOCAL PLUGINS ONLY.** Plugins run in-process, with the full privileges of the Node process.
+> Permissions and ports are a *contract* and a *least-privilege* mechanism for what the composition hands
+> over — **they are NOT a security sandbox.** A plugin can `import('node:fs')` directly and ignore every port
+> it was given. Treat plugin code as trusted first-party code, reviewed like any other file in the repository.
+> Do not load a plugin you would not read. **Third-party or untrusted plugin execution must not be enabled
+> without appropriate isolation** — the prerequisites are PROPOSED and listed in [`SECURITY.md`](../SECURITY.md).
+> (Approved scope, Hudson A. R. Bonomo, 2026-10-02. VERIFIED: there is no isolation mechanism in `eip/`.)
 
 | Asset | Threat | Control that exists (VERIFIED) | Residual risk |
 |---|---|---|---|
@@ -186,8 +194,7 @@ approves a consequential act.
 | Agent actions | an agent doing what nobody granted | allow-list is the whole authority; an empty list denies everything; a malformed entry is a `TypeError` at construction; every attempt is audited | the audit is **in memory** and dies with the process |
 | Availability | a capability hangs or spins | `AbortSignal` with `CANCELLED` and `TIMEOUT` kept as distinct codes | no CPU or memory budget per call; a busy loop blocks the event loop for everyone (consequence of in-process execution) |
 
-Static analysis is not proof of security, and this table is not an audit. It is the list
-of claims a reviewer should try to break — and the four rows whose residual risk begins
-with "a plugin bypassing", "there is no authentication", "interactive only" and "in
-memory" are the ones that decide whether this runtime may leave a developer's machine.
-Today the honest answer is: it may not.
+Static analysis is not proof of security, and this table is not an audit. It is the list of claims a reviewer
+should try to break — and the four rows whose residual risk begins with "a plugin bypassing", "there is no
+authentication", "interactive only" and "in memory" are the ones that decide whether this runtime may leave a
+developer's machine. Today the honest answer is: it may not.

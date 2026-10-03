@@ -13,9 +13,12 @@ Env:    CELLMODE_NOW="YYYY-MM-DD HH:MM"   fixed clock, for tests and examples
 
 Commands:
   init                                    create the vault/state skeleton (refuses if it exists)
-  plan <name> --area A [--objective O]    add a 📋 row; no log entry (it never ran)
+  plan <name> --area A [--objective O
+              --deps "a, b"]              add a 📋 row; no log entry (it never ran)
   open <name> [--area --objective
-              --in --out --done]          new cell or 📋 -> 🔵 (an opening, not a resume)
+              --in --out --done --next
+              --deps "a, b"]              new cell or 📋 -> 🔵 (an opening, not a resume)
+                                          --next "<action>" records the FIRST STEP
   resume <name>                           ⏸ -> 🔵 (fuzzy, case-insensitive)
   pause --facts F --next N
         [--decisions D --build B --note M]  🔵 -> ⏸: append log, update projections

@@ -117,8 +117,855 @@
       }
     }
   },
+  "x-observer-state": {
+    "key": "observer.state",
+    "summary": "The five read-only capabilities of the optional `observer.state` plugin.",
+    "description": "These are reached through the ONE generic capability path above (POST /api/v1/plugins/observer.state/capabilities/{cap}) wrapped in the usual CallEnvelope / CallResult envelope, so they add no route: a per-capability path would duplicate a contract the host already states once. Documented here because an independent frontend is built against these shapes. Every capability is non-consequential and reads only `<root>/vault/state` through a path-confined `fs.read` port. A field the vault does not record is `null`, and `cell-detail` additionally NAMES it in `unavailable`. Nullable fields are written WITHOUT a `type` keyword: the SDK schema subset has no union, and omitting `type` means \"null, or this shape\" to its validator. Error vocabulary: a CLIENT error is the plugin's own answer to give, so the kernel passes NOT_FOUND and INPUT_INVALID through with the plugin's code, message and details (the closed PASSTHROUGH_CODES set in eip/sdk/errors.mjs). An unknown cell id therefore answers 404 NOT_FOUND, and an id that breaks ^[a-z0-9-]{1,80}$ answers 400 INPUT_INVALID - as does a wrongly typed, empty, over-long, absent or unexpected input property, caught one gate earlier. `error.details[0].path` is \"id\" in every case, and none of these is a 500. AUTHORITY is not passed through: a plugin throwing APPROVAL_REQUIRED, APPROVAL_DENIED or PERMISSION_DENIED is still contained as PLUGIN_ERROR, so it can never claim a human decided something.",
+    "capabilities": {
+      "overview": {
+        "summary": "Counts, the active cell, the five most recent recorded closures, warnings and the integrity verdict.",
+        "input": { "$ref": "#/components/schemas/ObserverEmptyInput" },
+        "output": { "$ref": "#/components/schemas/ObserverOverview" }
+      },
+      "cells": {
+        "summary": "One summary per row of INDEX.md, with the dependencies each cell file declares.",
+        "input": { "$ref": "#/components/schemas/ObserverEmptyInput" },
+        "output": { "$ref": "#/components/schemas/ObserverCells" }
+      },
+      "cell-detail": {
+        "summary": "Every recorded field of one cell. An unknown id answers 404 NOT_FOUND and a malformed id 400 INPUT_INVALID; the id is matched against the parsed index and is never used to build a path.",
+        "input": { "$ref": "#/components/schemas/ObserverCellDetailInput" },
+        "output": { "$ref": "#/components/schemas/ObserverCellDetail" }
+      },
+      "graph": {
+        "summary": "Nodes with deterministic server-side positions. `column` is the INTEGER INDEX into `layout.columns` (0..3, the four protocol statuses, always all four so a column never moves when a cell changes status) and `layer` is the longest DECLARED dependency path. Edges come from declared dependencies only; a dependency naming no cell appears in `dangling` and is never invented as a node.",
+        "input": { "$ref": "#/components/schemas/ObserverEmptyInput" },
+        "output": { "$ref": "#/components/schemas/ObserverGraph" }
+      },
+      "timeline": {
+        "summary": "Recorded closures from log.md only, newest first. `status` is the WORD (planned/active/paused/done), one vocabulary with CellSummary and GraphNode, with the literal protocol symbol alongside in `statusSymbol`; a symbol the protocol does not define gives status null rather than an invented word. Opening and resuming are not logged by the protocol and are named in notRecorded.",
+        "input": { "$ref": "#/components/schemas/ObserverTimelineInput" },
+        "output": { "$ref": "#/components/schemas/ObserverTimeline" }
+      }
+    }
+  },
+  "x-observer-audit": {
+    "key": "observer.audit",
+    "summary": "The two read-only capabilities of the optional `observer.audit` plugin.",
+    "description": "Reached through the same generic capability path, so they add no route. The auditor applies rules this project already declares - the integrity guard of tools/cellmode and the pure gate functions of tools/gates - and answers FINDINGS, each with the address of its evidence. Read the `status` enum as a closed set of five: PASS, FAIL, WARNING, UNAVAILABLE, NOT_APPLICABLE. UNAVAILABLE IS NOT A KIND OF PASS and must never be rendered as one: it is what the typecheck, build and tests rules answer when `.cellular/evidence/trilateral.json` is absent, because the plugin has no port that spawns a process and therefore cannot execute those legs itself. A record whose commit differs from the tree, or which is older than the newest source file, makes `evidence-freshness` a WARNING. NOT_APPLICABLE is the answer when a rule has nothing to judge. `evidence` lines are repository-relative addresses and measured values - never raw file text, never an absolute path, and for the secrets rule never the matched string, only its rule id and path:line. `action` is a sentence for a human: the auditor states it and never performs it. A malformed `status` or `scope` answers 400 INPUT_INVALID with error.details[0].path naming the field.",
+    "capabilities": {
+      "run-audit": {
+        "summary": "Runs every deterministic rule over this vault and repository and answers the findings with their evidence and a summary count per status. Reads only: it writes nothing and runs no process.",
+        "input": { "$ref": "#/components/schemas/ObserverEmptyInput" },
+        "output": { "$ref": "#/components/schemas/ObserverAuditResult" }
+      },
+      "findings": {
+        "summary": "The findings of the LAST audit in this session, optionally filtered by status or scope. When no audit has run, `ran` is false and the answer is ONE UNAVAILABLE finding rather than an empty list, because an empty list of findings reads as \"nothing is wrong\".",
+        "input": { "$ref": "#/components/schemas/ObserverAuditFindingsInput" },
+        "output": { "$ref": "#/components/schemas/ObserverAuditFindings" }
+      }
+    }
+  },
+  "x-observer-advisor": {
+    "key": "observer.advisor",
+    "summary": "The three read-only capabilities of the OPTIONAL, DISABLED-BY-DEFAULT `observer.advisor` plugin.",
+    "description": "Reached through the same generic capability path, so they add no route. This plugin is absent unless the launcher is started with `--advisor <id>`: without it the key does not exist and a call answers 404 NOT_FOUND, which a client must render as \"disabled\", never as an error. Nothing here is a measurement. `generatedBy` is always `model` and every answer carries a disclaimer, because a recommendation is an AI-GENERATED INTERPRETATION and must be rendered as visibly distinct from the deterministic findings of `observer.audit` - a recommendation has no `status` field for exactly that reason. `label` is a CLOSED set of four (VERIFIED, INFERRED, PROPOSED, UNKNOWN) and is the MODEL’S OWN CLAIM, checked only for grounding: a VERIFIED or INFERRED recommendation whose `evidenceRefs` contain no id of the context actually supplied is downgraded to UNKNOWN with `uncertainty` \"unsupported by supplied evidence\", and a reference to something that was never supplied is removed and listed in `meta.validation.refsRemoved`. `statement` is PLAIN TEXT and must be rendered as text (`textContent`), never as markup: it may legitimately quote a command, because what a model said is data and is never executed, never turned into a capability call and never an approval. `meta.contextItems` is the exact evidence vocabulary the model was given (`cell:<id>`, `log:<n>`, `finding:<AUD-...>`, `question`) and `meta.contextDropped` names what did not fit the byte cap. Exceeding `maxCallsPerSession` or `minIntervalMs` answers 400 INPUT_INVALID with error.details[0].path naming the limit; the adapter is not called. The only adapter that ships is `fixture`, which is deterministic and touches no network: `status.network` is false and no network adapter exists in this build.",
+    "capabilities": {
+      "advise": {
+        "summary": "Asks the composed model adapter for recommendations about the ACTIVE cell, from a bounded context (the cell, its declared dependencies, the recent log window, the last audit’s verdicts and your question), and answers them validated, grounded and labelled. Consumes one call of the session budget before the adapter is reached. In `silent` mode the recommendations are also accumulated for later reading.",
+        "input": {
+          "$ref": "#/components/schemas/ObserverAdviseInput"
+        },
+        "output": {
+          "$ref": "#/components/schemas/ObserverAdvice"
+        }
+      },
+      "recommendations": {
+        "summary": "The recommendations accumulated by silent-mode calls in this session, oldest first. Nothing is ever added in the background: only an explicit advise call accumulates, and dispose clears it.",
+        "input": {
+          "$ref": "#/components/schemas/ObserverEmptyInput"
+        },
+        "output": {
+          "$ref": "#/components/schemas/ObserverAdvisorAccumulated"
+        }
+      },
+      "status": {
+        "summary": "Whether the advisor is enabled, which adapter the composition supplied, whether it touches the network (it does not), the limits of this session and how much of the call budget is left. Consumes no call.",
+        "input": {
+          "$ref": "#/components/schemas/ObserverEmptyInput"
+        },
+        "output": {
+          "$ref": "#/components/schemas/ObserverAdvisorStatus"
+        }
+      }
+    }
+  },
   "components": {
     "schemas": {
+      "ObserverAdviseInput": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "on-demand",
+              "silent"
+            ]
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "ObserverAdvice": {
+        "type": "object",
+        "properties": {
+          "recommendations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 5,
+                  "maxLength": 16
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "next-action",
+                    "contract-review",
+                    "verification",
+                    "split-cell",
+                    "dependency",
+                    "pause-or-handoff",
+                    "architecture",
+                    "investigation"
+                  ]
+                },
+                "label": {
+                  "type": "string",
+                  "enum": [
+                    "VERIFIED",
+                    "INFERRED",
+                    "PROPOSED",
+                    "UNKNOWN"
+                  ]
+                },
+                "statement": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 600
+                },
+                "evidenceRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 140
+                  },
+                  "maxItems": 8
+                },
+                "uncertainty": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                }
+              },
+              "required": [
+                "id",
+                "kind",
+                "label",
+                "statement",
+                "evidenceRefs",
+                "uncertainty"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 10
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "adapter": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 40
+              },
+              "adapterKind": {
+                "type": "string",
+                "enum": [
+                  "fixture",
+                  "local",
+                  "remote"
+                ]
+              },
+              "network": {
+                "type": "boolean"
+              },
+              "contextBytes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "contextCap": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "contextItems": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 140
+                },
+                "maxItems": 500
+              },
+              "contextDropped": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 140
+                },
+                "maxItems": 500
+              },
+              "calls": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "remaining": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "on-demand",
+                  "silent"
+                ]
+              },
+              "generatedBy": {
+                "type": "string",
+                "enum": [
+                  "model"
+                ]
+              },
+              "disclaimer": {
+                "type": "string",
+                "minLength": 20,
+                "maxLength": 300
+              },
+              "validation": {
+                "type": "object",
+                "properties": {
+                  "parsed": {
+                    "type": "boolean"
+                  },
+                  "accepted": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "rejected": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "downgraded": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "refsRemoved": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 140
+                    },
+                    "maxItems": 64
+                  },
+                  "notes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 1000
+                    },
+                    "maxItems": 20
+                  }
+                },
+                "required": [
+                  "parsed",
+                  "accepted",
+                  "rejected",
+                  "downgraded",
+                  "refsRemoved",
+                  "notes"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "adapter",
+              "adapterKind",
+              "network",
+              "contextBytes",
+              "contextCap",
+              "contextItems",
+              "contextDropped",
+              "calls",
+              "remaining",
+              "mode",
+              "generatedBy",
+              "disclaimer",
+              "validation"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "recommendations",
+          "meta"
+        ],
+        "additionalProperties": false
+      },
+      "ObserverAdvisorAccumulated": {
+        "type": "object",
+        "properties": {
+          "recommendations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 5,
+                  "maxLength": 16
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "next-action",
+                    "contract-review",
+                    "verification",
+                    "split-cell",
+                    "dependency",
+                    "pause-or-handoff",
+                    "architecture",
+                    "investigation"
+                  ]
+                },
+                "label": {
+                  "type": "string",
+                  "enum": [
+                    "VERIFIED",
+                    "INFERRED",
+                    "PROPOSED",
+                    "UNKNOWN"
+                  ]
+                },
+                "statement": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 600
+                },
+                "evidenceRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 140
+                  },
+                  "maxItems": 8
+                },
+                "uncertainty": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                }
+              },
+              "required": [
+                "id",
+                "kind",
+                "label",
+                "statement",
+                "evidenceRefs",
+                "uncertainty"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 200
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "lastAt": {
+            "maxLength": 40
+          },
+          "disclaimer": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "recommendations",
+          "count",
+          "lastAt",
+          "disclaimer"
+        ],
+        "additionalProperties": false
+      },
+      "ObserverAdvisorStatus": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "adapter": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 40
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "fixture",
+                  "local",
+                  "remote"
+                ]
+              },
+              "network": {
+                "type": "boolean"
+              },
+              "description": {
+                "type": "string",
+                "minLength": 10,
+                "maxLength": 300
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "network",
+              "description"
+            ],
+            "additionalProperties": false
+          },
+          "network": {
+            "type": "boolean"
+          },
+          "limits": {
+            "type": "object",
+            "properties": {
+              "maxCallsPerSession": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "minIntervalMs": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxQuestionChars": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxContextBytes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "logEntries": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxOutputChars": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "maxCallsPerSession",
+              "minIntervalMs",
+              "timeoutMs",
+              "maxQuestionChars",
+              "maxContextBytes",
+              "logEntries",
+              "maxOutputChars"
+            ],
+            "additionalProperties": false
+          },
+          "calls": {
+            "type": "object",
+            "properties": {
+              "used": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "remaining": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "used",
+              "remaining"
+            ],
+            "additionalProperties": false
+          },
+          "disclaimer": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 300
+          }
+        },
+        "required": [
+          "enabled",
+          "adapter",
+          "network",
+          "limits",
+          "calls",
+          "disclaimer"
+        ],
+        "additionalProperties": false
+      },
+      "ObserverWarning": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "message": { "type": "string", "maxLength": 4000 },
+          "cell": { "type": "string", "minLength": 1, "maxLength": 80 }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "ObserverFinding": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "message": { "type": "string", "maxLength": 4000 }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "ObserverEvent": {
+        "type": "object",
+        "properties": {
+          "at": { "type": "string", "minLength": 16, "maxLength": 16 },
+          "cell": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "kind": { "type": "string", "enum": ["pause", "complete", "reconstructed"] },
+          "status": { "enum": ["planned", "active", "paused", "done", null] },
+          "statusSymbol": { "type": "string", "maxLength": 8 },
+          "facts": { "maxLength": 4000 },
+          "decisions": { "maxLength": 4000 },
+          "build": { "maxLength": 4000 },
+          "nextStep": { "maxLength": 4000 }
+        },
+        "required": ["at", "cell", "kind", "status", "statusSymbol", "facts", "decisions", "build", "nextStep"],
+        "additionalProperties": false
+      },
+      "ObserverCellSummary": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "name": { "type": "string", "maxLength": 4000 },
+          "area": { "maxLength": 4000 },
+          "status": { "type": "string", "enum": ["planned", "active", "paused", "done"] },
+          "statusSymbol": { "type": "string", "maxLength": 8 },
+          "lastVisit": { "maxLength": 4000 },
+          "nextStep": { "maxLength": 4000 },
+          "dependencies": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1, "maxLength": 80 },
+            "maxItems": 500
+          }
+        },
+        "required": ["id", "name", "area", "status", "statusSymbol", "lastVisit", "nextStep", "dependencies"],
+        "additionalProperties": false
+      },
+      "ObserverGraphNode": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "name": { "type": "string", "maxLength": 4000 },
+          "status": { "type": "string", "enum": ["planned", "active", "paused", "done"] },
+          "column": { "type": "integer", "minimum": 0, "maximum": 3 },
+          "layer": { "type": "integer", "minimum": 0 },
+          "x": { "type": "integer" },
+          "y": { "type": "integer" },
+          "z": { "type": "integer" }
+        },
+        "required": ["id", "name", "status", "column", "layer", "x", "y", "z"],
+        "additionalProperties": false
+      },
+      "ObserverGraphEdge": {
+        "type": "object",
+        "properties": {
+          "from": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "to": { "type": "string", "minLength": 1, "maxLength": 80 }
+        },
+        "required": ["from", "to"],
+        "additionalProperties": false
+      },
+      "ObserverEmptyInput": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      },
+      "ObserverAuditStatus": {
+        "type": "string",
+        "enum": ["FAIL", "WARNING", "UNAVAILABLE", "NOT_APPLICABLE", "PASS"]
+      },
+      "ObserverAuditFinding": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "maxLength": 64 },
+          "scope": { "type": "string", "minLength": 1, "maxLength": 90 },
+          "rule": { "type": "string", "minLength": 1, "maxLength": 64 },
+          "status": { "$ref": "#/components/schemas/ObserverAuditStatus" },
+          "evidence": {
+            "type": "array",
+            "items": { "type": "string", "maxLength": 400 },
+            "maxItems": 64
+          },
+          "explanation": { "type": "string", "maxLength": 2000 },
+          "action": { "type": "string", "maxLength": 2000 }
+        },
+        "required": ["id", "scope", "rule", "status", "evidence", "explanation"],
+        "additionalProperties": false
+      },
+      "ObserverAuditSummary": {
+        "type": "object",
+        "properties": {
+          "PASS": { "type": "integer", "minimum": 0 },
+          "FAIL": { "type": "integer", "minimum": 0 },
+          "WARNING": { "type": "integer", "minimum": 0 },
+          "UNAVAILABLE": { "type": "integer", "minimum": 0 },
+          "NOT_APPLICABLE": { "type": "integer", "minimum": 0 }
+        },
+        "required": ["PASS", "FAIL", "WARNING", "UNAVAILABLE", "NOT_APPLICABLE"],
+        "additionalProperties": false
+      },
+      "ObserverAuditResult": {
+        "type": "object",
+        "properties": {
+          "at": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "findings": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ObserverAuditFinding" },
+            "maxItems": 5000
+          },
+          "summary": { "$ref": "#/components/schemas/ObserverAuditSummary" }
+        },
+        "required": ["at", "findings", "summary"],
+        "additionalProperties": false
+      },
+      "ObserverAuditFindingsInput": {
+        "type": "object",
+        "properties": {
+          "status": { "$ref": "#/components/schemas/ObserverAuditStatus" },
+          "scope": { "type": "string", "minLength": 1, "maxLength": 90 }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "ObserverAuditFindings": {
+        "type": "object",
+        "properties": {
+          "ran": { "type": "boolean" },
+          "at": { "maxLength": 40 },
+          "findings": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ObserverAuditFinding" },
+            "maxItems": 5000
+          },
+          "summary": { "$ref": "#/components/schemas/ObserverAuditSummary" }
+        },
+        "required": ["ran", "at", "findings", "summary"],
+        "additionalProperties": false
+      },
+      "ObserverCellDetailInput": {
+        "type": "object",
+        "properties": { "id": { "type": "string", "minLength": 1, "maxLength": 80 } },
+        "required": ["id"],
+        "additionalProperties": false
+      },
+      "ObserverTimelineInput": {
+        "type": "object",
+        "properties": {
+          "limit": { "type": "integer", "minimum": 1, "maximum": 500 },
+          "cell": { "type": "string", "minLength": 1, "maxLength": 80 }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "ObserverOverview": {
+        "type": "object",
+        "properties": {
+          "counts": {
+            "type": "object",
+            "properties": {
+              "total": { "type": "integer", "minimum": 0 },
+              "planned": { "type": "integer", "minimum": 0 },
+              "active": { "type": "integer", "minimum": 0 },
+              "paused": { "type": "integer", "minimum": 0 },
+              "done": { "type": "integer", "minimum": 0 }
+            },
+            "required": ["total", "planned", "active", "paused", "done"],
+            "additionalProperties": false
+          },
+          "active": {
+            "properties": {
+              "id": { "type": "string", "minLength": 1, "maxLength": 80 },
+              "name": { "type": "string", "maxLength": 4000 }
+            },
+            "required": ["id", "name"],
+            "additionalProperties": false
+          },
+          "recent": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ObserverEvent" },
+            "maxItems": 5
+          },
+          "warnings": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ObserverWarning" },
+            "maxItems": 2000
+          },
+          "integrity": {
+            "type": "object",
+            "properties": {
+              "ok": { "type": "boolean" },
+              "findings": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/ObserverFinding" },
+                "maxItems": 2000
+              }
+            },
+            "required": ["ok", "findings"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["counts", "active", "recent", "warnings", "integrity"],
+        "additionalProperties": false
+      },
+      "ObserverCells": {
+        "type": "object",
+        "properties": {
+          "cells": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ObserverCellSummary" },
+            "maxItems": 5000
+          }
+        },
+        "required": ["cells"],
+        "additionalProperties": false
+      },
+      "ObserverCellDetail": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "name": { "type": "string", "maxLength": 4000 },
+          "status": { "type": "string", "enum": ["planned", "active", "paused", "done"] },
+          "area": { "maxLength": 4000 },
+          "boundary": {
+            "type": "object",
+            "properties": { "in": { "maxLength": 4000 }, "out": { "maxLength": 4000 } },
+            "required": ["in", "out"],
+            "additionalProperties": false
+          },
+          "objective": { "maxLength": 4000 },
+          "inputs": { "maxLength": 4000 },
+          "outputs": { "maxLength": 4000 },
+          "allowedOperations": { "maxLength": 4000 },
+          "prohibitedOperations": { "maxLength": 4000 },
+          "dependencies": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1, "maxLength": 80 },
+            "maxItems": 500
+          },
+          "doneCriterion": { "maxLength": 4000 },
+          "lastFact": { "maxLength": 4000 },
+          "build": { "maxLength": 4000 },
+          "decisions": { "maxLength": 4000 },
+          "openIssues": { "maxLength": 4000 },
+          "minimalContext": { "maxLength": 4000 },
+          "nextStep": { "maxLength": 4000 },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "logEntries": { "type": "integer", "minimum": 0 },
+              "lastStatus": { "maxLength": 4000 },
+              "lastBuild": { "maxLength": 4000 }
+            },
+            "required": ["logEntries", "lastStatus", "lastBuild"],
+            "additionalProperties": false
+          },
+          "unavailable": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1, "maxLength": 80 },
+            "maxItems": 64
+          }
+        },
+        "required": ["id", "name", "status", "area", "boundary", "objective", "inputs", "outputs", "allowedOperations", "prohibitedOperations", "dependencies", "doneCriterion", "lastFact", "build", "decisions", "openIssues", "minimalContext", "nextStep", "evidence", "unavailable"],
+        "additionalProperties": false
+      },
+      "ObserverGraph": {
+        "type": "object",
+        "properties": {
+          "nodes": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ObserverGraphNode" },
+            "maxItems": 5000
+          },
+          "edges": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ObserverGraphEdge" },
+            "maxItems": 20000
+          },
+          "dangling": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ObserverGraphEdge" },
+            "maxItems": 20000
+          },
+          "layout": {
+            "type": "object",
+            "properties": {
+              "columns": { "type": "array", "items": { "type": "string" }, "maxItems": 8 },
+              "layers": { "type": "integer", "minimum": 1 }
+            },
+            "required": ["columns", "layers"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["nodes", "edges", "dangling", "layout"],
+        "additionalProperties": false
+      },
+      "ObserverTimeline": {
+        "type": "object",
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ObserverEvent" },
+            "maxItems": 500
+          },
+          "notRecorded": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1, "maxLength": 80 },
+            "maxItems": 8
+          }
+        },
+        "required": ["events", "notRecorded"],
+        "additionalProperties": false
+      },
       "HealthResult": {
         "type": "object",
         "properties": {

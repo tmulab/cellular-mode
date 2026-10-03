@@ -6,6 +6,7 @@ import { makeCell } from './cell-file.mjs';
 import { upsertRow } from './index-table.mjs';
 import { reconnectLines, summaryLines } from './projections.mjs';
 import { checkState, formatFindings } from './check.mjs';
+import { renderDependencies } from './deps.mjs';
 import { oneLine } from './fields.mjs';
 import { STATE_REL } from './paths.mjs';
 import { CliError, EXIT } from './errors.mjs';
@@ -42,7 +43,7 @@ export function cmdInit(root, { positional, options }) {
 
 /** @param {string} root @param {ParsedArgs} args @param {NodeJS.ProcessEnv} [env] @returns {CommandResult} */
 export function cmdPlan(root, { positional, options }, env) {
-  assertAllowed(options, ['root', 'area', 'objective'], 'plan');
+  assertAllowed(options, ['root', 'area', 'objective', 'deps'], 'plan');
   const name = requireName(positional, 'plan');
   const area = requireOption(options, 'area', 'plan');
   const st = readState(root);
@@ -54,6 +55,7 @@ export function cmdPlan(root, { positional, options }, env) {
   }
   const cell = makeCell({
     name, id: slug, area, objective: options.objective, opened: today(env), status: '📋',
+    dependencies: renderDependencies(options.deps),
   });
   writeCell(root, cell);
   writeIndex(root, upsertRow(st.indexRows, {

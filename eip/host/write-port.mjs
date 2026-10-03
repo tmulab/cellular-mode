@@ -18,12 +18,17 @@ export const SAFE_SEGMENT = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 
 /** Always throws: naming `never` is what lets the checker see the guards below as
  * guards, and what stops a caller from treating a refusal as a value.
- * @type {(name: unknown, message: string) => never} */
-const refuse = (name, message) => {
-  throw new KernelError('PERMISSION_DENIED', `refused to write "${String(name)}": ${message}`, [
+ * `verb` is the only thing that differs between a refused write and a refused read,
+ * so the refusal itself is written once and both ports use it.
+ * @type {(name: unknown, message: string, verb?: string) => never} */
+export const refuseAccess = (name, message, verb = 'access') => {
+  throw new KernelError('PERMISSION_DENIED', `refused to ${verb} "${String(name)}": ${message}`, [
     { path: 'name', message },
   ]);
 };
+
+/** @type {(name: unknown, message: string) => never} */
+const refuse = (name, message) => refuseAccess(name, message, 'write');
 
 /**
  * PURE. Throws `PERMISSION_DENIED` unless `name` is a single safe file name.
@@ -46,6 +51,51 @@ export function assertSafeSegment(name) {
 }
 
 /**
+ * The SECOND guard, shared by every path-confined port: the resolved target must
+ * really live under the real base directory. "Really" is the word that matters —
+ * `realpath` is applied to the base AND, when it exists, to the target, so a symbolic
+ * link or a Windows junction anywhere in the chain cannot redirect the operation
+ * outside the sandbox. Containment is a property of the filesystem, not of the string.
+ *
+ * Every segment has already been proved a single safe name by `assertSafeSegment`, so
+ * this function never has to interpret a path.
+ *
+ * `assertSegment` exists for ONE caller: the repository read port, whose segment rule is
+ * this one plus a single leading dot (`.claude/`, `.gitattributes` — handwritten files the
+ * gates do check). It is a parameter rather than a second copy of this function, so there
+ * stays exactly one confinement implementation in this host; the default is the strict rule,
+ * so no existing caller changes and no caller can relax it by forgetting an argument.
+ * @param {string} base the directory the host owns, already created if it must exist
+ * @param {ReadonlyArray<string>} segments safe segments, in order
+ * @param {unknown} name what the caller asked for, for the message
+ * @param {string} [verb] 'read' | 'write', for the message
+ * @param {(segment: unknown) => string} [assertSegment] the segment rule to apply
+ * @returns {Promise<string>} the absolute target, once containment is proved
+ */
+export async function confinedTarget(base, segments, name, verb = 'access', assertSegment = assertSafeSegment) {
+  for (const segment of segments) assertSegment(segment);
+  const root = await realpath(base).catch(() => refuseAccess(name, 'the base directory does not exist', verb));
+  const target = resolve(root, ...segments);
+  if (!target.startsWith(root + sep)) refuseAccess(name, 'resolved outside the confined directory', verb);
+  const existing = await lstat(target).catch(() => null);
+  if (existing !== null && existing.isSymbolicLink()) {
+    refuseAccess(name, 'the target is a symbolic link', verb);
+  }
+  if (existing !== null && !existing.isFile()) {
+    refuseAccess(name, 'the target exists and is not a regular file', verb);
+  }
+  if (existing !== null) {
+    // A junction on an INTERMEDIATE directory is invisible to `lstat` on the leaf:
+    // only resolving the whole chain shows where the bytes actually are.
+    const real = await realpath(target).catch(() => null);
+    if (real !== null && !real.startsWith(root + sep)) {
+      refuseAccess(name, 'the target resolves outside the confined directory', verb);
+    }
+  }
+  return target;
+}
+
+/**
  * The port descriptor the kernel grants to plugins declaring `fs.write`.
  * `fn(name, body)` writes `body` as UTF-8 under `reportsDir` and returns the
  * RELATIVE name: the API must not publish where the filesystem keeps things.
@@ -64,18 +114,9 @@ export function createWritePort(reportsDir) {
       const safe = assertSafeSegment(name);
       if (typeof body !== 'string') refuse(name, 'the body must be a string');
       await mkdir(base, { recursive: true });
-      // realpath AFTER mkdir: if the directory itself is a link, containment is
-      // checked against where it really is, not against the alias.
-      const root = await realpath(base);
-      const target = resolve(root, safe);
-      if (!target.startsWith(root + sep)) refuse(name, 'resolved outside the reports directory');
-      const existing = await lstat(target).catch(() => null);
-      if (existing !== null && existing.isSymbolicLink()) {
-        refuse(name, 'the target is a symbolic link');
-      }
-      if (existing !== null && !existing.isFile()) {
-        refuse(name, 'the target exists and is not a regular file');
-      }
+      // mkdir BEFORE the containment check: `confinedTarget` realpaths the base, so
+      // containment is checked against where the directory really is, not the alias.
+      const target = await confinedTarget(base, [safe], name, 'write');
       await writeFile(target, body, { encoding: 'utf8', flag: 'w' });
       return safe;
     },

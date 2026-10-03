@@ -11,9 +11,8 @@ Plain Markdown. Zero runtime dependencies. No runtime required. Node ≥ 18. Apa
 
 Agent-assisted development keeps failing in three ways, all about *continuity* rather than intelligence.
 **Interruptions:** when the only record is the chat transcript, every pause — a meeting, fatigue, a compacted
-context window, a new tool — costs a full re-explanation, and some is lost. **Cognitive load:** the usual way
-to give an agent context is to dump everything, which is expensive for the model and paralysing for the
-person. **Scope creep:** asked for X, an eager agent delivers X + Y + Z, each plausible, none agreed.
+context window, a new tool — costs a full re-explanation, and some is lost. **Cognitive load:** the usual way to
+give an agent context is to dump everything, expensive for the model and paralysing for the person. **Scope creep:** asked for X, an eager agent delivers X + Y + Z, each plausible, none agreed.
 
 ## Principles
 
@@ -25,8 +24,7 @@ person. **Scope creep:** asked for X, an eager agent delivers X + Y + Z, each pl
 6. The **log is truth**; everything else is a projection and can be rebuilt.
 7. Human authority at the boundaries: *done*, *destructive*, *batch* and *direction*.
 
-Accessibility is structural: variable energy, non-linear focus and unannounced
-interruptions are ordinary working conditions, for everyone. No diagnosis is ever relevant.
+Accessibility is structural: variable energy, non-linear focus and unannounced interruptions are ordinary working conditions, for everyone. No diagnosis is ever relevant.
 
 ## Three domains in one repository
 
@@ -38,9 +36,9 @@ interruptions are ordinary working conditions, for everyone. No diagnosis is eve
 | **B** | **TMU-LAB Engineering Method** | how work is implemented and verified: constitution, policy layer, seven optional skills, automated gates | `docs/00`, `docs/05`, `skills/verify…`, `tools/gates/`, `policy/` |
 | **C** | **Everything Is a Plugin** | an architecture foundation for systems *built with* the method: plugin contract, minimal kernel, host, agent gateway | `eip/`, `api/openapi.json` |
 
-A **cell** is a unit of work; a **plugin** is a unit of capability; an **agent** is a caller
-with an allow-list and no authority to consent. None of the three is a core, and the
-independence is enforced by an import gate: Cellular Mode must keep working with no `eip/`.
+A **cell** is a unit of work; a **plugin** is a unit of capability; an **agent** is a caller with an allow-list
+and no authority to consent. None of the three is a core, and the independence is enforced by an import gate:
+Cellular Mode must keep working with no `eip/`.
 
 ## Adopt it in your project
 
@@ -54,8 +52,7 @@ templates/vault/state/  →  vault/state/     # the empty state skeleton
 node tools/cellmode/cli.mjs init            # …or let the CLI create the skeleton
 ```
 
-Both Level 4 configuration files are optional and read only if present:
-`templates/project-policy.md` → `vault/policy.md`, `templates/user-profile.md` → `vault/profile.md`.
+Both Level 4 configuration files are optional and read only if present: `templates/project-policy.md` → `vault/policy.md`, `templates/user-profile.md` → `vault/profile.md`.
 
 ## Create, pause, resume
 
@@ -73,9 +70,9 @@ node tools/cellmode/cli.mjs pause --facts "parser handles 6 records; src/parse.j
   --next "run npm test and read the first error" --build green
 ```
 
-Next session: `/cell` gives five lines — cell, last fact, gate status, NEXT STEP — and then
-the next step is *executed*, not re-discussed (`cli.mjs status` prints the same). Marking a
-cell ✔ done always requires your explicit confirmation (`complete --confirm`).
+Next session: `/cell` gives five lines — cell, last fact, gate status, NEXT STEP — and then the next step is
+*executed*, not re-discussed (`cli.mjs status` prints the same). Marking a cell ✔ done always requires your
+explicit confirmation (`complete --confirm`).
 
 ## Engineering method and constitution
 
@@ -88,14 +85,13 @@ responsibility behind a declared contract · recorded or it did not happen · au
 the human-review items. The configurable policy layer is
 [`docs/05-engineering-rules.md`](docs/05-engineering-rules.md); seven optional skills (`verify`, `protect`,
 `harden`, `sanity`, `coverage`, `port`, `decisions`) load only when a task calls for one, never as a set.
-Weakening an article requires an entry in [`policy/relaxations.md`](policy/relaxations.md) — an empty list
-is the healthy state. Origins and a 48-row table: [`METODO_TMULAB_INTEGRATION.md`](METODO_TMULAB_INTEGRATION.md).
+Weakening an article requires an entry in [`policy/relaxations.md`](policy/relaxations.md) — an empty list is the healthy state. Origins and a 48-row table: [`METODO_TMULAB_INTEGRATION.md`](METODO_TMULAB_INTEGRATION.md).
 
 ## Everything Is a Plugin — quickstart
 
-A minimal, experimental runtime. A plugin declares the key it provides, the siblings it needs,
-the permissions it expects and its capabilities; the kernel validates and wires; the **host**
-composes and owns the transport, the filesystem port and the approver.
+A minimal, experimental runtime. A plugin declares the key it provides, the siblings it needs, the permissions
+it expects and its capabilities; the kernel validates and wires; the **host** composes and owns the transport,
+the filesystem port and the approver.
 
 ```
 node eip/host/cli.mjs --dev-ui        # 127.0.0.1:3100, no CORS, dev pages on
@@ -108,16 +104,20 @@ curl -s -X POST http://127.0.0.1:3100/api/v1/plugins/text.report/capabilities/sa
 # -> 403 {"ok":false,"error":{"code":"APPROVAL_REQUIRED",…}} — and nothing is written
 ```
 
-**Approval fails closed.** `save-report` is *consequential*, so it cannot run without a verdict
-from a human approver the host supplies (`--approve-interactive`, `y/N`, default **N**). A
-caller may never approve itself: an `approval` field in a request body is refused before the
-kernel is reached, and an agent's forged approval is dropped by the gateway.
-⚠️ **TRUSTED LOCAL PLUGINS ONLY. Plugins run in-process with full Node privileges —
-permissions and ports are a least-privilege contract, NOT a security sandbox.** Treat plugin
-code as trusted first-party code; untrusted plugins need isolation this runtime does not
-have: [`SECURITY.md`](SECURITY.md).
+**Approval fails closed.** `save-report` is *consequential*, so it cannot run without a verdict from a human
+approver the host supplies (`--approve-interactive`, `y/N`, default **N**). A caller may never approve itself: an
+`approval` field in a request body is refused before the kernel is reached, and an agent's forged approval is
+dropped by the gateway.
+⚠️ **TRUSTED LOCAL PLUGINS ONLY. Plugins run in-process with full Node privileges — permissions and ports are a
+least-privilege contract, NOT a security sandbox.** Treat plugin code as trusted first-party code; untrusted
+plugins need isolation this runtime does not have: [`SECURITY.md`](SECURITY.md).
 Threat model: [`docs/09-architecture.md`](docs/09-architecture.md) §9 · contract: [`eip/sdk/README.md`](eip/sdk/README.md)
 · API: [`api/openapi.json`](api/openapi.json) · client: [`examples/api-client/`](examples/api-client/).
+
+**Optional: the Cellular Observer.** A local, read-only dashboard over a vault — counts, cells table, cell
+detail, timeline, a dependency graph in 2D with an optional 3D view, a deterministic audit area and a
+disabled-by-default advisor. `node apps/observer/cli.mjs --root <project>`, loopback only, no build step, no
+network: [`apps/observer/README.md`](apps/observer/README.md) · [`OBSERVER_REPORT.md`](OBSERVER_REPORT.md) · [ADR 0003](docs/adr/0003-observer-frontend.md).
 
 ## Use it with different agents
 
@@ -129,10 +129,9 @@ Agent-neutral: a tool needs only to read `AGENTS.md` and write under `vault/stat
 | Cursor | `adapters/cursor/` — an always-applied rule pointing at `AGENTS.md` |
 | Codex CLI, Gemini CLI, Copilot, Aider, generic chat | the per-tool table in [`adapters/README.md`](adapters/README.md) |
 
-**Honesty:** for Claude Code, skill **discovery** and **invocation** are VERIFIED live — all eleven
-skills were listed, and `cell` was invoked through the pointer and followed (the other ten share
-the identical pointer shape but were not individually invoked). Every other adapter is
-**untested** — documented conventions only. Check your tool's docs.
+**Honesty:** for Claude Code, skill **discovery** and **invocation** are VERIFIED live — all eleven skills were
+listed and `cell` was invoked through the pointer and followed (the other ten share the identical pointer shape
+but were not individually invoked). Every other adapter is **untested** — documented conventions only.
 
 ## Documentation
 
@@ -145,10 +144,10 @@ the identical pointer shape but were not individually invoked). Every other adap
 | [`docs/09-architecture.md`](docs/09-architecture.md) | the three domains, layers, dependency direction, authority, threat model |
 | [`docs/adr/`](docs/adr/) · [`SECURITY.md`](SECURITY.md) | architecture decision records (both **accepted**, 2026-10-02) · supported scope, threat model, what is and is not enforced |
 
-Templates: [`templates/`](templates/) — user profile, cell contract (with the full worked form:
-question → pre-committed decisions → declared scope → mechanical criteria with red-proof →
-verdict), handoff package, project policy. **Example:** [`examples/text-stats/`](examples/text-stats/) — a
-small project built through three cells, with its vault, code, tests and a reproduce script.
+Templates: [`templates/`](templates/) — user profile, cell contract (with the full worked form: question →
+pre-committed decisions → declared scope → mechanical criteria with red-proof → verdict), handoff package,
+project policy. **Example:** [`examples/text-stats/`](examples/text-stats/) — a small project built through
+three cells, with its vault, code, tests and a reproduce script.
 [`vault/state/`](vault/state/) here is *this* repository's own development record, written by the real CLI;
 adopters run `init` in their own project. Reports: [`CONTEXT_AUDIT.md`](CONTEXT_AUDIT.md) · [`MIGRATION_REPORT.md`](MIGRATION_REPORT.md) · [`ARCHITECTURE_REPORT.md`](ARCHITECTURE_REPORT.md) · [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md).
 
@@ -171,18 +170,17 @@ measurement, not a label — R-1 WITHDRAWN ([`policy/relaxations.md`](policy/rel
 | Status | What |
 |---|---|
 | **Implemented** | The method documentation (`docs/`, `templates/`) and the two procedures as agent-neutral prose (`skills/`). The `cellmode` CLI — a deterministic implementation of the file protocol. The optional `key-audit` tool. The four gates and the Trilateral runner (`tools/gates/`). Tests, run with `npm test`. |
-| **Implemented — minimal, experimental API (v1)** | The **Everything Is a Plugin** runtime: SDK contract and validators, kernel (register / load / dispose / execute / events), two plugins, the HTTP host with `api/openapi.json`, the agent gateway. Each has acceptance criteria and a recorded mutation verdict (`eip/*/ACCEPTANCE.md`). **Local development only**, API not frozen: no authentication, no rate limiting, loopback-bound, **trusted local plugins only** ([`SECURITY.md`](SECURITY.md)). |
+| **Implemented — minimal, experimental API (v1)** | The **Everything Is a Plugin** runtime: SDK contract and validators, kernel (register / load / dispose / execute / events), two example plugins, three optional `observer.*` plugins with the `apps/observer/` application, the HTTP host with `api/openapi.json`, the agent gateway. Each has acceptance criteria and a recorded mutation verdict (`eip/*/ACCEPTANCE.md`). **Local development only**, API not frozen: no authentication, no rate limiting, loopback-bound, **trusted local plugins only** ([`SECURITY.md`](SECURITY.md)). |
 | **Experimental / untested** | Adapters for every tool other than Claude Code: Cursor, OpenAI Codex CLI, Gemini CLI, GitHub Copilot, Aider, generic chat — documented conventions, not live runs. For Claude Code, skill *invocation* (discovery is verified). |
 | **Proposed — not built** | Workflow orchestration: multi-step workflows, planners, multi-agent delegation, durable audit (`eip/orchestration/README.md`). Plugin discovery from disk, hot reload, sandboxed execution of untrusted plugins, process isolation (`docs/09-architecture.md` §4). Multi-agent locking — "one active cell" is a convention checked after the fact, not a lock. |
-| **Out of scope by decision** | A production frontend: complex UIs are independent applications consuming `api/openapi.json`, never plugins — [ADR 0001](docs/adr/0001-frontend-exception.md). The original project's web dashboard is **not** ported. |
+| **Out of scope by decision** | A production frontend *inside* the runtime: complex UIs are independent applications consuming `api/openapi.json`, never plugins — [ADR 0001](docs/adr/0001-frontend-exception.md), [ADR 0003](docs/adr/0003-observer-frontend.md). No framework, no build step, no Next.js. |
 
 ## Authorship and origins
 
-**Hudson A. R. Bonomo** (Hudson Augusto Rodrigues Bonomo) **· TMU-LAB — The Machine
-Unconscious Lab · <https://tmulab.org>**
+**Hudson A. R. Bonomo** (Hudson Augusto Rodrigues Bonomo) **· TMU-LAB — The Machine Unconscious Lab · <https://tmulab.org>**
 
-Developed in production use and originally written in Portuguese as **"Modo Celular"**,
-then generalized into this English, project-agnostic form. See [`NOTICE`](NOTICE).
+Developed in production use and originally written in Portuguese as **"Modo Celular"**, then generalized into
+this English, project-agnostic form. See [`NOTICE`](NOTICE).
 
 ## License
 
@@ -197,4 +195,6 @@ Apache License 2.0 — see [`LICENSE`](LICENSE).
 - **David L. Parnas**, *On the Criteria To Be Used in Decomposing Systems into Modules* (1972) — the
   reason a declared interface can replace a meeting (`docs/04-collaboration.md`).
 
-No third-party code is bundled; see [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+The method, the CLI, the gates and the runtime bundle **no third-party code** and declare zero runtime
+dependencies. Exactly one directory is vendored: the hash-pinned `three@0.180.0` (MIT) used by the optional 3D
+view of `apps/observer/`. See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).

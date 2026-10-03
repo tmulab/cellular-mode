@@ -8,7 +8,13 @@
 // `eip/` may not exist yet. A gate that fails on an absent directory would block the
 // cell that is building it, so absence is simply "no files matched, nothing to say".
 // The rules are tested on in-memory fixtures, which is why they must be data.
+import { HOST_GATE_IMPORTS, OBSERVER_PURE_IMPORTS } from './allowlists.mjs';
 import { importSpecifiers } from './deps.mjs';
+
+// The two import EXCEPTIONS are DATA and live in ./allowlists.mjs, each name checked by hand
+// with its reason beside it. Re-exported here because the rules below are what a reader comes
+// to this file for, and the lists are part of the same contract.
+export { HOST_GATE_IMPORTS, OBSERVER_PURE_IMPORTS };
 
 /** @typedef {import('./types.mjs').FileTuple} FileTuple */
 /** @typedef {import('./types.mjs').Finding} Finding */
@@ -48,6 +54,7 @@ const prefixOf = (path, depth) => path.split('/').slice(0, depth).join('/') + '/
  * library is not a layering concern. A DENY rule may still name one (see transport).
  * @type {Rule[]}
  */
+/** @type {Rule[]} */
 export const RULES = [
   {
     id: 'sdk-depends-on-nothing',
@@ -63,9 +70,17 @@ export const RULES = [
   },
   {
     id: 'plugin-imports-sdk-and-own-dir',
-    why: 'a plugin is replaceable: it may use the SDK, its own directory and shared domain code, never kernel internals, the host, orchestration, or a sibling plugin (siblings arrive through inject).',
-    from: /^eip\/plugins\/[^/]+\//,
+    why: 'a plugin is replaceable: it may use the SDK, its own directory and shared domain code, never kernel internals, the host, orchestration, or a sibling plugin (siblings arrive through inject). An observer-* plugin is governed by its own rule instead, so that its extra allowance is read as an exception and not as the norm.',
+    from: /^eip\/plugins\/(?!observer-)[^/]+\//,
     allowPrefixes: ['eip/sdk/', 'examples/text-stats/src/'],
+    allowSelfDepth: 3,
+  },
+  {
+    id: 'observer-plugin-imports-only-named-pure-modules',
+    why: 'the observer reads a Cellular Mode vault, and a second parser of that vault would be a second truth; so it may import the SDK, its own directory and the NAMED pure modules listed in OBSERVER_PURE_IMPORTS - never state.mjs, never paths.mjs, never the CLI, never a disk-reading gate shell, never the kernel or the host.',
+    from: /^eip\/plugins\/observer-[^/]+\//,
+    allowPrefixes: ['eip/sdk/'],
+    allowExact: [...OBSERVER_PURE_IMPORTS],
     allowSelfDepth: 3,
   },
   {
@@ -78,9 +93,10 @@ export const RULES = [
   },
   {
     id: 'host-composes-everything',
-    why: 'composition is the one place allowed to know all the parts - that is what makes the other layers independent.',
+    why: 'composition is the one place allowed to know all the parts - that is what makes the other layers independent. It may additionally import the three NAMED leaf modules of tools/gates listed in HOST_GATE_IMPORTS (the exclusion list, the evidence shape and the git-head reader), because those are facts about this repository that the host read ports and the gates must agree on exactly; everything else in tools/ stays out of reach.',
     from: /^eip\/host\//,
     allowPrefixes: ['eip/', 'examples/'],
+    allowExact: [...HOST_GATE_IMPORTS],
   },
   {
     id: 'kernel-and-sdk-are-transport-free',

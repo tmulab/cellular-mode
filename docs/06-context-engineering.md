@@ -14,6 +14,7 @@ that matter. So context is loaded in **levels**, on demand.
 | **3 · Live state** | `vault/state/CURRENT-CELL.md`, then the one cell file it points to | ~20–40 lines | While working inside a cell. |
 | **4 · Reference** | `docs/*` (including `docs/00-constitution.md` and `docs/09-architecture.md`), `skills/verify/false-green.md`, `vault/policy.md`, `vault/profile.md`, `templates/*`, handoff packages | Hundreds of lines | Only when the topic is actually relevant, and only the relevant file. |
 | **4 · Reference** | *Runtime ("Everything Is a Plugin"):* `docs/09-architecture.md`, `eip/*/README.md`, `eip/*/ACCEPTANCE.md`, `api/openapi.json`, `docs/adr/*`, `tools/gates/README.md`, `policy/relaxations.md` | Hundreds of lines | Only when the cell is actually about the runtime, the gates or the architecture — **never at bootstrap**, and never as a set. A cell that touches no plugin reads none of them. |
+| **4 · Reference** | *Observer (optional):* `OBSERVER_REPORT.md`, `apps/observer/{README,ACCEPTANCE,MANUAL-CHECKS}.md`, `eip/plugins/observer-*/ACCEPTANCE.md`, `docs/adr/0003-observer-frontend.md`, `tools/gates/{EVIDENCE,VENDOR-EXCLUSION}.md` | Hundreds of lines | Only when the cell is about the observer itself. It is an *optional* reader of the vault, so a cell that does not touch it reads none of these — and the method works with the whole observer deleted. |
 
 Level 1 is the only file an agent must read unconditionally. It is deliberately a
 *router*: the seven rules (so even a context-starved agent behaves safely), where state
@@ -33,7 +34,24 @@ document, the plugin SDK contract, the acceptance files, the OpenAPI document, t
 the gate reference and the relaxation register all sit at Level 4, and the only trace any
 of them leaves in Level 1 is the six-line constitution summary in `AGENTS.md`. The
 measured consequence is in `CONTEXT_AUDIT.md`: the always-loaded bootstrap did not grow
-when `eip/` was added.
+when `eip/` was added, and did not grow when the observer was added either.
+
+## The observer's own context is bounded, and it is not yours
+
+The optional `observer.advisor` plugin assembles a context for a model, and it obeys the same
+scarcity this page is about — mechanically, not by convention. It includes **only** the active
+cell's recorded fields, the cells that cell *declares* as dependencies, the last N log entries
+(default 5) and the last audit's findings as `id + status + rule + scope`. Nothing else: a log
+entry older than the window, a cell that is neither active nor declared, and the body of a
+finding's evidence are each absent by construction. The whole context is capped at **8 KiB**
+(`Buffer.byteLength`), truncation is deterministic, and every item left out is **named** in
+`dropped` — an answer built on a silently truncated context is the quiet version of the failure
+this document exists to prevent. The criteria are V7–V9 in
+`eip/plugins/observer-advisor/ACCEPTANCE.md`.
+
+This is a *different* budget from the agent's levels above: the observer's context is data it
+sends to a model, not documentation a session loads. The two never share a window, and reading
+the observer's own documentation is a Level 4 choice like any other.
 
 ## What loads when, concretely
 

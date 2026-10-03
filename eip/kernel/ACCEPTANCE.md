@@ -83,3 +83,15 @@ same reason.
 - **`execute` returns, `register`/`load`/`dispose` throw.** The call path is the
   one an edge (HTTP, agent gateway) drives, and it must answer without a
   try/catch; composition is programmer error and should interrupt.
+- **K14 · a plugin may answer a CLIENT error, never an authority one.** A thrown
+  `KernelError` whose code is in the SDK's `PASSTHROUGH_CODES` — `NOT_FOUND`,
+  `INPUT_INVALID`, both client errors — is returned with THAT code, its message and
+  its `details`, with no stack and no `error` event: nothing faulted, and only the
+  plugin knows whether the id it was handed names anything. Answering an unknown id as
+  `PLUGIN_ERROR` made it an HTTP 500, i.e. the server's fault for the client's
+  question. Every other throw stays `PLUGIN_ERROR`, **including a `KernelError`
+  naming any other code**: `APPROVAL_REQUIRED`/`APPROVAL_DENIED`/`PERMISSION_DENIED`
+  are authority the host grants, and a plugin able to forge them could claim a human
+  had decided something. The set is small, declared in one place
+  (`eip/sdk/errors.mjs`) and pinned by `containment.test.mjs`, which drives the
+  forgery case from `CODES` so a new architecture code is covered the day it is added.

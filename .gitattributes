@@ -1,2 +1,7 @@
 # Keep LF everywhere: LICENSE is hash-pinned and the example vault is compared byte-for-byte.
 * text=auto eol=lf
+
+# The vendored three.js build is an upstream artefact pinned by SHA-256 in
+# apps/observer/vendor/VENDOR.md: line-ending normalisation would break the hash in a
+# Windows working tree and with it the audit the pin exists to permit.
+apps/observer/vendor/** -text

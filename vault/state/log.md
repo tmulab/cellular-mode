@@ -180,3 +180,52 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** visibility stays private until the author authorizes public release; no release, no package publish
 **Build:** green
 **Next step:** —
+
+---
+## 2026-10-02 18:50 · Cell: Observer dashboard
+**Status:** ✔
+**Facts:** observer.state plugin (eip/plugins/observer-state, O1-O18) on existing SDK/host via path-confined fs.read vault port (eip/host/read-port.mjs) and eip/host/observer-composition.mjs; parsing reuses tools/cellmode pure modules (boundary rule: named pure modules only); cellmode open/plan gained a deps option (slugs); kernel passthrough of NOT_FOUND/INPUT_INVALID only (authority codes cannot be forged, K14); apps/observer independent local app ported from the original painel (2D SVG default, optional 3D, shared selection, text alternative), allowlist static server + /api/v1 proxy, strict CSP, 127.0.0.1 only; three.js r180 vendored byte-identical (SHA-256 pinned, MIT notice); ADR 0003; examples/observer-demo reproducible vault; typecheck both configs 0 errors; 405/405 tests; gates and release gate green; live smoke: 404 on unknown cell/traversal/repo/vault files, no absolute paths, demo vault bytes unchanged; browser manual checks documented, NOT YET PERFORMED
+**Decisions:** edges only from declared Dependencies; timeline only from logged events (open/resume not recorded by the protocol); status vocabulary unified as words with symbol alongside; no Next.js (ADR 0003, pending human confirmation)
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-02 19:43 · Cell: Observer auditor
+**Status:** ✔
+**Facts:** observer.audit plugin (eip/plugins/observer-audit, A1-A20 written first) injecting observer.state; checks reuse pure gate and cellmode functions in-process via path-confined repo read port (eip/host/repo-read-port.mjs, created only when the auditor is loaded); typecheck/build/tests read from the evidence file written by trilateral --evidence (gitignored .cellular/), never PASS without it, stale evidence is WARNING; secrets findings carry rule and location only; AUDIT area in apps/observer; 8 mutations red; typecheck 0, 453/453 tests, gates and release gate green; live audit on this repo 11 PASS, 1 WARNING (active cell without next step, a real finding), 1 NOT_APPLICABLE; vault bytes unchanged
+**Decisions:** one exclusion list shared by gates and auditor (tools/gates/exclusions.mjs); two explicit boundary allowlists in tools/gates/allowlists.mjs; the auditor never writes, spawns or repairs
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-02 19:51 · Cell: Observer advisor
+**Status:** ⏸
+**Facts:** Advisor agent was mid-implementation when the session stopped for the night; partial files under eip/plugins/observer-advisor/ (unverified); cells 1 and 2 done and verified (453/453 tests, gates and release gate green at their close); nothing committed since edd6db4
+**Decisions:** Advisor stays disabled by default, fixture adapter only, no network; no commit or push without authorization
+**Build:** red (Advisor cell interrupted mid-implementation; not re-verified)
+**Next step:** run npm test and npm run typecheck, then read eip/plugins/observer-advisor/ACCEPTANCE.md to see which criteria are still open
+**Personal note (optional):** stopped for the night, by choice
+
+---
+## 2026-10-03 05:59 · Cell: Observer advisor
+**Status:** ✔
+**Facts:** observer.advisor (eip/plugins/observer-advisor, V1-V23 written first): provider-independent ModelAdapter registry owned by the host, fixture adapter only, network adapters refused unless allowNetwork; permissions []; bounded context 8 KiB with dropped list; strict JSON validation + grounding downgrade to UNKNOWN; limits 20 calls, 2000 ms interval, enforced deadline (defect found: abort was requested not enforced, fixed); ADVISOR area labels AI interpretation; disabled by default (404 without the advisor flag, verified live); injection question produced 3 labelled recs and no side effect, vault bytes unchanged; literal invisible/bidi characters in 3 files replaced by escapes (Trojan Source hygiene); typecheck 0, 491/491 tests, gates and release gate green
+**Decisions:** advisor output is untrusted data, never executed; no remote adapter ships; local SLM integration stays PENDING
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 06:24 · Cell: Cellular Observer
+**Status:** ✔
+**Facts:** OBSERVER_REPORT.md (11 sections, fresh verification); apps/observer/README.md (install, start, status, stop, disable, remove; options verified); docs/09, docs/06, README, RELEASE_CHECKLIST (items 31-35), ARCHITECTURE_REPORT, CONTEXT_AUDIT updated; THIRD_PARTY_NOTICES and README self-contradiction about three.js corrected; final: typecheck 0, 491/491 tests, gates and release gate green, original sources unchanged, no private data in uncommitted changes; Stage 3 uncommitted on top of edd6db4
+**Decisions:** Stage 3 complete pending the author's review: ADR 0003 confirmation, manual browser checks, commit and push authorization
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 07:33 · Cell: Stage 3 final validation
+**Status:** ✔
+**Facts:** ADR 0003 approved by the author 2026-10-03; auditor warning explained (open could not record a first next step, contrary to the cell skill) and fixed in the CLI with an optional next option on open, auditor rule unchanged and proven; automated browser checks headless Edge 154 via DevTools protocol with real WebGL: 2D, 3D, navigation, selection, details, timeline, text view, audit, advisor, 320px, 500 cells, CSP passed; five UI defects found and fixed incl. infinite recursion on cell selection; human items (perceived contrast, screen reader, feel) left open; 504/504 tests, gates and release gate green; prepared for the authorized local commit that follows this entry
+**Decisions:** push waits for a separate authorization; minor: done-cell next step renders as not recorded (proposed cell)
+**Build:** green
+**Next step:** —

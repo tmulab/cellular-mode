@@ -58,6 +58,20 @@ export function requireOption(options, key, command) {
   return value.trim();
 }
 
+/**
+ * An option that may be OMITTED but must be concrete when it is given. There is no third
+ * state: `undefined` means the caller said nothing, and anything the caller did say has to
+ * mean something. Passing `--next ""` is therefore a usage error rather than a quiet
+ * fallback to the default — the opposite of `--deps ""`, which is a deliberate CLEAR and
+ * so is read by its own command instead of here.
+ * @param {Record<string, unknown>} options @param {string} key @param {string} command
+ * @returns {string | undefined}
+ */
+export function optionalOption(options, key, command) {
+  if (!(key in options)) return undefined;
+  return requireOption(options, key, command);
+}
+
 /** @param {ReadonlyArray<string>} positional @param {string} command @returns {string} */
 export function requireName(positional, command) {
   const name = positional.join(' ').trim();

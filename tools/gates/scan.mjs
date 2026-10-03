@@ -8,17 +8,21 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { BINARY, EXCLUDED_DIRS, VENDORED_PATHS, isVendored } from './exclusions.mjs';
 
 /** @typedef {import('./types.mjs').FileTuple} FileTuple */
 
 /** Repository root, derived from this file's own location. */
 export const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 
-/** Never walked: not ours, or not text. */
-const SKIP_DIRS = new Set(['node_modules', '.git']);
+// The exclusion list moved to `./exclusions.mjs` — PURE, and therefore shareable. The
+// host's repository read port (eip/host/repo-read-port.mjs) asks the same question about
+// the same repository, and two copies of that answer would drift. Re-exported here so
+// every existing caller of `scan.mjs` keeps working against one list.
+export { VENDORED_PATHS, isVendored };
 
-/** Binary-ish extensions we never read as text. */
-const BINARY = /\.(png|jpe?g|gif|ico|pdf|zip|woff2?|ttf|exe|dll)$/i;
+/** Never walked: not ours, or not text. */
+const SKIP_DIRS = new Set(EXCLUDED_DIRS);
 
 /** @type {(p: string) => string} */
 const toPosix = (p) => p.split(sep).join('/');
@@ -46,7 +50,7 @@ export function listFiles(root = ROOT, dir = root, out = []) {
  */
 export function readTuples(root = ROOT, filter = () => true) {
   return listFiles(root)
-    .filter((rel) => !BINARY.test(rel) && filter(rel))
+    .filter((rel) => !BINARY.test(rel) && !isVendored(rel) && filter(rel))
     .map((path) => ({ path, text: readFileSync(join(root, path), 'utf8') }));
 }
 

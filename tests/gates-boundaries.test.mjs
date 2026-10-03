@@ -9,7 +9,9 @@
 // tolerates the directory being absent.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { RULES, checkBoundaries, resolveSpecifier, toFindings } from '../tools/gates/boundaries.mjs';
+import {
+  OBSERVER_PURE_IMPORTS, RULES, checkBoundaries, resolveSpecifier, toFindings,
+} from '../tools/gates/boundaries.mjs';
 import { readTuples } from '../tools/gates/scan.mjs';
 
 /** @type {(path: string, ...specifiers: string[]) => import('../tools/gates/types.mjs').FileTuple} */
@@ -72,6 +74,55 @@ test('boundaries · RED when a plugin imports kernel internals, the host, or a s
     'eip/host/server.mjs',
     'eip/plugins/text.report/index.mjs',
   ]);
+});
+
+// --------------------------------------------------- the observer exception -----
+// The allowance is NARROW and that is the whole point of testing it: the list is
+// named modules, so a test that only proved "observer may import tools/cellmode"
+// would stay green if the rule were widened to a prefix.
+test('boundaries · an observer-* plugin may import the NAMED pure modules', () => {
+  const files = [
+    file('eip/plugins/observer-state/read.mjs', '../../sdk/index.mjs', './views.mjs',
+      '../../../tools/cellmode/index-table.mjs', '../../../tools/cellmode/log.mjs',
+      '../../../tools/cellmode/cell-file.mjs', '../../../tools/cellmode/check.mjs',
+      '../../../tools/cellmode/deps.mjs', '../../../tools/cellmode/slug.mjs', 'node:crypto'),
+    file('eip/plugins/observer-audit/rules.mjs', '../../../tools/gates/size.mjs',
+      '../../../tools/gates/secrets.mjs', '../../../tools/gates/boundaries.mjs',
+      '../../../tools/gates/release.mjs'),
+  ];
+  assert.deepEqual(checkBoundaries(files), []);
+});
+
+test('boundaries · RED when an observer plugin reaches a module that is not on the list', () => {
+  // Each of these is a different reason to refuse: disk access, path building, the
+  // CLI, a clock, a disk-reading gate shell, a process-spawning shell.
+  const notPure = [
+    'tools/cellmode/state.mjs', 'tools/cellmode/paths.mjs', 'tools/cellmode/clock.mjs',
+    'tools/cellmode/main.mjs', 'tools/cellmode/cli.mjs', 'tools/cellmode/commands.mjs',
+    'tools/gates/scan.mjs', 'tools/gates/check-all.mjs', 'tools/gates/trilateral.mjs',
+    'tools/key-audit/key-audit.mjs',
+  ];
+  const files = notPure.map((target, i) => file(`eip/plugins/observer-state/m${i}.mjs`, `../../../${target}`));
+  const findings = checkBoundaries(files);
+  assert.deepEqual(findings.map((f) => f.target), notPure);
+  assert.deepEqual(ids(findings), Array(notPure.length).fill('observer-plugin-imports-only-named-pure-modules'));
+  // Kernel, host and a sibling plugin stay refused for an observer plugin too.
+  assert.deepEqual(ids(checkBoundaries([
+    file('eip/plugins/observer-state/a.mjs', '../../kernel/registry.mjs'),
+    file('eip/plugins/observer-state/b.mjs', '../../host/index.mjs'),
+    file('eip/plugins/observer-audit/c.mjs', '../observer-state/index.mjs'),
+  ])), Array(3).fill('observer-plugin-imports-only-named-pure-modules'));
+});
+
+test('boundaries · the exception is the observer\'s alone: another plugin is still refused', () => {
+  for (const target of OBSERVER_PURE_IMPORTS) {
+    const findings = checkBoundaries([file('eip/plugins/text-stats/x.mjs', `../../../${target}`)]);
+    assert.deepEqual(ids(findings), ['plugin-imports-sdk-and-own-dir'], `${target} must stay refused`);
+  }
+  assert.ok(OBSERVER_PURE_IMPORTS.length >= 9);
+  assert.equal(OBSERVER_PURE_IMPORTS.includes('tools/cellmode/state.mjs'), false);
+  assert.equal(OBSERVER_PURE_IMPORTS.includes('tools/gates/scan.mjs'), false);
+  assert.equal(Object.isFrozen(OBSERVER_PURE_IMPORTS), true);
 });
 
 test('boundaries · orchestration may use the kernel public entry but not its internals', () => {

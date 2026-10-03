@@ -23,8 +23,15 @@
  *   line?: number, lines?: number, limit?: number }} Finding
  */
 
-/** The result of one leg of Trilateral Verification.
- * @typedef {{ status: 'pass' | 'fail' | 'warn', text: string, detail?: string }} LegResult
+/**
+ * The result of one leg of Trilateral Verification. `text` is the line a human reads;
+ * the MEASURED numbers travel beside it, because a count parsed back out of a sentence
+ * is a count that will be parsed wrongly one day. Each is present only on the leg that
+ * measures it, and `null` where the leg ran but the number could not be read.
+ * @typedef {{ status: 'pass' | 'fail' | 'warn', text: string, detail?: string,
+ *   errors?: number, modules?: number,
+ *   counts?: { passed: number | null, failed: number | null, total: number | null }
+ * }} LegResult
  */
 
 export {};

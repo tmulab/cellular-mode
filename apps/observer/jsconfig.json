@@ -1,0 +1,21 @@
+{
+  "//": "The BROWSER typecheck leg (criterion D16). Same discipline as the repository's jsconfig.json — strict plus the same four strengthenings — with two differences that are about the platform and not about rigour: `lib` adds DOM (this code runs in a browser) and `types` is empty (node's globals must NOT be visible to browser code; a module that reaches for `process` has to fail here). three.js is typed by the hand-written subset declaration in vendor/three@0.180.0/three.module.min.d.ts, so the 721 KB minified artefact is never parsed. Run by `npm run typecheck` after the root config.",
+  "compilerOptions": {
+    "checkJs": true,
+    "allowJs": true,
+    "noEmit": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": [],
+    "skipLibCheck": false
+  },
+  "include": ["web/**/*.mjs"],
+  "exclude": ["vendor"]
+}

@@ -6,3 +6,5 @@ Promoted to a cell → append `✔ → cell <name>` to its line.
 - [2026-10-02] No cancelled or abandoned cell state exists in the protocol: reopening is a new cell. Decide whether that is a feature or a gap before a 1.0. (context: cell Hygiene tests and reports)
 - [2026-10-02] Adapters for Cursor, Codex CLI, Gemini CLI, Copilot and Aider still need one real live session each before anyone can call them tested. (context: cell Hygiene tests and reports)
 - [2026-10-02] cellmode args: option values that start with -- are rejected (e.g. a done criterion mentioning a flag); consider supporting --opt=value (context: no active cell)
+- [2026-10-02] cellmode open has no option to record the first next step, so every newly opened cell starts with NEXT STEP: — (the Observer auditor flags it as AUD-CELL-CONTRACT WARNING); consider a next option on open (context: cell Observer auditor) ✔ → cell Stage 3 final validation
+- [2026-10-03] Add a Trojan Source gate: fail on literal invisible or bidi-control characters (U+200B-200F, U+202A-202E, U+2066-2069, U+FEFF) in source; escapes only (context: cell Observer advisor)

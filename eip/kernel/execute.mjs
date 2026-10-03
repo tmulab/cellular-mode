@@ -1,10 +1,8 @@
-// Calling a capability. The order of the gates is the contract:
-//   found -> input valid -> approved (if consequential) -> run under a deadline
-//   -> output valid. A later gate never compensates for an earlier one.
-//
-// `execute` RETURNS a structured result and does not throw: a caller at the edge
-// of the system (HTTP, agent gateway) must be able to answer without a try/catch.
-import { KernelError, check, messageOf, stackOf } from '../sdk/index.mjs';
+// Calling a capability. The order of the gates is the contract: found -> input valid
+// -> approved (if consequential) -> run under a deadline -> output valid. A later gate
+// never compensates for an earlier one. `execute` RETURNS a structured result and does
+// not throw: a caller at the edge (HTTP, agent gateway) must answer without a catch.
+import { KernelError, check, messageOf, passthroughOf, stackOf } from '../sdk/index.mjs';
 
 /** @typedef {import('../sdk/types.mjs').Capability} Capability */
 /** @typedef {import('../sdk/types.mjs').Err} Err */
@@ -18,7 +16,7 @@ class Interrupted extends Error {
   /** @param {'CANCELLED' | 'TIMEOUT'} kind */
   constructor(kind) {
     super(kind);
-    this.kind = kind; // 'CANCELLED' | 'TIMEOUT'
+    this.kind = kind;
   }
 }
 
@@ -40,9 +38,8 @@ export function readVerdict(verdict) {
   };
 }
 
-/**
- * Run `run(signal)` under cancellation and an optional deadline.
- * Rejects with `Interrupted` so the caller can tell CANCELLED from TIMEOUT.
+/** Run `run(signal)` under cancellation and an optional deadline. Rejects with
+ * `Interrupted` so the caller can tell CANCELLED from TIMEOUT.
  * @param {(signal: AbortSignal) => unknown} run
  * @param {{ signal?: AbortSignal | undefined, timeoutMs?: number | undefined }} [bounds]
  * @returns {Promise<unknown>} */
@@ -81,12 +78,10 @@ export async function runWithDeadline(run, { signal, timeoutMs } = {}) {
  *   approver?: import('./types.mjs').Approver | undefined,
  *   defaultTimeoutMs?: number | undefined }} wiring */
 export function createExecutor({ registry, lifecycle, events, approver, defaultTimeoutMs }) {
-  /**
-   * The consequential gate: fail-closed. No approver at all means no.
-   * The verdict is AWAITED: a human decision takes time (a prompt, a queue, a
-   * chat message), and a gate that only accepts instant answers can never open
-   * for a person. A synchronous approver still works unchanged.
-   */
+  // The consequential gate: fail-closed - no approver at all means no. The verdict is
+  // AWAITED because a human decision takes time (a prompt, a queue, a chat message),
+  // and a gate that only accepts instant answers can never open for a person; a
+  // synchronous approver still works unchanged.
   /** @param {string} key @param {string} capId @param {unknown} input @param {unknown} approval @returns {Promise<Err | null>} */
   async function decide(key, capId, input, approval) {
     const started = Date.now();
@@ -164,8 +159,15 @@ export function createExecutor({ registry, lifecycle, events, approver, defaultT
         return finish(key, capId, started, failure(cause.kind,
           cause.kind === 'TIMEOUT' ? `"${key}#${capId}" exceeded ${timeoutMs}ms` : `"${key}#${capId}" was cancelled`));
       }
-      // A plugin fault is contained: code + message in the result, stack only in
-      // the diagnostic event. A stack in an API response is an information leak.
+      // A CLIENT error is the plugin's own answer to give: the two PASSTHROUGH_CODES
+      // keep their code and message, carry no stack, and raise no `error` event -
+      // nothing faulted. Every other throw, INCLUDING a KernelError naming any other
+      // code, is a contained fault: authority (APPROVAL_*, PERMISSION_DENIED) is the
+      // host's to grant and never a plugin's to claim.
+      const passed = passthroughOf(cause);
+      if (passed !== null) return finish(key, capId, started, passed.toResult());
+      // A fault is contained: code + message in the result, stack only in the
+      // diagnostic event - a stack in an API response is an information leak.
       events.emit({
         type: 'error', key, cap: capId, ok: false, code: 'PLUGIN_ERROR',
         ms: Date.now() - started, stack: stackOf(cause),

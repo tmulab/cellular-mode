@@ -112,10 +112,35 @@ refused while a loaded plugin declares the key as required).
 `{ok:false, error:{code, message, details?}}` — **never a stack**. A stack is
 diagnostics for the host, and travels only on the `error` event.
 
+### What a plugin may answer by throwing: `PASSTHROUGH_CODES`
+
+A plugin that throws is normally CONTAINED: `execute` answers `PLUGIN_ERROR` and the
+thrown code survives only as `details[0].path`. Two codes are exempt, and they are
+declared as a closed set — `PASSTHROUGH_CODES = ['NOT_FOUND', 'INPUT_INVALID']`:
+
+```js
+throw new KernelError('NOT_FOUND', `no cell with id "${id}"`, [{ path: 'id', message: 'unknown' }]);
+// -> execute(): {ok:false, error:{code:'NOT_FOUND', message:'no cell with id "x"', details:[...]}}
+// -> host:      404  (INPUT_INVALID -> 400, by the existing STATUS_BY_CODE table)
+```
+
+Both are **client errors**: only the plugin knows whether an id names anything, so
+answering an unknown id as `PLUGIN_ERROR` would make the server at fault for the
+question the client asked. The message and `details` are preserved, no stack travels,
+and no `error` event is raised — nothing faulted.
+
+Everything else stays contained, *including a `KernelError` naming any other code*.
+`APPROVAL_REQUIRED`, `APPROVAL_DENIED` and `PERMISSION_DENIED` are **authority**: the
+host grants them, and a plugin that could throw them and be believed could claim a
+human had decided something. `passthroughOf(cause)` is the pure predicate, and
+`eip/kernel/containment.test.mjs` proves the forgery case for every other code in
+`CODES`.
+
 ## Public surface
 
 `SDK_VERSION` · `definePlugin` · `validateManifest` · `describeManifest` ·
 `validateSchema` · `validateValue` · `check` · `KernelError` · `ContractError` ·
-`isKernelError` · `CODES` · `PERMISSIONS` · `KEY_PATTERN` ·
+`isKernelError` · `CODES` · `PASSTHROUGH_CODES` · `passthroughOf` ·
+`PERMISSIONS` · `KEY_PATTERN` ·
 `CAPABILITY_ID_PATTERN` · `MAX_DEV_UI_BYTES` · `SCHEMA_KEYWORDS` ·
 `SCHEMA_TYPES`.

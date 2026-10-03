@@ -7,6 +7,13 @@
 # directory is not the same as version control ignoring it.
 node_modules/
 
+# Local verification evidence. `node tools/gates/trilateral.mjs --evidence` writes
+# .cellular/evidence/trilateral.json so that a reader which cannot spawn a process —
+# `observer.audit` — can report the typecheck/build/tests legs without pretending to have
+# run them. It describes ONE machine at ONE moment, so committing it would turn a local
+# measurement into a claim about everybody's checkout.
+.cellular/
+
 # OS and editor noise.
 .DS_Store
 Thumbs.db
