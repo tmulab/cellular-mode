@@ -52,20 +52,18 @@ expected scope, you do not understand the feature yet.* It is the **middle rung*
 ladder — above the mocked unit test, below the expensive full-system test — and unlike the
 top rung it runs on **every** task; the whole ladder is in `skills/verify/SKILL.md`.
 
-**A revert that passes is a FINDING, not relief.** Step four is *revert and read the
-result*, never *revert and confirm the red*. Green opens an investigation. The nine forms
-of false green, their detection heuristics and the two source-guard rules are in
-`skills/verify/false-green.md` — read it the moment a revert comes back green. Worked
-form: `templates/cell-contract.md`.
+**A revert that passes is a FINDING, not relief.** Step four is *revert and read the result*,
+never *revert and confirm the red*. Green opens an investigation. The nine forms of false green,
+their detection heuristics and the two source-guard rules are in `skills/verify/false-green.md` —
+read it the moment a revert comes back green. Worked form: `templates/cell-contract.md`.
 
 ## 2. Test-first
 
 Understand the feature → write the tests (unit + integration, mocks for what does not exist
-yet) → implement until they pass → run the Trilateral → fix any failing layer before moving
-on. Asked to "just implement X": offer the tests first; if the human insists, state the risk
-once and comply. **No feature without a test; no test without an adequate mock.** Legitimate
-exemption: work with no behavior to assert yet — a UI shell, a navigable mock, a pure design
-system — whose coverage is §6 instead.
+yet) → implement until they pass → run the Trilateral → fix any failing layer before moving on.
+Asked to "just implement X": offer the tests first; if the human insists, state the risk once and
+comply. **No feature without a test; no test without an adequate mock.** Legitimate exemption:
+work with no behavior to assert yet — a UI shell, a pure design system — covered by §6 instead.
 
 ## 3. Trilateral Verification
 
@@ -78,12 +76,16 @@ with real counts:
 ✅ tests:     129/129 pass (3 pre-existing failures, documented)
 ```
 
-**Why three and not one:** type checking catches wrong types that mock-heavy tests paper
-over; the build catches packaging and server-rendering errors the type checker accepts;
-tests catch logic that compiles and returns the wrong answer. Together they are
-*categorically* stronger than any one alone.
+**Why three and not one:** type checking catches wrong types that mock-heavy tests paper over;
+the build catches packaging and server-rendering errors the type checker accepts; tests catch
+logic that compiles and returns the wrong answer. Together they are *categorically* stronger.
 
 - **Pre-existing failures are documented, never absorbed** — named, counted, kept out.
+- **The LAST write decides** (`00-constitution.md` Article 8): a cell is never complete on a
+  result obtained before its final modification. Fingerprint the state, run the whole suite,
+  confirm nothing moved, record the evidence outside the verified files — in this repository
+  `npm run verify:final` (`tools/gates/FINAL-VERIFICATION.md`). A vault entry written after a
+  green run revokes the green.
 - **A gate that cannot run is UNKNOWN, never green** (`00-constitution.md` Article 3):
   report it with a warning marker, say what *was* checked instead, never give it the success
   marker. Commands are per project, declared in `vault/policy.md`.
@@ -107,9 +109,8 @@ One prompt does not build a project. Defaults, all configurable in `vault/policy
 | New files per session | **15–20** | Each one needs the three gates |
 | Open decisions per prompt | **3**, ideally **1** | More than three means planning is missing, not code |
 
-Overflowing a limit: say so with numbers, propose a split into named sessions with sizes,
-wait for approval, execute only the first. "I'll try to fit it all and stop if I can't" is a
-broken delivery.
+Overflowing a limit: say so with numbers, propose a split into named sessions with sizes, wait
+for approval, execute only the first. "I'll fit it all and stop if I can't" is a broken delivery.
 
 ## 5. Data tiers and the protection protocol
 
@@ -159,12 +160,11 @@ errors — is an **optional** scaffold: `templates/epistemic-spec.md`.
 
 Where a visual or textual source of truth exists — a token file, a design export, an approved
 copy deck — copy its values **literally**: colors, sizes, spacing, strings, labels, messages.
-**Adapt structure only.** Do not reorder, translate or normalize; a neologism stays a
-neologism. Product vocabulary carries product decisions, and a generic synonym loses the
-decision. To change the source: stop, quote the original, say why, ask, and if approved change
-*both* places. Before a large interface shell — more than ~15 files or ~800 lines of layout —
-sketch an **ASCII wireframe** and wait: five minutes of drawing avoids the "build it → that is
-not what I meant → rebuild" cycle.
+**Adapt structure only.** Do not reorder, translate or normalize; a neologism stays a neologism.
+Product vocabulary carries product decisions, and a generic synonym loses the decision. To change
+the source: stop, quote the original, say why, ask, and if approved change *both* places. Before a
+large interface shell — over ~15 files or ~800 lines of layout — sketch an **ASCII wireframe** and
+wait: five minutes of drawing avoids the "build it → not what I meant → rebuild" cycle.
 
 ## 10. Communication and flow
 

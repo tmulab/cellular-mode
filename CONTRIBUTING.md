@@ -15,10 +15,20 @@ Keep files under ~200 lines. If a change does not fit, it is two cells.
 ## Gates
 
 ```
-npm test        # node --test, no dependencies, no network
+npm test             # node --test, no dependencies, no network
+npm run typecheck    # both configurations, 0 errors
+npm run gates        # size, secrets, deps, boundaries
+npm run verify:final # LAST: the full suite on the exact state you are delivering
 ```
 
-Everything must pass before you open a pull request. New behavior needs a test that is
+Everything must pass before you open a pull request.
+
+**Run `npm run verify:final` last** (Article 8): it fingerprints the files git would commit, runs
+the whole mandatory suite, checks that nothing changed while it ran, and records the evidence
+outside the verified files. Any write afterwards — a doc line, a changelog, a vault entry —
+invalidates it, and the fix is to run it again. `npm run hooks:install` lets git ask the same
+question before a commit or a push; `node tools/gates/authorization.mjs status` answers it on
+demand. Details: `tools/gates/FINAL-VERIFICATION.md`. New behavior needs a test that is
 proven to go **red without the fix** — state the mutation you used and the failure you
 observed (see `docs/05-engineering-rules.md` §1).
 

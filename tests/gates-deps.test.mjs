@@ -126,6 +126,15 @@ test('deps · the real repository passes the gate it ships', () => {
     typecheck: 'tsc -p jsconfig.json && tsc -p apps/observer/jsconfig.json',
     gates: 'node tools/gates/check-all.mjs',
     trilateral: 'node tools/gates/trilateral.mjs',
+    // Article 8 (final verification): the suite that may authorize a completion, the
+    // question "is THIS state authorized?", and the two commands that install or remove
+    // the git hooks which ask it. `hooks:install` writes ONE local git config key and
+    // nothing else — a hook installer that also ran something would be a postinstall in
+    // disguise, which the loop below refuses.
+    'verify:final': 'node tools/gates/verify-final.mjs',
+    authorized: 'node tools/gates/authorization.mjs status',
+    'hooks:install': 'git config core.hooksPath .githooks',
+    'hooks:uninstall': 'git config --unset core.hooksPath',
     // Out of `npm test` on purpose: it copies the repository and runs the whole suite there,
     // which is minutes. `tests/optional-module-imports.test.mjs` is the fast half of AD29.
     'rehearse:adaptive-removal': 'node tools/gates/removal-rehearsal.mjs',

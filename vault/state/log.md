@@ -325,3 +325,19 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** final full test run must follow the last write before any commit; Stage 5 not started
 **Build:** green
 **Next step:** —
+
+---
+## 2026-10-03 14:03 · Cell: Final verification after last write
+**Status:** ✔
+**Facts:** constitution Article 8 (verification at the final state): tools/gates/fingerprint.mjs (SHA-256 over every file git would include, plus the git tree id via a throwaway index), verify-final.mjs (npm run verify:final: fingerprint, mandatory suite, fingerprint again, evidence appended outside the state in .cellular/evidence/final-verification.jsonl), authorization.mjs and commit-range.mjs (status, commit, trailer, push, audit), .githooks pre-commit, commit-msg (Verified-State trailer), pre-push; check-all --require-authorized opt-in; cellmode complete now says completion is recorded but not authorized; boundary rule cellmode-does-not-depend-on-the-gates; tests (a)-(k) in throwaway git repos incl. vault append after verification; 4 mutations red; this entry was written before the final verification that authorizes it
+**Decisions:** evidence lives outside the verified state; hooks are not installed until the author decides; --no-verify bypass is a documented limitation detectable by audit
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 14:07 · Cell: Article 8 rollout
+**Status:** ✔
+**Facts:** Article 8 approved by the author 2026-10-03; local-only evidence limitations documented (FINAL-VERIFICATION.md limitation 4) and independent CI verification registered as future work (checklist item 43; duplicate item number 41 corrected to 42); hooks installed with npm run hooks:install; this entry is written before the final verification that authorizes the commit
+**Decisions:** no --no-verify; the commit must carry the Verified-State trailer
+**Build:** green
+**Next step:** —

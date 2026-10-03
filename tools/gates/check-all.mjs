@@ -15,6 +15,7 @@
 // imports, which is why the tests can exercise the rules without a repository.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { authorized } from './authorization.mjs';
 import { ROOT, readPackageJson, readPolicy, readTuples } from './scan.mjs';
 import { checkSize, inScope as sizeInScope, ranking } from './size.mjs';
 import { checkSecrets } from './secrets.mjs';
@@ -82,9 +83,22 @@ function reportPending(input) {
   }
 }
 
+/** `--require-authorized` adds ONE question to the release gate: does the current
+ * controlled state carry passing final-verification evidence (Article 8)? It is OFF by
+ * default on purpose — `npm run verify:final` runs this file with `--release`, so
+ * demanding the evidence here by default would be circular. The push hook and a release
+ * run ask for it explicitly. See tools/gates/FINAL-VERIFICATION.md.
+ * @param {string} root @returns {number} */
+function reportAuthorization(root) {
+  const answer = authorized(root);
+  process.stdout.write(`${answer.ok ? '✅' : '❌'} final verification: ${answer.reason}\n`);
+  return answer.ok ? 0 : 2;
+}
+
 /** @param {string[]} [argv] */
 function main(argv = process.argv.slice(2)) {
   const release = argv.includes('--release');
+  const authorization = () => (argv.includes('--require-authorized') ? reportAuthorization(ROOT) : 0);
   const { findings, scanned, code, ranking: top } = runGates();
   process.stdout.write(`gates: scanned ${scanned} files (${code} modules)\n`);
   if (findings.length === 0) {
@@ -96,15 +110,15 @@ function main(argv = process.argv.slice(2)) {
   }
   const input = releaseInput();
   reportPending(input);
-  if (!release) return findings.length === 0 ? 0 : 2;
+  if (!release) return Math.max(findings.length === 0 ? 0 : 2, authorization());
   const blockers = releaseBlockers(input);
   if (blockers.length === 0 && findings.length === 0) {
     process.stdout.write('✅ release: no blockers — every exception approved, every relaxation resolved\n');
-    return 0;
+    return authorization();
   }
   process.stdout.write(`❌ release: ${blockers.length} blocker(s)\n`);
   for (const b of blockers) process.stdout.write(`  ${b.id} · ${b.detail}\n`);
-  return 2;
+  return Math.max(2, authorization());
 }
 
 if (process.argv[1] && process.argv[1].endsWith('check-all.mjs')) {

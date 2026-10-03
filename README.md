@@ -76,12 +76,12 @@ explicit confirmation (`complete --confirm`).
 ## Engineering method and constitution
 
 The method says how to *bound and record* work; the engineering layer says what counts as
-*done*. Seven articles, enforced wherever a machine can enforce them
+*done*. Eight articles, enforced wherever a machine can enforce them
 ([`docs/00-constitution.md`](docs/00-constitution.md)): security by design · 200 lines per
 hand-written file · epistemic labels **VERIFIED / INFERRED / PROPOSED / UNKNOWN**, fail-closed ·
 acceptance criteria before implementation and Trilateral Verification after every change · one
 responsibility behind a declared contract · recorded or it did not happen · automate the gate and name
-the human-review items. The configurable policy layer is
+the human-review items · **verification at the final state**, never on results obtained before the last modification — `npm run verify:final` ([`tools/gates/FINAL-VERIFICATION.md`](tools/gates/FINAL-VERIFICATION.md)). The configurable policy layer is
 [`docs/05-engineering-rules.md`](docs/05-engineering-rules.md); seven optional skills (`verify`, `protect`,
 `harden`, `sanity`, `coverage`, `port`, `decisions`) load only when a task calls for one, never as a set.
 Weakening an article requires an entry in [`policy/relaxations.md`](policy/relaxations.md) — an empty list is the healthy state. Origins and a 48-row table: [`METODO_TMULAB_INTEGRATION.md`](METODO_TMULAB_INTEGRATION.md).

@@ -1,0 +1,10 @@
+#!/bin/sh
+# pre-commit — Article 8 (docs/00-constitution.md), asked by git instead of trusted to a
+# model's memory. Refuses a commit whose STAGED TREE has no passing final-verification
+# evidence. Installed by `npm run hooks:install` (core.hooksPath), removed by
+# `npm run hooks:uninstall`. See tools/gates/FINAL-VERIFICATION.md.
+#
+# CELLULAR_NODE lets a caller pin the node binary (the tests do); otherwise PATH decides.
+set -e
+NODE="${CELLULAR_NODE:-node}"
+exec "$NODE" tools/gates/authorization.mjs commit

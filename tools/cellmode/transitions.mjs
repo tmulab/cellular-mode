@@ -157,5 +157,16 @@ export function cmdComplete(root, { positional, options }, env) {
   const cell = close(root, st, row, {
     status: '✔', facts, next: '—', decisions: options.decisions, build: options.build, note: options.note,
   }, env);
-  return { lines: [`Completed "${cell.name}" · ✔`, 'Cell file kept as history.'] };
+  // Article 8: writing this record IS a modification of the controlled state, so it is
+  // step 2 of the eight-step procedure and never the end of it. The CLI says so instead of
+  // checking it: `tools/cellmode` must keep running in a repository that has no
+  // `tools/gates` at all (see the boundary rule cellular-mode-is-runtime-independent), so
+  // the authorization is asked for by `npm run verify:final` / `authorization.mjs status`.
+  return {
+    lines: [
+      `Completed "${cell.name}" · ✔`,
+      'Cell file kept as history.',
+      'Completion RECORDED — not yet authorized: run `npm run verify:final` on this exact state.',
+    ],
+  };
 }

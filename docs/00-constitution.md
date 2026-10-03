@@ -1,6 +1,6 @@
 # 00 · Mandatory Engineering Constitution
 
-Seven articles, given by the responsible human, binding on every agent and every
+Eight articles, given by the responsible human, binding on every agent and every
 contributor working under this method.
 
 They are **not** parameters. `docs/05-engineering-rules.md` is a map of procedures and
@@ -163,3 +163,37 @@ Every claim an agent makes carries one of four labels. The label is part of the 
 5. **The enforcement surface is itself under the constitution.** The gates, the tests of
    the gates, and this file are reviewed when they drift — and the review is recorded
    like any other work.
+
+## Article 8 · Verification at the final state
+
+Given by the responsible human, Hudson A. R. Bonomo, on 2026-10-03, after commit `523cb44`
+of this repository was pushed with a failing test because a vault entry had been written
+**after** the suite was run (`policy/relaxations.md`, R-4).
+
+> **A development cell must never be considered complete on the basis of verification
+> results obtained before its final modification.**
+
+1. **Scope: every controlled file.** Source, tests, documentation, configuration, plugin
+   manifests, cell contracts, vault state and event logs, release checklists. There is no
+   "it was only a note" exemption: if a file is part of the delivered state, changing it
+   invalidates verification of that state.
+2. **The procedure is an order, and the order is the rule.** (1) Finish the implementation.
+   (2) Update the documentation and the vault records. (3) Prepare for final verification.
+   (4) **Fingerprint** the controlled state. (5) Run the **complete** mandatory suite.
+   (6) Confirm the fingerprint did not change during or after the suite. (7) Record the
+   evidence **separately, without modifying any verified file.** (8) Authorize completion
+   only when every mandatory check passed **and** the fingerprint is still valid.
+3. **Any later modification invalidates the authorization**, with no exception and no
+   "small enough" threshold. The remedy is never a sentence; it is running the suite again.
+4. **No circularity.** The evidence lives outside the verified state and is bound to it by
+   a cryptographic fingerprint, so recording the proof cannot alter what it proves.
+5. **Not a model instruction.** The rule is enforced by mechanism — `npm run verify:final`,
+   `tools/gates/authorization.mjs`, the `.githooks/` hooks and the release gate — because a
+   rule that only an agent remembers is a rule that a tired session skips.
+6. **A commit or a push carrying unverified content may not be described as verified.** The
+   `Verified-State` trailer names the fingerprint and tree that were actually checked; a
+   bypass (`--no-verify`) stays possible and therefore stays **auditable**
+   (`authorization.mjs audit <range>`). Mechanism and limits:
+   `tools/gates/FINAL-VERIFICATION.md`.
+7. **Append-only is preserved.** Recording evidence never rewrites a vault entry, and the
+   evidence file itself is appended to, one record per run — failures included.

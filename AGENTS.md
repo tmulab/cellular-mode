@@ -36,9 +36,10 @@ Optional **Cellular Adaptive** (`docs/10-adaptive.md`): a working mode is **decl
 
 Both Level 4 configuration files are optional and read only if present, never required: `vault/policy.md` (this project's engineering values) and `vault/profile.md` (how this human prefers to work — pace, interruptions, autonomy, language; never ask for diagnoses).
 
-## Engineering constitution (seven articles, `docs/00-constitution.md`)
+## Engineering constitution (eight articles, `docs/00-constitution.md`)
 
 Security by design · 200 lines per hand-written file · **epistemic labels** on every claim — VERIFIED (ran it, evidence attached) / INFERRED (state what from) / PROPOSED (not built) / UNKNOWN (say so) · acceptance criteria before implementation, never claim an unexecuted result, **Trilateral Verification** (typecheck + build + tests, three lines, real counts) after every significant change · one responsibility per module behind a declared contract · recorded or it did not happen, append never rewrite · automate the gate, name the human-review items.
+**Final state (Article 8):** never call a cell complete on verification obtained before its last modification — implement, record, then fingerprint the state, run the full suite, confirm nothing moved, record the evidence outside the verified files: `npm run verify:final`. Any later write, including a vault entry, invalidates the authorization.
 **Fail closed:** unestablished ⇒ UNKNOWN ⇒ stop and ask; a gate that cannot run is UNKNOWN, never green. A project policy may strengthen an article; relaxing one needs an explicit, justified, documented, human-approved exception.
 Engineering skills, loaded on demand, never by default: `skills/verify`, `skills/protect`, `skills/harden`, `skills/sanity`, `skills/coverage`, `skills/port`, `skills/decisions`.
 

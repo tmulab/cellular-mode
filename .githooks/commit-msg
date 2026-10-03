@@ -1,0 +1,14 @@
+#!/bin/sh
+# commit-msg — stamps the commit with the state that was actually verified:
+#   Verified-State: sha256:<fingerprint> tree:<tree id>
+# Idempotent: a message that already carries the trailer is left untouched. The trailer is
+# what makes a later audit possible (`node tools/gates/authorization.mjs audit <range>`).
+set -e
+NODE="${CELLULAR_NODE:-node}"
+MSG="$1"
+[ -n "$MSG" ] || exit 0
+if grep -q '^Verified-State:' "$MSG"; then
+  exit 0
+fi
+TRAILER="$("$NODE" tools/gates/authorization.mjs trailer)" || exit 1
+printf '\n%s\n' "$TRAILER" >> "$MSG"

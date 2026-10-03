@@ -9,6 +9,10 @@
     "typecheck": "tsc -p jsconfig.json && tsc -p apps/observer/jsconfig.json",
     "gates": "node tools/gates/check-all.mjs",
     "trilateral": "node tools/gates/trilateral.mjs",
+    "verify:final": "node tools/gates/verify-final.mjs",
+    "authorized": "node tools/gates/authorization.mjs status",
+    "hooks:install": "git config core.hooksPath .githooks",
+    "hooks:uninstall": "git config --unset core.hooksPath",
     "rehearse:adaptive-removal": "node tools/gates/removal-rehearsal.mjs"
   },
   "engines": {

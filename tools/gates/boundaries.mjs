@@ -120,6 +120,12 @@ export const RULES = [
     denyPrefixes: ['eip/'],
   },
   {
+    id: 'cellmode-does-not-depend-on-the-gates',
+    why: 'the method must keep working in a repository that has no tools/gates directory at all, so the CLI records a ✔ and PRINTS that completion is not yet authorized instead of checking the authorization itself. Article 8 is enforced by tools/gates, which may read the CLI; the arrow never points back.',
+    from: /^tools\/cellmode\//,
+    denyPrefixes: ['tools/gates/'],
+  },
+  {
     id: 'adaptive-is-optional-and-isolated',
     why: 'Cellular Adaptive is an OPTIONAL, experimental module: the method, the CLI, the Observer and the runtime must all keep working with tools/adaptive deleted, so none of them may import it. The host reads it through a port instead, and its own ALLOW rule already refuses the direct import; eip/plugins/adaptive-* is left out of THIS rule because cell 5 granted it one named allowlist in one place (adaptive-plugin-imports-only-named-pure-modules); every other plugin directory, including every observer-*, stays refused here.',
     from: /^(tools\/cellmode\/|skills\/|docs\/|adapters\/|templates\/|eip\/(sdk|kernel)\/|eip\/plugins\/(?!adaptive-)[^/]+\/)/,

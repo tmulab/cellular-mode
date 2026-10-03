@@ -165,6 +165,16 @@ test('boundaries · every rule carries an id and a reason a human can act on', (
   assert.match(String(findings[0]?.detail), /imports "\.\.\/kernel\/index\.mjs"/);
 });
 
+test('boundaries · the CLI may not reach into the gates (Article 8 points one way)', () => {
+  assert.ok(RULES.find((r) => r.id === 'cellmode-does-not-depend-on-the-gates'), 'the rule must exist');
+  assert.deepEqual(
+    ids(toFindings(checkBoundaries([file('tools/cellmode/transitions.mjs', '../gates/authorization.mjs')]))),
+    ['boundaries:cellmode-does-not-depend-on-the-gates'],
+  );
+  // The other direction is fine: the gates may read the method's pure modules.
+  assert.deepEqual(checkBoundaries([file('tools/gates/verify-final.mjs', '../cellmode/log.mjs')]), []);
+});
+
 test('boundaries · the real repository respects its own arrows', () => {
   const code = readTuples(undefined, (rel) => /\.(mjs|js)$/.test(rel));
   const findings = toFindings(checkBoundaries(code));

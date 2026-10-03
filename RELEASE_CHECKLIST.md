@@ -45,6 +45,9 @@ and UNKNOWN is never green).
 | 18 | Mutation verdicts re-run automatically | ⚠️ manual | the `eip/*/ACCEPTANCE.md` tables are hand-applied and recorded; nothing re-runs them (`ARCHITECTURE_REPORT.md` §4.8) |
 | 19 | Symlink-escape guard verified | ✅ VERIFIED on win32 | exercised through a directory **junction** (file symlink is `EPERM` unprivileged; `lstat` reports the junction as a symbolic link); removing the guard goes red — `eip/host/ACCEPTANCE.md` H11. POSIX symlink behaviour **UNKNOWN** (untested here) |
 
+| 42 | **Article 8 — the release is verified at its FINAL state** | 👤 human, per release | `npm run verify:final` must be the LAST action: it fingerprints the controlled set, runs typecheck · `node --test` · `check-all --release` · `cellmode check`, re-checks the fingerprint, and appends the record to `.cellular/evidence/final-verification.jsonl`. Any write afterwards — including the entry that marks this checklist done — **invalidates it and the suite must be re-run**. Confirm with `node tools/gates/authorization.mjs status`; for the commits being released, `node tools/gates/authorization.mjs audit <range>` must list no unverified tree. Mechanism and limits: [`tools/gates/FINAL-VERIFICATION.md`](tools/gates/FINAL-VERIFICATION.md) |
+| 43 | Independent CI verification of every pushed commit | ❌ future work (PROPOSED) | evidence is local and self-attested today (`tools/gates/FINAL-VERIFICATION.md` limitation 4); a server-side re-run that checks the `Verified-State` trailer and gates a protected `main` is registered as future work there |
+
 ## Honesty of the claims
 
 | | Item | Status | Evidence |

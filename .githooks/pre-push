@@ -1,0 +1,10 @@
+#!/bin/sh
+# pre-push — refuses to push a commit whose tree has no passing final-verification
+# evidence. Git feeds the refs on stdin as `<local ref> <local sha> <remote ref>
+# <remote sha>`; the node command reads them and answers per commit.
+#
+# `git push --no-verify` bypasses this hook and cannot be prevented client-side. That is
+# why the trailer and the audit command exist: a bypass stays detectable.
+set -e
+NODE="${CELLULAR_NODE:-node}"
+exec "$NODE" tools/gates/authorization.mjs push "$1"
