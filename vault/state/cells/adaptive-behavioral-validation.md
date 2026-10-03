@@ -8,7 +8,7 @@
 **Allowed operations:** — · **Prohibited operations:** —
 **Dependencies:** —
 **Done criterion (binary):** every mission check run and recorded with model version, conditions, results and deviations
-**Last fact:** behavioral validation with claude-opus-5-5 (CLI 2.1.283) in a sandbox copy: 13 checks passed n=1, all write attempts denied, 6 deviations recorded; deviation 1 (silent return to ready) fixed as AD32 and re-run live; AD29 found to be an unverified false claim by the lead's deletion rehearsal (2 static imports of the adaptive port), fixed with a guarded dynamic import, a static import test and npm run rehearse:adaptive-removal (31/31 paths deleted, suite and gates green); C:\tmp incident investigated read-only, uncertainty reported; 719/719 tests, gates and release gate green; prepared for the authorized local commit that follows this entry
+**Last fact:** behavioral validation with claude-opus-5-5 (CLI 2.1.283) in a sandbox copy: 13 checks passed n=1, all write attempts denied, 6 deviations recorded; deviation 1 (silent return to ready) fixed as AD32 and re-run live; AD29 found to be an unverified false claim by the lead's deletion rehearsal (2 static imports of the adaptive port), fixed with a guarded dynamic import, a static import test and npm run rehearse:adaptive-removal (31/31 paths deleted, suite and gates green); system-drive tmp folder incident investigated read-only, uncertainty reported; 719/719 tests, gates and release gate green; prepared for the authorized local commit that follows this entry
 **Build/typecheck:** green
 **Decisions:** observed model behavior is evidence, not a guarantee; no push until authorized
 **Open issues:** —

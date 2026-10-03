@@ -195,4 +195,6 @@ mode is active?"* answered correctly, quoting the notice.
 2. **A hook installer** (`cli.mjs install-hooks`) merging `settings.adaptive.json` into a project's
    `.claude/settings.json` after showing the exact diff and asking.
 3. **POSIX verification** — every measurement here is win32; path confinement, atomic rename and symlink behaviour on Linux and macOS are **UNKNOWN**.
-4. **Repeat the behavioural validation** — one run, one model, one day is not variance; and the `source: 'skill'` path is still UNKNOWN in a live session.
+4. **Broader behavioural validation** — across models and repeated sessions; one run, one model, one day is not variance.
+5. **Live validation of the `skill` activation source** — `source: 'skill'` is still UNKNOWN in a live session.
+6. **Stale context on the first turn after `--resume`** — SessionStart re-prints the stored block before the prompt's own command is applied. **7. Native-command vs custom-skill precedence** — UNKNOWN (see Privacy and security limitations).

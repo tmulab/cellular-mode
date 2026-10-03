@@ -313,7 +313,15 @@ never ran, and inventing one would be fiction in an append-only record.
 ---
 ## 2026-10-03 12:41 · Cell: Adaptive behavioral validation
 **Status:** ✔
-**Facts:** behavioral validation with claude-opus-5-5 (CLI 2.1.283) in a sandbox copy: 13 checks passed n=1, all write attempts denied, 6 deviations recorded; deviation 1 (silent return to ready) fixed as AD32 and re-run live; AD29 found to be an unverified false claim by the lead's deletion rehearsal (2 static imports of the adaptive port), fixed with a guarded dynamic import, a static import test and npm run rehearse:adaptive-removal (31/31 paths deleted, suite and gates green); C:\tmp incident investigated read-only, uncertainty reported; 719/719 tests, gates and release gate green; prepared for the authorized local commit that follows this entry
+**Facts:** behavioral validation with claude-opus-5-5 (CLI 2.1.283) in a sandbox copy: 13 checks passed n=1, all write attempts denied, 6 deviations recorded; deviation 1 (silent return to ready) fixed as AD32 and re-run live; AD29 found to be an unverified false claim by the lead's deletion rehearsal (2 static imports of the adaptive port), fixed with a guarded dynamic import, a static import test and npm run rehearse:adaptive-removal (31/31 paths deleted, suite and gates green); system-drive tmp folder incident investigated read-only, uncertainty reported; 719/719 tests, gates and release gate green; prepared for the authorized local commit that follows this entry
 **Decisions:** observed model behavior is evidence, not a guarantee; no push until authorized
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 13:31 · Cell: Stage 4 closure
+**Status:** ✔
+**Facts:** private push of the validated 523cb44 verified: remote main equal, private before and after, no release, 461 files both sides; correction: 523cb44 carried 1 failing leak test because the validation entry was written after the last full run, so its 719/719 claim held for the tree before that entry, not for the commit; fixed by approved one-time redaction R-4 (path only); future work listed explicitly in ADAPTIVE_REPORT (resume-stale first turn, live skill source, native vs custom precedence, broader validation); incident record kept: a glob delete in the system-drive tmp folder removed at least one test directory created minutes earlier, investigated read-only, whether other matching items existed is UNKNOWN (journal needs admin); this closure is committed locally, not pushed
+**Decisions:** final full test run must follow the last write before any commit; Stage 5 not started
 **Build:** green
 **Next step:** —

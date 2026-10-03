@@ -126,3 +126,15 @@ after it.
 - **Record:** the redaction itself is logged as the "Log redaction" cell entry.
 - **Status:** APPROVED Hudson A. R. Bonomo 2026-10-02
 - **Review trigger:** none — a one-time exception; it grants no standing permission.
+
+## R-4 — one-time redaction of an absolute path in an append-only log entry
+
+- **Rule relaxed:** Article 6 / state protocol — `vault/state/log.md` is append-only.
+- **What:** in the 2026-10-03 "Adaptive behavioral validation" entry (and its projection
+  `vault/state/cells/adaptive-behavioral-validation.md`), a literal drive-letter path to a
+  temporary folder was replaced by "system-drive tmp folder". Nothing else in the entry changed.
+- **Why:** the leak test forbids absolute paths anywhere in the repository; the entry was written
+  after the last full test run, so pushed commit 523cb44 carried one failing test.
+- **Record:** the correction and the inaccurate "719/719" claim are logged in the "Stage 4 closure" entry.
+- **Status:** APPROVED Hudson A. R. Bonomo 2026-10-03
+- **Review trigger:** none — a one-time exception; it grants no standing permission.

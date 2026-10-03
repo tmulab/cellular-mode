@@ -43,3 +43,4 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [Adaptive verification and closure](cells/adaptive-verification-and-closure.md) | ADAPTIVE_REPORT.md, README, RELEASE_CHECKLIST, docs links, final gates | ✔ | 2026-10-03 | — |
 | [Explicit pause triggers](cells/explicit-pause-triggers.md) | skills/pause, adapters pause/pausar, AGENTS.md rule 7, docs, ADR 0004 | ✔ | 2026-10-03 | — |
 | [Adaptive behavioral validation](cells/adaptive-behavioral-validation.md) | scratchpad sandbox copy, tools/adaptive/VALIDATION-RESULTS | ✔ | 2026-10-03 | — |
+| [Stage 4 closure](cells/stage-4-closure.md) | vault, RELEASE_CHECKLIST, ADAPTIVE_REPORT, policy/relaxations | ✔ | 2026-10-03 | — |
