@@ -34,3 +34,4 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [Stage 3 final validation](cells/stage-3-final-validation.md) | docs/adr/0003, tools/cellmode open, apps/observer/MANUAL-CHECKS.md, reports | ✔ | 2026-10-03 | — |
 | [Done-cell next step wording](cells/done-cell-next-step-wording.md) | eip/plugins/observer-state views, apps/observer view-model | ✔ | 2026-10-03 | — |
 | [Observer UI polish](cells/observer-ui-polish.md) | apps/observer (graph view, advisor area) | ✔ | 2026-10-03 | — |
+| [Stage 3 closure](cells/stage-3-closure.md) | vault, RELEASE_CHECKLIST.md | ✔ | 2026-10-03 | — |

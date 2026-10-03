@@ -245,3 +245,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** node glyphs stay ~6 px at fitted scale to keep the 500-cell texture (recorded in MANUAL-CHECKS)
 **Build:** green
 **Next step:** —
+
+---
+## 2026-10-03 08:47 · Cell: Stage 3 closure
+**Status:** ✔
+**Facts:** private push of validated main verified: remote main = local cfca2ed, repository private before and after, no release, 378 files both sides; RELEASE_CHECKLIST row 33 records it; Stage 3 (Cellular Observer) closed; this record is committed and pushed next
+**Decisions:** Stage 4 not started without new instructions; repository stays private until the author authorizes public release
+**Build:** green
+**Next step:** —
