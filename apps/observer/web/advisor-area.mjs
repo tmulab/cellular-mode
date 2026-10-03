@@ -9,73 +9,35 @@
 //     shell command, and no renderer here treats it as anything but text;
 //   the disabled state is a sentence, not an empty panel, and when the host's plugin list does
 //     not name the advisor that sentence is ALL there is: no probe, no 404 (criterion D23);
+//   a declared `tired` mode caps the LIST at three, with a control that reveals the rest. A
+//     recommendation is never a verdict and never a measurement, so there is nothing here
+//     that must be shown — unlike the audit area, where a FAIL is never capped (AD28);
 //   nothing is asked on load. The area probes `status` (which consumes no call) and waits.
-import { el, errorNode, fieldNode, replace } from './dom.mjs';
+import { el, errorNode, replace } from './dom.mjs';
 import { PROBING_NOTICE, advisorAreaState } from '../view/advisor-presence.mjs';
 import {
   AI_BANNER, adapterLine, adviceRows, advisorHeadline, statusMeta, validationNotes,
 } from '../view/advisor-view.mjs';
+import { capAdvice } from '../view/mode-view.mjs';
+import { questionBox, rowNode } from './advisor-rows.mjs';
 
 /** @typedef {{ call: (cap: string, input?: unknown) => Promise<{ ok: true, value: unknown } | { ok: false, error: { code: string, message: string } }> }} Client */
-/** @typedef {ReturnType<typeof adviceRows>[number]} Row */
-
-/** The question box. 500 is the contract's cap, enforced here so a refusal is not how a
- * reader finds out. @param {string} id */
-function questionBox(id) {
-  const input = /** @type {HTMLInputElement} */ (el('input', {
-    class: 'question',
-    attrs: { id, type: 'text', maxlength: '500', placeholder: 'optional question about the active cell' },
-  }));
-  return { wrap: el('label', { class: 'filter-wrap' }, [el('span', { text: 'question ' }), input]), input };
-}
-
-/** @param {Row} row @param {(id: string) => void} onSelect @returns {HTMLElement} */
-function rowNode(row, onSelect) {
-  const head = el('div', { class: 'finding-head' }, [
-    el('span', { class: `badge advisor-${row.mark.tone}`, attrs: { title: row.mark.meaning } }, [
-      el('span', { class: 'glyph', text: row.mark.symbol }),
-      el('span', { text: ` ${row.mark.label}` }),
-    ]),
-    el('b', { class: 'finding-rule', text: row.kind }),
-    el('code', { class: 'finding-id', text: row.id }),
-  ]);
-  const body = [head, fieldNode(row.statement, 'p')];
-  body.push(el('p', { class: 'advisor-uncertainty' }, [
-    el('span', { class: 'action-label', text: 'uncertainty: ' }),
-    fieldNode(row.uncertainty),
-  ]));
-  body.push(el('p', { class: 'evidence-refs' }, [
-    el('span', { class: 'action-label', text: 'grounded in: ' }),
-    ...(row.hasRefs
-      ? row.refs.map((ref) => {
-        if (ref.cell === null) return el('code', { class: 'ref', text: ref.text });
-        const link = /** @type {HTMLButtonElement} */ (el('button', {
-          class: 'ref ref-cell', text: ref.text, attrs: { type: 'button' },
-        }));
-        link.addEventListener('click', () => onSelect(/** @type {string} */ (ref.cell)));
-        return link;
-      })
-      : [el('span', { class: 'value absent', text: 'nothing in the supplied evidence' })]),
-  ]));
-  return el('li', {
-    class: `finding advisor-rec advisor-${row.mark.tone}`,
-    attrs: { 'data-label': row.mark.key },
-  }, body);
-}
 
 /**
  * Renders the area and wires its controls. Called once; the button re-renders the list.
  * @param {{ host: HTMLElement, key: string, origin: 'ai', client: Client,
- *   presence?: 'listed' | 'not-listed' | 'unknown', onSelect?: (id: string) => void }} spec
+ *   presence?: 'listed' | 'not-listed' | 'unknown', onSelect?: (id: string) => void,
+ *   mode?: string }} spec
  */
 export async function renderAdvisorArea({
-  host, key, origin, client, presence = 'unknown', onSelect = () => {},
+  host, key, origin, client, presence = 'unknown', onSelect = () => {}, mode = 'ready',
 }) {
   host.setAttribute('data-origin', origin);
   const headline = el('p', { class: 'probe', text: PROBING_NOTICE });
   const adapter = el('p', { class: 'capability advisor-adapter' });
   const notes = el('ul', { class: 'advisor-notes' });
   const list = el('ul', { class: 'findings advisor-list' });
+  const cap = el('p', { class: 'mode-cap' });
   const question = questionBox('advisor-question');
   const ask = /** @type {HTMLButtonElement} */ (el('button', {
     class: 'control', text: 'ask the advisor', attrs: { type: 'button' },
@@ -109,8 +71,17 @@ export async function renderAdvisorArea({
     headline,
     adapter,
     notes,
+    cap,
     list,
   ]);
+
+  // The reveal control, built once: a cap that cannot be lifted is a cap that hides things.
+  const more = /** @type {HTMLButtonElement} */ (el('button', {
+    class: 'control', text: 'show all', attrs: { type: 'button' },
+  }));
+  /** @type {() => void} */
+  let showAllRequested = () => {};
+  more.addEventListener('click', () => showAllRequested());
 
   /** @param {boolean} enabled */
   const enable = (enabled) => {
@@ -143,9 +114,19 @@ export async function renderAdvisorArea({
     }
     replace(notes, validationNotes(meta).map((note) => el('li', { class: 'advisor-note', text: note })));
     const rows = adviceRows(record['recommendations']);
-    replace(list, rows.length === 0
-      ? [el('li', { class: 'finding empty', text: 'the model answered nothing this build could accept.' })]
-      : rows.map((row) => rowNode(row, onSelect)));
+    let showAll = false;
+    const paint = () => {
+      const limited = capAdvice(rows, mode, showAll);
+      replace(cap, limited.hidden === 0 ? [] : [
+        el('span', { text: `${limited.hidden} more recommendation(s), not shown in ${mode} mode.` }),
+        more,
+      ]);
+      replace(list, limited.shown.length === 0
+        ? [el('li', { class: 'finding empty', text: 'the model answered nothing this build could accept.' })]
+        : limited.shown.map((row) => rowNode(row, onSelect)));
+    };
+    showAllRequested = () => { showAll = true; paint(); };
+    paint();
   };
 
   const advise = async () => {

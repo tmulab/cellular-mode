@@ -1,6 +1,6 @@
 # Release checklist — public release
 
-**Current verdict: no technical blocker left for stages 1-2; stage 3 adds three OPEN items (31-33).**
+**Current verdict: no technical blocker left for stages 1-2; stage 3 is closed; stage 4 adds five items (36-41), four of them OPEN and human-only.**
 R-1 was resolved on 2026-10-02 (item 15):
 the typecheck leg is real and reports 0 errors, and `check-all.mjs --release` exits 0. What
 remains is human-only authorization: publication (29). Security contact (6) set and push (28)
@@ -106,12 +106,42 @@ node examples/text-stats/reproduce.mjs     -> 8 files identical, exit 0
 node examples/observer-demo/reproduce.mjs  -> 9 files identical, exit 0
 ```
 
+## Stage 4 — Cellular Adaptive (added 2026-10-03)
+
+The adaptive module is **optional and experimental** and does not gate a release of the method;
+these items gate any claim that stage 4 is finished. Full account:
+[`ADAPTIVE_REPORT.md`](ADAPTIVE_REPORT.md) · design: [`docs/10-adaptive.md`](docs/10-adaptive.md).
+
+| | Item | Status | What is left |
+|---|---|---|---|
+| 36 | 👤 [ADR 0004](docs/adr/0004-cellular-adaptive.md) confirmed by the responsible human | ✅ **APPROVED by Hudson A. R. Bonomo, 2026-10-03** | the ADR now reads *Accepted — APPROVED by Hudson A. R. Bonomo on 2026-10-03*. A decision of record, made by the author |
+| 37 | Behavioural validation with a real model | ⚠️ PERFORMED once (n=1) | 2026-10-03, `claude-opus-5-5`, Claude Code CLI 2.1.283, sandbox copy: 13 checks passed, 6 deviations recorded, deviation 1 fixed (AD32) and re-run — [`VALIDATION-RESULTS-2026-10-03.md`](tools/adaptive/VALIDATION-RESULTS-2026-10-03.md). Observed behaviour, not a guarantee |
+| 38 | Hooks are opt-in, never enabled by cloning | ✅ VERIFIED | `adapters/claude-code/settings.adaptive.json` ships as a snippet an adopter installs deliberately, because Claude Code project hooks run commands **with no trust prompt**. This repository's `.claude/settings.json` does not enable them |
+| 39 | 👤 Stage-4 work committed and pushed | ⚠️ local commit authorized 2026-10-03, push not authorized | committed locally after the final gates and the removal rehearsal; **no push** until the author authorizes it |
+| 40 | 👤 DECIDED — the pause trigger is explicit only | ✅ **DECIDED by Hudson A. R. Bonomo, 2026-10-03, and applied** | the inferred-fatigue clause was **removed** from `skills/pause/SKILL.md`, both Claude Code pointers, `AGENTS.md` rule 7 and the docs. `/pause`, `/pausar` and the explicit stop phrases still run the ritual; a declared condition earns one offer and never an automatic pause or mode change. Enforced by `tests/pause-triggers.test.mjs`; history in `MIGRATION_REPORT.md` section 5 — `ADAPTIVE_REPORT.md` § *Resolved decision* |
+| 41 | Stage-4 gates and tests green | ✅ VERIFIED 2026-10-03 | the run quoted below; no regression in `tools/cellmode`, `eip/kernel`, `eip/sdk`, the three `observer-*` plugins or `skills/pause` (diff against `5738789` is empty) |
+
+```
+2026-10-03 run (stage 4, quoted from ADAPTIVE_REPORT.md):
+npm run typecheck                          -> both configurations, 0 errors
+npm test                                   -> 702 pass, 0 fail, 48 suites
+npm run gates                              -> 451 files scanned, no findings, 0 pending exceptions
+node tools/gates/trilateral.mjs --evidence -> typecheck 0 · build 141 modules · tests 702/702 · exit 0
+node tools/gates/check-all.mjs --release   -> exit 0, no blockers
+node tools/cellmode/cli.mjs check          -> passed · 1 active · 35 done · 36 log entries
+node examples/text-stats/reproduce.mjs     -> 8 files identical, exit 0
+node examples/observer-demo/reproduce.mjs  -> 9 files identical, exit 0
+```
+
 ## Who must decide what
 
 1. **Security contact** (item 6) — done: role address set on 2026-10-02.
 2. **Push and publish** (items 28–29) — two separate authorizations (init and the first
    local commit were authorized and done on 2026-10-02).
-3. **ADR 0003** (item 31) and the **stage-3 commit** (item 33) — both open, both human-only.
+3. **ADR 0003** (item 31) and the **stage-3 commit** (item 33) — both done on 2026-10-03.
+4. **ADR 0004** (item 36) and the **pause-trigger decision** (item 40) — both decided by the
+   author on 2026-10-03. The **stage-4 commit** (item 39) is still open and human-only, and
+   item 37 (behavioural validation) stays deliberately **NOT PERFORMED** rather than guessed.
 
 R-1 (item 15) was decided on 2026-10-02 and is closed. Nothing on this list may be marked
 green by an agent on its own initiative.

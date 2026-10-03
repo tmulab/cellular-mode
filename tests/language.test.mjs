@@ -31,18 +31,25 @@ const ALLOWED_TOKENS = [/modo celular/gi, /\bcelulas?\b/gi, /\bpausar\b/gi];
 // trigger phrases verbatim, so the heuristic cannot apply:
 //   skills/*/SKILL.md ............ canonical procedures; their `description`
 //                                  front-matter lists the Portuguese trigger phrases
-//                                  an agent must match ("vamos retomar", "cansei"...).
+//                                  an agent must match ("vamos retomar", "vou parar"...).
 //   adapters/** and .claude/** ... thin pointers that copy the same trigger phrases
 //                                  from the canonical skill description.
 //   templates/user-profile.md .... ships the Portuguese trigger phrases as a ready
 //                                  example for a Portuguese-speaking adopter.
 //   tests/language.test.mjs ...... holds the Portuguese stopword list itself.
+//   tests/pause-triggers.test.mjs  asserts that the Portuguese stop phrases are still
+//                                  listed by the pause skills.
+//   tools/adaptive/VALIDATION-RESULTS-*.md  evidence records: they quote the Portuguese
+//                                  test prompts and the model's Portuguese answers
+//                                  verbatim; translating them would alter the evidence.
 const ALLOWED_PATHS = [
+  /^tools\/adaptive\/VALIDATION-RESULTS-\d{4}-\d{2}-\d{2}\.md$/,
   /^skills\//,
   /^adapters\//,
   /^\.claude\//,
   /^templates\/user-profile\.md$/,
   /^tests\/language\.test\.mjs$/,
+  /^tests\/pause-triggers\.test\.mjs$/,
 ];
 
 const scanned = allFiles().filter(

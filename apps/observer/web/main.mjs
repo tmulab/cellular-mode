@@ -3,10 +3,12 @@
 // view-model; every decision about HOW to reach the host is in the data client.
 import { must } from './dom.mjs';
 import {
-  ADVISOR_KEY, AUDIT_KEY, STATE_KEY, createApiClient, createFixtureClient, fetchPlugins,
-  fixtureUrlFrom, sourceFrom,
+  ADAPTIVE_KEY, ADVISOR_KEY, AUDIT_KEY, STATE_KEY, createApiClient, createFixtureClient,
+  fetchPlugins, fixtureUrlFrom, sourceFrom,
 } from './data-client.mjs';
 import { presenceOf } from '../view/availability.mjs';
+import { presentationMode, readCurrent } from '../view/mode-view.mjs';
+import { renderModeBadge } from './mode-badge.mjs';
 import { renderOverview, renderOverviewFailure } from './project-area.mjs';
 import { markSelectedRow, renderCellsTable } from './cells-table.mjs';
 import { hideCellDetail, renderCellDetail, renderDetailFailure } from './cell-detail.mjs';
@@ -66,12 +68,35 @@ async function start() {
     if (fromPanel && opener !== null && opener.isConnected) opener.focus();
   }
 
+  // The build's own plugin list, read ONCE: it decides whether the advisor area probes at all
+  // (criterion D23) and whether there is any declared mode to show. Fixture mode has no host.
+  const plugins = source === 'fixture' ? null : await fetchPlugins();
+
+  // The OPTIONAL declared mode. Read once per load, never polled: a declaration is not a
+  // stream, and a dashboard that re-read it every second would be watching a person. When the
+  // plugin is not in the build this stays `ready`, which is today's behaviour exactly.
+  let mode = 'ready';
+  if (presenceOf(plugins, ADAPTIVE_KEY) === 'listed') {
+    const answer = await createApiClient(ADAPTIVE_KEY).call('current', {});
+    // A refusal is not a mode: the badge stays hidden and the page renders as it always did.
+    const current = ok(answer) ? answer.value : null;
+    mode = presentationMode(readCurrent(current));
+    renderModeBadge(must('mode'), current);
+  }
+
   const [overview, cells, graphValue, timeline] = await Promise.all([
     state.call('overview', {}),
     state.call('cells', {}),
     state.call('graph', {}),
     state.call('timeline', { limit: 100 }),
   ]);
+
+  // The active cell is what `focus` orders around, so it is read from the overview rather than
+  // guessed: a mode never decides WHICH cell is active.
+  const activeCell = ok(overview)
+    ? (/** @type {{ active?: { id?: unknown } | null }} */ (overview.value).active?.id ?? null)
+    : null;
+  const active = typeof activeCell === 'string' ? activeCell : null;
 
   if (ok(overview)) {
     renderOverview({
@@ -96,7 +121,7 @@ async function start() {
   if (ok(graphValue)) graph.setGraph(graphValue.value);
   else must('graph-caption').textContent = 'the graph could not be read';
 
-  if (ok(timeline)) renderTimeline(must('timeline'), timeline.value);
+  if (ok(timeline)) renderTimeline(must('timeline'), timeline.value, { mode, activeCell: active });
   else {
     const failure = /** @type {{ error: { code: string, message: string } }} */ (timeline).error;
     replace(must('timeline'), [errorNode(failure.code, failure.message)]);
@@ -132,13 +157,14 @@ async function start() {
   // The auditor exists now (Cell 2), so this area is real. When the plugin is not in the
   // build the area says exactly that, through the same `describeProbe` wording the advisor
   // area uses: an empty panel that could mean either teaches a reader nothing.
-  await renderAuditArea({ host: must('audit'), key: AUDIT_KEY, client: auditClient });
+  await renderAuditArea({
+    host: must('audit'), key: AUDIT_KEY, client: auditClient, mode, activeCell: active,
+  });
   // The advisor exists too (Cell 3) but is DISABLED unless the launcher was given
   // `--advisor <id>`, so this area's first job is to say which of those two worlds it is in
   // — and the host already answers that, in `health.plugins`. Asking once here means the
   // area can state "disabled" without calling a capability nobody loaded (criterion D23).
   // Fixture mode has no host at all, so the list stays unread and the area probes as before.
-  const plugins = source === 'fixture' ? null : await fetchPlugins();
   await renderAdvisorArea({
     host: must('advisor'),
     key: ADVISOR_KEY,
@@ -146,6 +172,7 @@ async function start() {
     client: advisorClient,
     presence: presenceOf(plugins, ADVISOR_KEY),
     onSelect: (id) => { void openCell(id); },
+    mode,
   });
 }
 

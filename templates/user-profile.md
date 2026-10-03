@@ -23,7 +23,7 @@
 
 - A good focus session for me lasts: *(default: 30–120 minutes)*
 - Switching subjects: *(default: switching restores energy; it is not dispersion)*
-- When I am tired: *(default: close the cell well rather than push one step further)*
+- When my energy runs out: *(default: close the cell well rather than push one step further)*
 - My usual cycle: *(default: idea → focus → build → fatigue → record → next cell)*
 - Time of day: *(default: unspecified; make no assumptions)*
 
@@ -70,10 +70,10 @@
 
 - I work in: *(default: English)*
 - Open / resume a cell: *(default: `/cell`, "where did we stop", "let's resume")*
-- Stop / close a cell: *(default: `/pause`, "I'm tired", "stop here", "note this down")*
+- Stop / close a cell: *(default: `/pause`, "stop here", "that's enough for today", "note this down")*
 - Park an idea: *(default: "park this", "note this down for later")*
-- Portuguese compatibility aliases, if you want them: `/celula`, `/pausar`, "cansei",
-  "vou parar", "anota aí", "onde paramos"
+- Portuguese compatibility aliases, if you want them: `/celula`, `/pausar`, "vou parar",
+  "chega por hoje", "anota aí", "onde paramos"
 
 Put the words you *actually say* here; the skills match on these phrases.
 

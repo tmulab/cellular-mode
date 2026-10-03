@@ -126,6 +126,9 @@ test('deps · the real repository passes the gate it ships', () => {
     typecheck: 'tsc -p jsconfig.json && tsc -p apps/observer/jsconfig.json',
     gates: 'node tools/gates/check-all.mjs',
     trilateral: 'node tools/gates/trilateral.mjs',
+    // Out of `npm test` on purpose: it copies the repository and runs the whole suite there,
+    // which is minutes. `tests/optional-module-imports.test.mjs` is the fast half of AD29.
+    'rehearse:adaptive-removal': 'node tools/gates/removal-rehearsal.mjs',
   });
   for (const command of Object.values(pkg.scripts)) {
     assert.doesNotMatch(String(command), /--no-verify|npx |curl |\|\||;/, `suspicious script: ${command}`);

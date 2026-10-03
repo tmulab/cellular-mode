@@ -103,3 +103,7 @@ export { ROUTE_TABLE, routeOf } from './router.mjs';
 export { createWritePort } from './write-port.mjs';
 export { createVaultReadPorts } from './read-port.mjs';
 export { createRepoReadPorts } from './repo-read-port.mjs';
+// `createAdaptiveReadPorts` is deliberately NOT re-exported here. It belongs to the OPTIONAL
+// adaptive module, and a static re-export would mean every importer of this file — the whole
+// host, the Observer, every HTTP test — failed to resolve in a checkout that deleted it.
+// `observerComposition` loads it behind the `--adaptive` flag instead (`adaptiveParts()`).

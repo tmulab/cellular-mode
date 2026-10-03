@@ -33,6 +33,7 @@ npm run gates       # size · secrets · deps · import boundaries
 ```
 node apps/observer/cli.mjs --root <path-to-a-project-with-a-vault>
 node apps/observer/cli.mjs --root . --advisor fixture        # with the ADVISOR area live
+node apps/observer/cli.mjs --root . --adaptive               # show a mode the human declared
 node apps/observer/cli.mjs --root examples/observer-demo --port 0   # 0 = any free port
 node apps/observer/cli.mjs --fixture                         # recorded fixtures, no vault, no host
 node apps/observer/cli.mjs --help
@@ -45,11 +46,29 @@ Every option the launcher has, and no others (`--help` prints the same list):
 | `--root <dir>` | the project whose `vault/state` is read. Required unless `--fixture` |
 | `--port <n>` | port for the app on `127.0.0.1`. Default `3200`; `0` picks any free port |
 | `--advisor <id>` | load the advisor plugin with this model adapter. Default: **not loaded**. The only id this build offers is `fixture` |
+| `--adaptive` | load the optional `adaptive.preferences` reader, so the header can show a mode **the human declared** in `.cellular/adaptive/`. Default: **not loaded**, and then nothing on the page changes. Requires `tools/adaptive/` to be present in the checkout |
 | `--fixture` | serve the interface against the recorded contract fixtures, with no host and no vault — for reviewing the UI, never for reading a project |
 | `--help` | print the usage and exit 0 |
 
-An unknown argument, a bad `--port`, a missing `--root` or an unknown `--advisor` id exits **2** with a
-sentence (for example `unknown advisor adapter "nope"; this build offers "fixture"`) and loads nothing.
+An unknown argument, a bad `--port`, a missing `--root`, an unknown `--advisor` id, or `--adaptive` in a
+checkout with no adaptive module, exits **2** with a sentence (for example
+`unknown advisor adapter "nope"; this build offers "fixture"`) and loads nothing.
+
+### What `--adaptive` changes, and what it can never change
+
+With the flag, the header shows a small **read-only** badge — `declared mode · mode: tired · declared 13:26 ·
+until 17:26 · declared by you` — and the areas adjust **presentation only**: `tired` puts verdicts (`FAIL`,
+`WARNING`) and security findings first and in full, and defers the tail of what is merely
+informative behind a `show all` control;
+`focus` orders the active cell's items first and narrows the timeline to it by default; `explore` opens the
+advisor's alternatives; `ready` is today's behaviour, exactly. An **expired** or **unreadable** declaration
+is shown too, with the reason, because something changed with nobody doing anything.
+
+**Every `FAIL` and every security finding (`secrets`, `deps`, `import-boundaries`) is rendered in full under
+every mode** — that is an invariant with its own test file (`tests/mode-invariant.test.mjs`), proved against a
+500-finding list. There is **no mode selector**: a mode is declared by the human at their own terminal or with
+their own command (`node tools/adaptive/cli.mjs set tired`), never by this dashboard, which has no capability
+to write one. Writing a mode from the Observer is recorded as **future work** and is deliberately not built.
 
 On success it prints the URL, the vault it is reading (or `RECORDED FIXTURES — no vault is being read`), the
 capability keys that were loaded, and how many allowlisted files it will serve. Open the URL in a browser.

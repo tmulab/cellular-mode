@@ -9,8 +9,8 @@ import { ADVISOR_PLUGIN, AUDIT_PLUGIN, missingPlugin } from '../host-adapter.mjs
 describe('the launcher refuses what it does not understand', () => {
   test('a root is required unless the interface is being reviewed against fixtures', () => {
     assert.throws(() => parseArgs([]), /--root <dir> is required/);
-    assert.deepEqual(parseArgs(['--fixture']), { root: null, port: 3200, advisor: null, fixture: true, help: false });
-    assert.deepEqual(parseArgs(['--root', '.']), { root: '.', port: 3200, advisor: null, fixture: false, help: false });
+    assert.deepEqual(parseArgs(['--fixture']), { root: null, port: 3200, advisor: null, adaptive: false, fixture: true, help: false });
+    assert.deepEqual(parseArgs(['--root', '.']), { root: '.', port: 3200, advisor: null, adaptive: false, fixture: false, help: false });
   });
 
   test('a typo is an error, never a silently different run', () => {

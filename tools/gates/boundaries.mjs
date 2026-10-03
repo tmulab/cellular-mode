@@ -8,13 +8,13 @@
 // `eip/` may not exist yet. A gate that fails on an absent directory would block the
 // cell that is building it, so absence is simply "no files matched, nothing to say".
 // The rules are tested on in-memory fixtures, which is why they must be data.
-import { HOST_GATE_IMPORTS, OBSERVER_PURE_IMPORTS } from './allowlists.mjs';
+import { ADAPTIVE_PURE_IMPORTS, HOST_GATE_IMPORTS, OBSERVER_PURE_IMPORTS } from './allowlists.mjs';
 import { importSpecifiers } from './deps.mjs';
 
-// The two import EXCEPTIONS are DATA and live in ./allowlists.mjs, each name checked by hand
+// The import EXCEPTIONS are DATA and live in ./allowlists.mjs, each name checked by hand
 // with its reason beside it. Re-exported here because the rules below are what a reader comes
 // to this file for, and the lists are part of the same contract.
-export { HOST_GATE_IMPORTS, OBSERVER_PURE_IMPORTS };
+export { ADAPTIVE_PURE_IMPORTS, HOST_GATE_IMPORTS, OBSERVER_PURE_IMPORTS };
 
 /** @typedef {import('./types.mjs').FileTuple} FileTuple */
 /** @typedef {import('./types.mjs').Finding} Finding */
@@ -70,8 +70,8 @@ export const RULES = [
   },
   {
     id: 'plugin-imports-sdk-and-own-dir',
-    why: 'a plugin is replaceable: it may use the SDK, its own directory and shared domain code, never kernel internals, the host, orchestration, or a sibling plugin (siblings arrive through inject). An observer-* plugin is governed by its own rule instead, so that its extra allowance is read as an exception and not as the norm.',
-    from: /^eip\/plugins\/(?!observer-)[^/]+\//,
+    why: 'a plugin is replaceable: it may use the SDK, its own directory and shared domain code, never kernel internals, the host, orchestration, or a sibling plugin (siblings arrive through inject). An observer-* plugin and an adaptive-* plugin are each governed by their own rule instead, so that an extra allowance is read as an exception and not as the norm.',
+    from: /^eip\/plugins\/(?!observer-|adaptive-)[^/]+\//,
     allowPrefixes: ['eip/sdk/', 'examples/text-stats/src/'],
     allowSelfDepth: 3,
   },
@@ -81,6 +81,14 @@ export const RULES = [
     from: /^eip\/plugins\/observer-[^/]+\//,
     allowPrefixes: ['eip/sdk/'],
     allowExact: [...OBSERVER_PURE_IMPORTS],
+    allowSelfDepth: 3,
+  },
+  {
+    id: 'adaptive-plugin-imports-only-named-pure-modules',
+    why: 'the optional adaptive plugin reports a mode the human declared and how long that declaration still stands, and a second implementation of temporal validity would be a second answer to a one-answer question; so it may import the SDK, its own directory and the NAMED pure modules listed in ADAPTIVE_PURE_IMPORTS - never io.mjs (the only module that writes), never main.mjs, cli.mjs or hook.mjs, never context.mjs, never the kernel or the host. It reads the state through a path-confined host PORT, so it needs no disk module at all.',
+    from: /^eip\/plugins\/adaptive-[^/]+\//,
+    allowPrefixes: ['eip/sdk/'],
+    allowExact: [...ADAPTIVE_PURE_IMPORTS],
     allowSelfDepth: 3,
   },
   {
@@ -107,9 +115,15 @@ export const RULES = [
   },
   {
     id: 'cellular-mode-is-runtime-independent',
-    why: 'Cellular Mode is a methodology. It must run in a repository that has no eip/ directory at all, so neither the CLI, the skills nor the docs may import the runtime.',
-    from: /^(tools\/cellmode\/|skills\/|docs\/|adapters\/|templates\/)/,
+    why: 'Cellular Mode is a methodology. It must run in a repository that has no eip/ directory at all, so neither the CLI, the skills, the docs nor the optional adaptive module may import the runtime.',
+    from: /^(tools\/cellmode\/|tools\/adaptive\/|skills\/|docs\/|adapters\/|templates\/)/,
     denyPrefixes: ['eip/'],
+  },
+  {
+    id: 'adaptive-is-optional-and-isolated',
+    why: 'Cellular Adaptive is an OPTIONAL, experimental module: the method, the CLI, the Observer and the runtime must all keep working with tools/adaptive deleted, so none of them may import it. The host reads it through a port instead, and its own ALLOW rule already refuses the direct import; eip/plugins/adaptive-* is left out of THIS rule because cell 5 granted it one named allowlist in one place (adaptive-plugin-imports-only-named-pure-modules); every other plugin directory, including every observer-*, stays refused here.',
+    from: /^(tools\/cellmode\/|skills\/|docs\/|adapters\/|templates\/|eip\/(sdk|kernel)\/|eip\/plugins\/(?!adaptive-)[^/]+\/)/,
+    denyPrefixes: ['tools/adaptive/'],
   },
 ];
 

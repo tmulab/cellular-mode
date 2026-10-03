@@ -31,6 +31,12 @@ the cells with no entry, reconstruct the missing entries from `INDEX.md` +
 `node tools/cellmode/cli.mjs check` performs this guard deterministically
 (exit 0 = clean, exit 2 = findings).
 
+## Optional: the declared working mode
+
+If `tools/adaptive/` exists, run `node tools/adaptive/cli.mjs context` after reconnecting and
+apply the block it prints (empty output = the default, work normally). Never set a mode
+yourself: `skills/mode/SKILL.md`.
+
 ## Routing — decide which case applies first
 
 **A. The human named a cell** ("/cell parser", "back to the fetcher cell"):

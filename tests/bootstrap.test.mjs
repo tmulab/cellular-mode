@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { ROOT, allFiles, lineCount, read, report } from './helpers.mjs';
+import { ROOT, allFiles, exists, lineCount, read, report } from './helpers.mjs';
 
 // 45 was the budget before Level 1 had to carry the six-line summary of the Mandatory
 // Engineering Constitution (docs/00-constitution.md): the epistemic labels, the
@@ -51,6 +51,10 @@ test('bootstrap · every adapter file is a thin pointer', () => {
   for (const rel of adapterFiles) {
     const lines = lineCount(rel);
     if (lines > ADAPTER_MAX) tooLong.push(`${rel} (${lines} lines)`);
+    // A .json adapter file is machine-readable configuration, not glue an agent reads, so the
+    // "points at the canonical skill" rule cannot apply to it. The size rule still does, and
+    // its contents are asserted by their own test below.
+    if (rel.endsWith('.json')) continue;
     const text = read(rel);
     if (!/skills\//.test(text) && !/AGENTS\.md/.test(text)) notPointing.push(rel);
   }
@@ -98,4 +102,72 @@ test('bootstrap · no skill asks an agent to read the whole documentation tree',
       });
   }
   assert.deepEqual(offenders, [], report('wholesale documentation loads', offenders));
+});
+
+// The adaptive module is OPTIONAL, so this test is conditional on its policy directory being
+// present - and says so rather than passing silently if the module is ever removed.
+test('bootstrap · the mode skill is a thin, agent-neutral Level 2 procedure', () => {
+  if (!exists('adaptive/policies')) {
+    assert.equal(exists('skills/mode/SKILL.md'), false, 'no adaptive module, no mode skill');
+    return;
+  }
+  const rel = 'skills/mode/SKILL.md';
+  assert.equal(exists(rel), true, `${rel} must exist while adaptive/policies/ does`);
+  const lines = lineCount(rel);
+  assert.ok(lines <= 80, `${rel} has ${lines} lines, budget is 80`);
+  const text = read(rel);
+  assert.match(text, /^---\nname: mode\ndescription: >/, 'frontmatter must declare the skill');
+  for (const alias of ['tired', 'cansado', 'modocansado', 'ready', 'estoubem', 'modoestoubem',
+    'focus', 'foco', 'modofoco', 'explore', 'explorar', 'modoexplorar']) {
+    assert.match(text, new RegExp(alias), `the alias table must list ${alias}`);
+  }
+  assert.match(text, /on your own initiative/, 'it must forbid an agent setting a mode itself');
+  assert.match(text, /say it once/i, 'and say what an agent may do instead');
+  assert.match(text, /boundaries\.md/, 'it must point at what no mode changes');
+  assert.match(text, /not an authorization/, 'and say that a declaration grants nothing');
+  assert.equal(/\bCLAUDE\.md\b/.test(text), false, 'a skill stays tool-neutral');
+});
+
+// The eight Claude Code mode skills. They are the reason the module works WITHOUT hooks: a
+// skill the model cannot invoke can only have been invoked by the human, so the `set` it runs
+// is user-originated by construction. Remove `disable-model-invocation` and that argument
+// collapses - hence this test.
+const MODE_SKILLS = ['tired', 'ready', 'focus', 'explore',
+  'modocansado', 'modoestoubem', 'modofoco', 'modoexplorar'];
+
+test('bootstrap · every adaptive mode skill is user-invocable only', () => {
+  if (!exists('adaptive/policies')) return;
+  for (const name of MODE_SKILLS) {
+    const rel = `.claude/skills/${name}/SKILL.md`;
+    assert.equal(exists(rel), true, `${rel} must exist`);
+    assert.equal(exists(`adapters/claude-code/${rel}`), true, `the adapter copy of ${name} must exist`);
+    const text = read(rel);
+    const lines = lineCount(rel);
+    assert.ok(lines <= ADAPTER_MAX, `${rel} has ${lines} lines, budget is ${ADAPTER_MAX}`);
+    assert.match(text, /^disable-model-invocation: true$/m,
+      `${rel} must be user-invocable only: the model must never set a mode`);
+    assert.match(text, new RegExp(`^name: ${name}$`, 'm'), `${rel} must declare its name`);
+    assert.match(text, new RegExp(`set ${name} --source skill`),
+      `${rel} must record the provenance of a skill-sourced declaration`);
+    assert.match(text, /cli\.mjs context/, `${rel} must tell the agent to read the block`);
+    assert.match(text, /skills\/mode\/SKILL\.md/, `${rel} must point at the canonical procedure`);
+  }
+});
+
+test('bootstrap · the adaptive hook configuration is opt-in, not installed', () => {
+  if (!exists('adaptive/policies')) return;
+  const rel = 'adapters/claude-code/settings.adaptive.json';
+  assert.equal(exists(rel), true, `${rel} must ship as a snippet`);
+  const config = JSON.parse(read(rel));
+  for (const event of ['SessionStart', 'UserPromptSubmit']) {
+    const command = config.hooks?.[event]?.[0]?.hooks?.[0]?.command;
+    assert.equal(command, `node tools/adaptive/cli.mjs hook ${event}`, `${event} must call the hook`);
+  }
+  // Project hooks run commands with NO trust prompt, so cloning this repository must not enable
+  // them. Nothing the clone already loads may reference the module.
+  const installed = allFiles().filter((f) => /^\.claude\/settings(\.[a-z]+)?\.json$/.test(f));
+  for (const file of installed) {
+    assert.equal(read(file).includes('tools/adaptive'), false,
+      `${file} must not enable the adaptive hooks: they are opt-in`);
+  }
 });

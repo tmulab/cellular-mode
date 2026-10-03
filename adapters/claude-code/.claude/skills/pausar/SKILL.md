@@ -1,6 +1,6 @@
 ---
 name: pausar
-description: Portuguese-compatibility alias of the `pause` skill. Triggers: /pausar, "cansei", "vou parar", "chega por hoje", "anota aí", "continuo depois", "fecha essa célula", "conclui a célula".
+description: Portuguese-compatibility alias of the `pause` skill. Triggers: /pausar, "vou parar", "chega por hoje", "anota aí", "continuo depois", "fecha essa célula", "conclui a célula". An explicit request only — never inferred from behaviour.
 ---
 
 # Pausar (pointer / alias)

@@ -62,22 +62,22 @@ Measured effect: **1,195 → 56 lines** forced before a code task. See `CONTEXT_
 
 ## 5. Removed, and why
 
-- **The dashboard** (`tools/painel/`, ~20 modules): Portuguese throughout, a vendored
-  minified three.js copy, and five test blocks hardwired to a private project's data.
-  Porting it meant rewriting it, and it is not part of the method.
+- **The dashboard** (`tools/painel/`, ~20 modules): Portuguese throughout, a vendored minified
+  three.js copy, and five test blocks hardwired to a private project's data. Porting it meant
+  rewriting it, and it is not part of the method.
 - **The engineering law file** (`SKILL-METODO-TMULAB.md`, 50 KB): third-party-derived,
-  redistribution rights unclear — see section 7. **The personal profile**
-  (`vault/00-perfil.md`): one individual's preferences, replaced by a neutral template.
-- **The health-condition framing.** The original declared that the method *is* its
-  owner's cognitive architecture and named a diagnosis to justify it.
-  `docs/07-adaptation.md` keeps the design assumptions (variable energy, non-linear
-  focus, unannounced interruptions) as ordinary and universal, and says explicitly that
-  no diagnosis is involved and an agent must never ask for or record one.
-- **The named addressee** of `vault/06-adaptacao.md` (a letter to one person): rewritten
-  as `docs/07-adaptation.md`, addressed to any reader.
-- **Private project names, the private key map, patient-data and production-stack
-  mentions, absolute paths, the OS account name**: replaced by placeholders and by "the
-  production database" — `tests/leaks.test.mjs` fails if any of them reappears.
+  redistribution rights unclear — see section 7. **The personal profile** (`vault/00-perfil.md`):
+  one individual's preferences, replaced by a neutral template.
+- **The health-condition framing.** The original declared that the method *is* its owner's cognitive
+  architecture and named a diagnosis to justify it. `docs/07-adaptation.md` keeps the design assumptions
+  (variable energy, non-linear focus, unannounced interruptions) as ordinary and universal, and says
+  explicitly that no diagnosis is involved and an agent must never ask for or record one.
+- **Rule 7's inferred-fatigue trigger**, the original's "any demonstration of tiredness": **removed** by the author's decision of 2026-10-03. Explicit stop requests still run the pause ritual; a declared condition only earns an offer.
+- **The named addressee** of `vault/06-adaptacao.md` (a letter to one person): rewritten as
+  `docs/07-adaptation.md`, addressed to any reader.
+- **Private project names, the private key map, patient-data and production-stack mentions,
+  absolute paths, the OS account name**: replaced by placeholders and by "the production database"
+  — `tests/leaks.test.mjs` fails if any of them reappears.
 
 ## 6. Remains project-specific
 
@@ -155,7 +155,7 @@ Fresh `npm test` (`node --test`, Node 24, no network, zero deps): **81 tests, 81
 
 - **Live adapter behavior.** Does Cursor load the rule? Does Codex CLI merge nested
   `AGENTS.md`? Does Copilot open a linked file? One session each, then fix `adapters/`.
-- **Skill auto-triggering.** Whether "where did we stop" and "I'm tired, note this down"
+- **Skill auto-triggering.** Whether "where did we stop" and "stop here, note this down"
   invoke the skills from their `description`, per tool and per language.
 - **The human-facing adaptation test** (`docs/07-adaptation.md`): a second person adopts
   the method and reports whether reconnection after a week takes under five minutes with

@@ -7,12 +7,16 @@
 //     looking like an opinion (and an advisor answer can never arrive looking like a finding);
 //   UNAVAILABLE is rendered with its own word, symbol and dashed outline — never as a pass;
 //   the button is the only interaction, it calls a read-only capability, and while it waits it
-//     says so instead of leaving the old numbers on screen as if they were fresh.
+//     says so instead of leaving the old numbers on screen as if they were fresh;
+//   a declared mode may reorder this list and may cap the TAIL of what is informative — never
+//     a FAIL and never a security finding, which are always rendered in full (AD28). The rule
+//     lives in `../view/mode-view.mjs` and is tested there against a 500-finding list.
 import { el, errorNode, fieldNode, replace } from './dom.mjs';
 import { describeProbe } from '../view/availability.mjs';
 import {
   AUDIT_STATUSES, auditHeadline, filterRows, findingRows, scopeOptions, statusMark, summaryTiles,
 } from '../view/audit-view.mjs';
+import { capFindings, capNotice, orderFindings } from '../view/mode-view.mjs';
 
 /** @typedef {{ call: (cap: string, input?: unknown) => Promise<{ ok: true, value: unknown } | { ok: false, error: { code: string, message: string } }> }} Client */
 /** @typedef {ReturnType<typeof findingRows>[number]} Row */
@@ -71,13 +75,20 @@ function selectNode(id, label, options) {
 
 /**
  * Renders the area and wires its button. Called once; the button re-renders the table in place.
- * @param {{ host: HTMLElement, key: string, client: Client }} spec
+ * @param {{ host: HTMLElement, key: string, client: Client, mode?: string,
+ *   activeCell?: string | null }} spec
  */
-export async function renderAuditArea({ host, key, client }) {
+export async function renderAuditArea({
+  host, key, client, mode = 'ready', activeCell = null,
+}) {
   host.setAttribute('data-origin', 'deterministic');
   const headline = el('p', { class: 'probe', text: 'reading the last audit…' });
   const tiles = el('div', { class: 'tiles audit-tiles' });
   const list = el('ul', { class: 'findings' });
+  const cap = el('p', { class: 'mode-cap' });
+  const more = /** @type {HTMLButtonElement} */ (el('button', {
+    class: 'control', text: 'show all', attrs: { type: 'button' },
+  }));
   const status = selectNode('audit-status', 'status', AUDIT_STATUSES.map((value) => (
     /** @type {readonly [string, string]} */ ([value, `${statusMark(value).symbol} ${statusMark(value).label}`]))));
   const scope = selectNode('audit-scope', 'scope', []);
@@ -101,17 +112,25 @@ export async function renderAuditArea({ host, key, client }) {
     el('div', { class: 'panel-head' }, [button, status.wrap, scope.wrap]),
     headline,
     tiles,
+    cap,
     list,
   ]);
 
   /** @type {Row[]} */
   let rows = [];
+  let showAll = false;
+  more.addEventListener('click', () => { showAll = true; draw(); });
 
   const draw = () => {
-    const shown = filterRows(rows, { status: status.select.value, scope: scope.select.value });
-    replace(list, shown.length === 0
+    const filtered = filterRows(rows, { status: status.select.value, scope: scope.select.value });
+    // Order first, then cap: the cap is defined over the tail of what is NOT mandatory, so it
+    // has to see the mode's own order to know what the tail is.
+    const limited = capFindings(orderFindings(filtered, mode, activeCell), mode, showAll);
+    replace(cap, limited.hidden.length === 0 ? []
+      : [el('span', { text: capNotice(mode, limited.hidden.length) }), more]);
+    replace(list, limited.shown.length === 0
       ? [el('li', { class: 'finding empty', text: 'no finding matches this filter.' })]
-      : shown.map(rowNode));
+      : limited.shown.map(rowNode));
   };
 
   /** @param {unknown} value */

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // cli.mjs — the launcher. Two processes' worth of work in one process:
 //
-//   node apps/observer/cli.mjs --root <dir> [--port 3200] [--advisor fixture] [--fixture]
+//   node apps/observer/cli.mjs --root <dir> [--port 3200] [--advisor fixture]
+//                               [--adaptive] [--fixture]
 //
 // It starts the host composition on a free loopback port, starts the application server
 // on the port you asked for, prints the local URL, and stops both on Ctrl+C. Nothing is
@@ -10,7 +11,7 @@ import { resolve } from 'node:path';
 import { createAppServer } from './server.mjs';
 import { composeObserverHost } from './host-adapter.mjs';
 
-const FLAGS = new Set(['--fixture', '--help']);
+const FLAGS = new Set(['--adaptive', '--fixture', '--help']);
 const VALUES = new Set(['--root', '--port', '--advisor']);
 
 export const USAGE = `cellular observer — local dashboard for a vault
@@ -18,6 +19,8 @@ export const USAGE = `cellular observer — local dashboard for a vault
   --root <dir>       the project to read (required unless --fixture)
   --port <n>         port for the app on 127.0.0.1 (default 3200, 0 = any free port)
   --advisor <id>     load the advisor plugin with this model adapter (default: not loaded)
+  --adaptive         load the optional adaptive.preferences reader, so the header can show a
+                     mode the human declared (default: not loaded, and nothing changes)
   --fixture          serve the interface against the recorded contract fixtures, with no
                      host and no vault — for reviewing the UI, never for reading a project
   --help             print this and exit
@@ -27,10 +30,12 @@ The app binds 127.0.0.1 and has no option to bind anything else.
 
 /** PURE. Unknown arguments are an error: a typo must not silently change what runs.
  * @param {ReadonlyArray<string>} argv
- * @returns {{ root: string | null, port: number, advisor: string | null, fixture: boolean, help: boolean }} */
+ * @returns {{ root: string | null, port: number, advisor: string | null, adaptive: boolean,
+ *   fixture: boolean, help: boolean }} */
 export function parseArgs(argv) {
-  /** @type {{ root: string | null, port: number, advisor: string | null, fixture: boolean, help: boolean }} */
-  const options = { root: null, port: 3200, advisor: null, fixture: false, help: false };
+  /** @type {{ root: string | null, port: number, advisor: string | null, adaptive: boolean,
+   *   fixture: boolean, help: boolean }} */
+  const options = { root: null, port: 3200, advisor: null, adaptive: false, fixture: false, help: false };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === undefined) continue;
@@ -50,6 +55,7 @@ export function parseArgs(argv) {
       }
       index += 1;
     } else if (FLAGS.has(arg)) {
+      if (arg === '--adaptive') options.adaptive = true;
       if (arg === '--fixture') options.fixture = true;
       if (arg === '--help') options.help = true;
     } else {
@@ -90,6 +96,7 @@ export async function main(argv) {
     host = await composeObserverHost({
       root: options.root,
       ...(options.advisor === null ? {} : { advisor: options.advisor }),
+      ...(options.adaptive ? { adaptive: true } : {}),
     });
   }
   const app = createAppServer({ upstreamPort: host === null ? 1 : host.port });

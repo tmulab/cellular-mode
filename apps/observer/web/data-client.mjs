@@ -17,6 +17,9 @@ import { pluginKeys } from '../view/availability.mjs';
 export const STATE_KEY = 'observer.state';
 export const AUDIT_KEY = 'observer.audit';
 export const ADVISOR_KEY = 'observer.advisor';
+/** The OPTIONAL adaptive reader. Not in the build unless the launcher was given `--adaptive`,
+ * and then it is read ONCE per load: a declaration is not a stream. */
+export const ADAPTIVE_KEY = 'adaptive.preferences';
 
 /** PURE. The capability URL. Keys and capability names are contract constants, not user
  * text, and are encoded anyway: building a URL by concatenation is how a path becomes an

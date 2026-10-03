@@ -53,6 +53,38 @@ export const OBSERVER_PURE_IMPORTS = Object.freeze([
 ]);
 
 /**
+ * What an `eip/plugins/adaptive-*` plugin may import beyond the SDK and its own directory.
+ *
+ * Same reasoning as the list above, applied to the OPTIONAL adaptive module: the plugin reports
+ * a declared mode and its temporal standing, and a second implementation of "is this declaration
+ * still valid" would be a second answer to a question that has exactly one. So it may import the
+ * PURE modules of `tools/adaptive` — and only these four, each checked by hand: none of them
+ * touches the filesystem, the clock, the environment or the process (`validity.mjs` takes `now`
+ * as a parameter, which is why it is on the list at all).
+ *
+ * Everything NOT on the list stays a violation, in particular:
+ *   tools/adaptive/io.mjs ......... the only module that touches disk, and it WRITES
+ *   tools/adaptive/main.mjs ....... the CLI's command dispatch: reads, writes, exit codes
+ *   tools/adaptive/cli.mjs ........ the entry point; running it is a process decision
+ *   tools/adaptive/hook.mjs ....... reads stdin, writes state, reports to Claude Code
+ *   tools/adaptive/context.mjs .... assembles the agent block from policy files on disk
+ *   tools/adaptive/commands.mjs,
+ *   tools/adaptive/transitions.mjs,
+ *   tools/adaptive/errors.mjs ..... the CLI's own vocabulary, not a reader's
+ * The arrow stays one-way in the other direction too: `tools/adaptive` may not import `eip/`
+ * (see `cellular-mode-is-runtime-independent`), and no `observer-*` plugin may import
+ * `tools/adaptive` at all (see `adaptive-is-optional-and-isolated`), so deleting the adaptive
+ * module leaves the Observer whole.
+ * @type {ReadonlyArray<string>}
+ */
+export const ADAPTIVE_PURE_IMPORTS = Object.freeze([
+  'tools/adaptive/modes.mjs',
+  'tools/adaptive/schema.mjs',
+  'tools/adaptive/types.mjs',
+  'tools/adaptive/validity.mjs',
+]);
+
+/**
  * What the HOST may import from `tools/gates`: three named modules, and no more.
  *
  * The host is the composition layer, so it is allowed to know all the parts — but

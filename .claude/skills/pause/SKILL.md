@@ -1,6 +1,6 @@
 ---
 name: pause
-description: Close or complete the current Cellular Mode cell, recording state for a cheap resume. Triggers: /pause, "I'm tired", "stop here", "that's enough for today", "note this down", "I'll continue later", "close this cell", or any sign of fatigue; also before switching cells.
+description: Close or complete the current Cellular Mode cell, recording state for a cheap resume. Triggers: /pause, /pausar, "stop here", "that's enough for today", "note this down", "I'll continue later", "close this cell"; also before switching cells. An explicit request only — never inferred from behaviour.
 ---
 
 # Pause (pointer)

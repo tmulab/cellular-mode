@@ -21,6 +21,9 @@
 <header class="top">
   <h1>Cellular observer</h1>
   <div id="active-cell" class="active-cell"></div>
+  <!-- The declared-mode badge. Hidden unless the OPTIONAL adaptive.preferences plugin is
+       loaded AND the human declared something: read-only, with no selector by design. -->
+  <div id="mode" class="mode-badge" hidden></div>
   <div id="tiles" class="tiles"></div>
   <div id="integrity" class="integrity"></div>
 </header>

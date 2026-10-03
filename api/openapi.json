@@ -200,6 +200,22 @@
       }
     }
   },
+  "x-adaptive-preferences": {
+    "key": "adaptive.preferences",
+    "summary": "The one read-only capability of the OPTIONAL, NOT-LOADED-BY-DEFAULT `adaptive.preferences` plugin.",
+    "description": "Reached through the same generic capability path, so it adds no route. This plugin is absent unless the launcher is started with `--adaptive`: without it the key does not exist and a call answers 404 NOT_FOUND, which a client must render as \"no badge\", never as an error. It reports a mode the HUMAN declared, read from `.cellular/adaptive/` through a read port confined to two file names; it never writes, never infers and never interprets - there is no code path from activity, timing or phrasing to a mode. `standing` is the whole answer and the five values are distinct on purpose: `active` (a declaration inside its declared window), `expired` (the window has closed, so the mode is NOT honoured, `mode` is `ready` and `notice` carries one line), `invalid` (a file that cannot be read as a declaration: reported, never repaired, never deleted, never rendered as an absence), `none` (nobody declared anything - the default state) and `disabled` (the human turned the module off). A declaration is NOT an authorization: this answer may change the ORDER and the AMOUNT a client shows, and nothing else. Every FAIL and every security finding of `observer.audit` is rendered in full under every mode. There is no capability to SET a mode: declaring one is the human's own act, at their own terminal or through their own command. Field by field: `enabled` is false only when the human disabled the module, and then no mode applies; `mode` is `ready` for every standing other than `active`, and `ready` is never stored; `declaredBy` is `user` or null, because no other value exists; `source` is stamped by whoever wrote the file, never claimed by whoever reports it; `activatedAt` and `expiresAt` are ISO 8601 instants or null, and the window is HALF-OPEN, so at `expiresAt` the declaration is already expired; `notice` is the one line a human must see when something changed without them doing anything, or null.",
+    "capabilities": {
+      "current": {
+        "summary": "The mode the human declared and whether that declaration still stands, with its window and the source that stamped it. Read fresh on every call, because a declaration expires while nobody is looking.",
+        "input": {
+          "$ref": "#/components/schemas/ObserverEmptyInput"
+        },
+        "output": {
+          "$ref": "#/components/schemas/AdaptiveCurrent"
+        }
+      }
+    }
+  },
   "components": {
     "schemas": {
       "ObserverAdviseInput": {
@@ -514,6 +530,67 @@
           "count",
           "lastAt",
           "disclaimer"
+        ],
+        "additionalProperties": false
+      },
+      "AdaptiveCurrent": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "tired",
+              "focus",
+              "explore"
+            ]
+          },
+          "standing": {
+            "type": "string",
+            "enum": [
+              "active",
+              "expired",
+              "invalid",
+              "none",
+              "disabled"
+            ]
+          },
+          "declaredBy": {
+            "enum": [
+              "user",
+              null
+            ]
+          },
+          "source": {
+            "enum": [
+              "claude-hook",
+              "cli",
+              "skill",
+              null
+            ]
+          },
+          "activatedAt": {
+            "maxLength": 40
+          },
+          "expiresAt": {
+            "maxLength": 40
+          },
+          "notice": {
+            "maxLength": 400
+          }
+        },
+        "required": [
+          "enabled",
+          "mode",
+          "standing",
+          "declaredBy",
+          "source",
+          "activatedAt",
+          "expiresAt",
+          "notice"
         ],
         "additionalProperties": false
       },

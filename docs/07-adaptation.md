@@ -63,7 +63,7 @@ Guiding questions — answer in a few lines each, concretely
 - **Autonomy and review.** Which decisions do you want to make yourself, and which do
   you prefer delegated with a one-line report?
 - **Language and triggers.** Which language do you work in, and what do you actually say
-  when you want to stop? ("I'm tired", "that's enough", "park this".) Put your real
+  when you want to stop? ("stop here", "that's enough", "park this".) Put your real
   phrases in the profile; the skills will match them.
 
 ## Adapting the policy layer
@@ -86,7 +86,7 @@ Do not evaluate your adaptation by reading it. Run it:
    phrase).
 2. **Work one real session** — real code, real decisions, real mess. Not a demo.
 3. **Stop mid-way**, deliberately, before the work is finished: say your stop phrase
-   ("I'm tired", `/pause`).
+   ("stop here", `/pause`).
 4. Close the session completely. Ideally come back the next day, with a fresh agent
    session, so no conversation memory is helping you.
 5. Say your resume trigger.

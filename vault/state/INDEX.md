@@ -35,3 +35,11 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [Done-cell next step wording](cells/done-cell-next-step-wording.md) | eip/plugins/observer-state views, apps/observer view-model | ✔ | 2026-10-03 | — |
 | [Observer UI polish](cells/observer-ui-polish.md) | apps/observer (graph view, advisor area) | ✔ | 2026-10-03 | — |
 | [Stage 3 closure](cells/stage-3-closure.md) | vault, RELEASE_CHECKLIST.md | ✔ | 2026-10-03 | — |
+| [Adaptive contracts and policy model](cells/adaptive-contracts-and-policy-model.md) | MDAA references (read-only), tools/adaptive (planned), docs | ✔ | 2026-10-03 | — |
+| [Adaptive state and temporal validity](cells/adaptive-state-and-temporal-validity.md) | tools/adaptive (io, validity, state transitions, CLI) | ✔ | 2026-10-03 | — |
+| [Four modes and command aliases](cells/four-modes-and-command-aliases.md) | tools/adaptive (context builder), skills/mode (agent-neutral) | ✔ | 2026-10-03 | — |
+| [Claude Code and agent integration](cells/claude-code-and-agent-integration.md) | adapters/claude-code, .claude/skills, tools/adaptive hook, skills/cell, AGENTS.md | ✔ | 2026-10-03 | — |
+| [Adaptive observer integration](cells/adaptive-observer-integration.md) | eip/plugins/adaptive-preferences, eip/host composition, apps/observer presentation | ✔ | 2026-10-03 | — |
+| [Adaptive verification and closure](cells/adaptive-verification-and-closure.md) | ADAPTIVE_REPORT.md, README, RELEASE_CHECKLIST, docs links, final gates | ✔ | 2026-10-03 | — |
+| [Explicit pause triggers](cells/explicit-pause-triggers.md) | skills/pause, adapters pause/pausar, AGENTS.md rule 7, docs, ADR 0004 | ✔ | 2026-10-03 | — |
+| [Adaptive behavioral validation](cells/adaptive-behavioral-validation.md) | scratchpad sandbox copy, tools/adaptive/VALIDATION-RESULTS | ✔ | 2026-10-03 | — |

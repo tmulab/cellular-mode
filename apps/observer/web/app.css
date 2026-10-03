@@ -76,6 +76,20 @@ h1 { margin: 0; font-size: .8rem; font-weight: 650; letter-spacing: .14em;
 .tile.status-paused b { color: var(--status-paused); }
 .tile.status-planned b { color: var(--status-planned); }
 
+/* The declared-mode badge. Quiet by construction: a mode is a preference about FORM, so it
+   must never compete with a verdict for attention. `[data-standing]` is a shape and a word,
+   never only a colour: an expired declaration reads as expired on a monochrome screen. */
+.mode-badge { display: flex; flex-wrap: wrap; gap: .5rem; align-items: baseline;
+  font-size: .78rem; }
+.mode-badge .label { font-size: .62rem; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--tertiary); }
+.mode-badge .value { font-weight: 600; color: var(--secondary); }
+.mode-badge[data-standing="active"] .value { color: var(--text); }
+.mode-notice { color: var(--status-paused); }
+.mode-readonly { color: var(--tertiary); font-size: .7rem; }
+.mode-cap { margin: .3rem 0 0; font-size: .76rem; color: var(--secondary);
+  display: flex; flex-wrap: wrap; gap: .5rem; align-items: baseline; }
+
 .integrity { display: flex; flex-wrap: wrap; gap: .5rem; font-size: .78rem; }
 .integrity .ok { color: var(--status-done); }
 .integrity .not-ok { color: var(--status-paused); }

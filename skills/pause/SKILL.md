@@ -2,12 +2,12 @@
 name: pause
 description: >
   Close or complete the current Cellular Mode cell, recording state so it can be
-  resumed cheaply. Use whenever the human says /pause or /pausar, "I'm tired",
+  resumed cheaply. Use whenever the human explicitly asks to stop: /pause or /pausar,
   "stop here", "that's enough for today", "note this down", "I'll continue later",
   "I have to go", "close this cell", "let's call this cell done", or the Portuguese
-  equivalents ("cansei", "vou parar", "chega por hoje", "anota aí", "continuo depois",
-  "fecha essa célula", "conclui a célula"), or shows signs of fatigue. Use it also
-  BEFORE switching to another cell or to a large new subject.
+  equivalents ("vou parar", "chega por hoje", "anota aí", "continuo depois",
+  "fecha essa célula", "conclui a célula"). An explicit request only — never inferred
+  from behaviour. Use it also BEFORE switching to another cell or to a large new subject.
 ---
 
 # Close a cell (pause or complete)
@@ -69,9 +69,19 @@ node tools/cellmode/cli.mjs check
 explicit "yes, we finished it", never for your own judgement. The CLI performs steps
 2–5 and 7 in one deterministic transaction; you still own steps 0, 1, 6 and 8.
 
+## A declared condition is not a stop request
+
+How the human feels ("I'm tired", "cansei", "estou cansado") is a statement, not a
+command. Do NOT run this ritual, do NOT close the cell and do NOT change the adaptive
+mode. Offer once, in one short question — "Want me to pause and record the cell?" — and
+then do exactly what they answer; silence is not a yes. Only an explicit request to stop,
+`/pause` or `/pausar`, starts the ritual, and only the human's own mode command (see
+`skills/mode/SKILL.md`) changes a mode.
+
 ## Never
 
 - Never minimize fatigue, and never suggest "just one more little thing".
+- Never infer a pause from behaviour, typos, the hour or how long the session has run.
 - Never close without a recorded next step (resumable ⟺ recorded) — the single
   exception is a ✔ completed cell, whose next step is "—".
 - Never turn the closing into a long retrospective.

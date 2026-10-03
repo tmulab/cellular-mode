@@ -24,6 +24,11 @@ Stated per adapter, because the answer is not the same for all of them.
   reached case C (no active cell, one planned). The other **ten** pointer skills share the
   identical pointer shape but were **not individually invoked**: that half is INFERRED
   from the shared shape, not separately VERIFIED.
+- **The eight Cellular Adaptive mode skills — shape VERIFIED, invocation NOT PERFORMED.**
+  They are generated from one template, asserted by `tests/bootstrap.test.mjs` to be
+  byte-identical in both trees and to carry `disable-model-invocation: true`. No live session
+  has invoked one, and **whether a model then behaves as the block describes is not something
+  this repository can check** — that is `tools/adaptive/MANUAL-VALIDATION.md`, NOT YET PERFORMED.
 - **Every other adapter — UNTESTED.** Cursor, OpenAI Codex CLI, Gemini CLI, GitHub
   Copilot, Aider and the generic-chat recommendation were never run. They are based on
   each tool's publicly documented conventions at the time of writing.
@@ -42,7 +47,44 @@ unknown, this table says so instead of guessing; the generic fallback always wor
 | **Gemini CLI** | Point its context file at `AGENTS.md` (a one-line pointer file, or the tool's configured context filename). | Reads a project context file at startup, so Level 1 loads the same way. | Context filename and settings key are version-specific; we do not claim a fixed name. No skill mechanism assumed. |
 | **GitHub Copilot** (chat / coding agent) | Put a short pointer in `.github/copilot-instructions.md`: "Read and follow `AGENTS.md`". | Repository-level custom instructions are a documented feature and are enough for Level 1. | No `/cell` command. Copilot may not open linked files on its own; for a long session, paste `skills/cell/SKILL.md` once. Instruction-file support differs between IDE chat and the coding agent. |
 | **Aider** | Add `AGENTS.md` (and the two skills, when working a cell) to the chat context, e.g. via `/read-only AGENTS.md` or a conventions file. | Explicit read-only context files are a documented mechanism; the method works once the files are in context. | Nothing is auto-discovered. You re-add context each session; `/read-only` keeps the method from being edited by mistake. No slash-command integration. |
-| **Generic chat** (any assistant, web UI) | Nothing installed. | Paste `AGENTS.md` at the start of the session. When you want to open or close a cell, **say the trigger phrase** ("open a cell", "where did we stop", "I'm tired, note this down") **or paste the relevant skill file**. Paste back the content of `vault/state/CURRENT-CELL.md` to reconnect. | No file access: you carry state by hand, copying the agent's log entry into `vault/state/log.md` yourself. The `cellmode` CLI is the easy way to keep the files honest in this mode. |
+| **Generic chat** (any assistant, web UI) | Nothing installed. | Paste `AGENTS.md` at the start of the session. When you want to open or close a cell, **say the trigger phrase** ("open a cell", "where did we stop", "stop here, note this down") **or paste the relevant skill file**. Paste back the content of `vault/state/CURRENT-CELL.md` to reconnect. | No file access: you carry state by hand, copying the agent's log entry into `vault/state/log.md` yourself. The `cellmode` CLI is the easy way to keep the files honest in this mode. |
+
+## Optional: Cellular Adaptive (modes)
+
+Two integration paths, both optional. The module itself:
+[`tools/adaptive/README.md`](../tools/adaptive/README.md).
+
+**1. Skills only — no hooks, nothing to install beyond the files.** The eight mode skills ship
+in `adapters/claude-code/.claude/skills/` (and in this repository's own `.claude/skills/`).
+Each carries `disable-model-invocation: true`, so **only the human can invoke them**; the
+`set … --source skill` they run is therefore user-originated by construction. This is the
+recommended path: it needs no hook, no settings file and no automatic command execution.
+
+**2. Hooks — opt-in, for persistence across turns and compaction.** Copy the contents of
+[`claude-code/settings.adaptive.json`](claude-code/settings.adaptive.json) into your own
+`.claude/settings.json` (merging the `hooks` key), or keep it in
+`.claude/settings.local.json` for yourself only. `SessionStart` restates the active block
+after a resume or a compaction; `UserPromptSubmit` applies an exact mode command and otherwise
+prints only when the block changed.
+
+> **Why this is not installed for you.** Project hooks run commands **without a trust prompt**.
+> Shipping an enabled hook in a repository anyone may clone would mean shipping automatic
+> command execution. This repository therefore has no `.claude/settings.json` at all, and a
+> test asserts that none of its settings files reference `tools/adaptive`.
+
+**What is deterministic, and what is not.** Deterministic: the state and its validation, expiry,
+which policy files are read, the bytes of the block, `source` recorded on every write, a mode
+set from a prompt **only** when the prompt is exactly a slash command, and a skill the model
+cannot invoke. Model-dependent, and **not** enforceable here: whether the agent actually behaves
+the way the block describes. Nothing in this repository claims otherwise — see
+`docs/08-agent-integration.md` for the per-agent table.
+
+> **Recorded risk (UNKNOWN).** Whether a project skill named `tired` could ever be shadowed by a
+> future built-in command of the same name is **not documented** by Claude Code. No such
+> built-ins are documented today, so nothing is broken; the precedence rule is simply unknown.
+> If it becomes a problem, the fallback is a rename, not a redesign: `/mode-tired`,
+> `/mode-ready`, `/mode-focus`, `/mode-explore`. Those names are **documented here and
+> deliberately not shipped**, so adopting them is a directory rename plus one line per file.
 
 ## Writing your own adapter
 

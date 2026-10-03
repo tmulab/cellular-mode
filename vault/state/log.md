@@ -253,3 +253,67 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Stage 4 not started without new instructions; repository stays private until the author authorizes public release
 **Build:** green
 **Next step:** —
+
+---
+## 2026-10-03 09:30 · Cell: Adaptive contracts and policy model
+**Status:** ✔
+**Facts:** adaptive/policies (boundaries + 4 modes, on-demand), tools/adaptive/{modes,types,schema}.mjs pure contracts, ACCEPTANCE AD1-AD26, docs/10-adaptive.md with MDAA principle table (transfer labelled ours/experimental), ADR 0004 pending confirmation, boundary rule adaptive-is-optional-and-isolated; 25 new tests + 5 gate tests, 5 mutations red; 565/565 tests, gates and release gate green
+**Decisions:** contracts first; preferences can never store a mode or condition; only the active mode's policy is ever loaded
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 09:48 · Cell: Adaptive state and temporal validity
+**Status:** ✔
+**Facts:** tools/adaptive/{validity,transitions,io,main,cli}.mjs + README: declared mode in .cellular/adaptive/session.json (gitignored), ready deletes, half-open expiry with notice, disable keeps the file but ignores it, malformed state is invalid (exit 2) never deleted, preferences carrying a mode rejected; 49 tests, 5 mutations red; 614/614 tests, gates and release gate green; live CLI check with Portuguese aliases and expiry
+**Decisions:** state stays outside the vault; main.mjs is the only clock/env reader
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 10:04 · Cell: Four modes and command aliases
+**Status:** ✔
+**Facts:** tools/adaptive/context.mjs: header + boundaries + only the active policy, 2048-byte cap, refuses instead of truncating; measured tired 1999, explore 1963, focus 1878 bytes, ready/none/disabled 0; skills/mode/SKILL.md agent-neutral with EN/PT aliases; --root accepted anywhere (live UX bug fixed); 16 new tests, 5 mutations red; lead verified focus block holds 14/14 focus lines and 0/40 lines of the other modes; 632/632 tests, gates and release gate green
+**Decisions:** only the active mode's policy is ever loaded; a missing policy is an error, never an empty block
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 10:27 · Cell: Claude Code and agent integration
+**Status:** ✔
+**Facts:** 8 user-only Claude Code mode skills (disable-model-invocation, byte-identical in adapter and root; the live harness listing omits them from model-invocable skills); opt-in hooks via tools/adaptive/hook.mjs and adapters/claude-code/settings.adaptive.json, no repo settings file; only an exact slash command sets a mode (30-case no-inference table; live: estou cansado sets nothing); 0 bytes per unchanged turn, reprint on change/new session/compact; skills/cell +3 lines, AGENTS.md 51 lines; MANUAL-VALIDATION.md NOT YET PERFORMED; context cost measured; 653/653 tests, gates and release gate green
+**Decisions:** hooks stay opt-in because they run without a trust prompt; skill-vs-builtin precedence is UNKNOWN, fallback names documented not shipped; pause skill's any-sign-of-fatigue trigger conflicts with no-inference: raised to the author
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 10:58 · Cell: Adaptive observer integration
+**Status:** ✔
+**Facts:** adaptive.preferences read-only plugin (no inject) via path-confined adaptive read port (two names only), loaded only with the observer --adaptive flag; named ADAPTIVE_PURE_IMPORTS allowlist; UI badge and presentation rules per mode; invariant: FAIL and security findings always shown in full (WARNING also always shown after the headless check caught a cap); flag off leaves the Observer unchanged; 7 mutations red; headless screenshots checked by the lead; 702/702 tests, gates and release gate green
+**Decisions:** no mode selector in the dashboard (writes out of scope, future work); the cap of 3 is a human-review item
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 11:17 · Cell: Adaptive verification and closure
+**Status:** ✔
+**Facts:** ADAPTIVE_REPORT.md (all mission sections, fresh results, MDAA table with transfer labelled ours and experimental); README, RELEASE_CHECKLIST (items 36-41), SECURITY updated; regression versus 5738789 empty for core, kernel, sdk, observer plugins and pause skill (only AGENTS.md +3 and skills/cell +6 lines, intended); .cellular never tracked; lead verified: 702/702 tests, typecheck 0, gates and release gate green, Modo Celular original unchanged by hash, no MDAA file modified or created today; Stage 4 uncommitted on top of 5738789
+**Decisions:** awaiting the author: commit and push authorization, ADR 0004, manual model validation, pause-skill fatigue trigger
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 11:54 · Cell: Explicit pause triggers
+**Status:** ✔
+**Facts:** pause triggers are explicit only (skills/pause, Claude pause/pausar pointers byte-identical, AGENTS.md rule 7): a declared fatigue gets one offer, never an automatic pause or a mode change; history note in MIGRATION_REPORT; ADR 0004 recorded as approved by the author; tests/pause-triggers.test.mjs red before, 3 mutations red; 710/710 tests, gates and release gate green; the live harness reloaded the new descriptions
+**Decisions:** only an explicit mode command changes the adaptive mode; the original any-sign-of-tiredness trigger is removed by the author's decision
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 12:41 · Cell: Adaptive behavioral validation
+**Status:** ✔
+**Facts:** behavioral validation with claude-opus-5-5 (CLI 2.1.283) in a sandbox copy: 13 checks passed n=1, all write attempts denied, 6 deviations recorded; deviation 1 (silent return to ready) fixed as AD32 and re-run live; AD29 found to be an unverified false claim by the lead's deletion rehearsal (2 static imports of the adaptive port), fixed with a guarded dynamic import, a static import test and npm run rehearse:adaptive-removal (31/31 paths deleted, suite and gates green); C:\tmp incident investigated read-only, uncertainty reported; 719/719 tests, gates and release gate green; prepared for the authorized local commit that follows this entry
+**Decisions:** observed model behavior is evidence, not a guarantee; no push until authorized
+**Build:** green
+**Next step:** —

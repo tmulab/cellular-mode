@@ -10,9 +10,8 @@ Plain Markdown. Zero runtime dependencies. No runtime required. Node ≥ 18. Apa
 ## The problem
 
 Agent-assisted development keeps failing in three ways, all about *continuity* rather than intelligence.
-**Interruptions:** when the only record is the chat transcript, every pause — a meeting, fatigue, a compacted
-context window, a new tool — costs a full re-explanation, and some is lost. **Cognitive load:** the usual way to
-give an agent context is to dump everything, expensive for the model and paralysing for the person. **Scope creep:** asked for X, an eager agent delivers X + Y + Z, each plausible, none agreed.
+**Interruptions:** when the only record is the chat transcript, every pause — a meeting, fatigue, a compacted context
+window, a new tool — costs a full re-explanation, and some is lost. **Cognitive load:** the usual way to give an agent context is to dump everything, expensive for the model and paralysing for the person. **Scope creep:** asked for X, an eager agent delivers X + Y + Z, each plausible, none agreed.
 
 ## Principles
 
@@ -58,7 +57,7 @@ Both Level 4 configuration files are optional and read only if present: `templat
 
 Say `/cell`: the agent proposes a name, a boundary and a first step, you confirm, and it
 writes the state. A cell fits one focus session, has ONE deliverable and a **binary** done
-criterion, and its boundary states what is *not* in it. Say `/pause` — or "I'm tired", or
+criterion, and its boundary states what is *not* in it. Say `/pause` — or "stop here", or
 "note this down" — and the ritual collects the facts, appends to the append-only log, updates
 the projections and records **one next step doable in under five minutes without thinking**.
 The CLI does the same deterministically:
@@ -119,6 +118,15 @@ detail, timeline, a dependency graph in 2D with an optional 3D view, a determini
 disabled-by-default advisor. `node apps/observer/cli.mjs --root <project>`, loopback only, no build step, no
 network: [`apps/observer/README.md`](apps/observer/README.md) · [`OBSERVER_REPORT.md`](OBSERVER_REPORT.md) · [ADR 0003](docs/adr/0003-observer-frontend.md).
 
+## Cellular Adaptive (optional, experimental)
+
+Say **how you want to work right now** — `/tired`, `/focus`, `/explore`, `/ready` (Portuguese aliases included) — and the
+agent adjusts the *form* of the collaboration: detail, decisions per turn, step size, what is shown first. A mode is
+**declared by the human only, never inferred**, and it changes **no** gate, approval, security report or test. Delete
+`tools/adaptive/` and `adaptive/` and nothing else changes — an import gate proves it. The behavioural effect on a real
+model is **UNKNOWN**, not yet validated: [`docs/10-adaptive.md`](docs/10-adaptive.md) ·
+[`ADAPTIVE_REPORT.md`](ADAPTIVE_REPORT.md) · [ADR 0004](docs/adr/0004-cellular-adaptive.md).
+
 ## Use it with different agents
 
 Agent-neutral: a tool needs only to read `AGENTS.md` and write under `vault/state/`. Adapters are thin pointers, never copies, so the method cannot drift between tools.
@@ -129,9 +137,8 @@ Agent-neutral: a tool needs only to read `AGENTS.md` and write under `vault/stat
 | Cursor | `adapters/cursor/` — an always-applied rule pointing at `AGENTS.md` |
 | Codex CLI, Gemini CLI, Copilot, Aider, generic chat | the per-tool table in [`adapters/README.md`](adapters/README.md) |
 
-**Honesty:** for Claude Code, skill **discovery** and **invocation** are VERIFIED live — all eleven skills were
-listed and `cell` was invoked through the pointer and followed (the other ten share the identical pointer shape
-but were not individually invoked). Every other adapter is **untested** — documented conventions only.
+**Honesty:** for Claude Code, skill **discovery** and **invocation** are VERIFIED live — all eleven skills were listed and
+`cell` was invoked through the pointer and followed (the other ten share the identical pointer shape but were not individually invoked). Every other adapter is **untested** — documented conventions only.
 
 ## Documentation
 
@@ -144,12 +151,8 @@ but were not individually invoked). Every other adapter is **untested** — docu
 | [`docs/09-architecture.md`](docs/09-architecture.md) | the three domains, layers, dependency direction, authority, threat model |
 | [`docs/adr/`](docs/adr/) · [`SECURITY.md`](SECURITY.md) | architecture decision records (both **accepted**, 2026-10-02) · supported scope, threat model, what is and is not enforced |
 
-Templates: [`templates/`](templates/) — user profile, cell contract (with the full worked form: question →
-pre-committed decisions → declared scope → mechanical criteria with red-proof → verdict), handoff package,
-project policy. **Example:** [`examples/text-stats/`](examples/text-stats/) — a small project built through
-three cells, with its vault, code, tests and a reproduce script.
-[`vault/state/`](vault/state/) here is *this* repository's own development record, written by the real CLI;
-adopters run `init` in their own project. Reports: [`CONTEXT_AUDIT.md`](CONTEXT_AUDIT.md) · [`MIGRATION_REPORT.md`](MIGRATION_REPORT.md) · [`ARCHITECTURE_REPORT.md`](ARCHITECTURE_REPORT.md) · [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md).
+Templates: [`templates/`](templates/) — user profile, cell contract (with the full worked form: question → pre-committed decisions → declared scope → mechanical criteria with red-proof → verdict), handoff package, project policy. **Example:** [`examples/text-stats/`](examples/text-stats/) — a small project built through three cells, with its vault, code, tests and a reproduce script. [`vault/state/`](vault/state/) here is *this* repository's own development record, written by the real CLI; adopters run `init` in their own project.
+Reports: [`CONTEXT_AUDIT.md`](CONTEXT_AUDIT.md) · [`MIGRATION_REPORT.md`](MIGRATION_REPORT.md) · [`ARCHITECTURE_REPORT.md`](ARCHITECTURE_REPORT.md) · [`ADAPTIVE_REPORT.md`](ADAPTIVE_REPORT.md) · [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md).
 
 ## Tests and gates
 
@@ -188,12 +191,9 @@ Apache License 2.0 — see [`LICENSE`](LICENSE).
 
 ## Acknowledgments
 
-- The **engineering-policy layer** (`docs/05-engineering-rules.md`) was written independently for this
-  repository, but is **inspired by ideas publicly shared by Fábio Akita** on AI-assisted development — in
-  particular test-first discipline with agents, project-level instruction files, and refusing to accept
-  unverified output. No text from that work is reproduced here, and no endorsement is implied.
-- **David L. Parnas**, *On the Criteria To Be Used in Decomposing Systems into Modules* (1972) — the
-  reason a declared interface can replace a meeting (`docs/04-collaboration.md`).
+- The **engineering-policy layer** (`docs/05-engineering-rules.md`) was written independently for this repository, but is
+  **inspired by ideas publicly shared by Fábio Akita** on AI-assisted development — in particular test-first discipline with agents, project-level instruction files, and refusing to accept unverified output. No text from that work is reproduced here, and no endorsement is implied.
+- **David L. Parnas**, *On the Criteria To Be Used in Decomposing Systems into Modules* (1972) — the reason a declared interface can replace a meeting (`docs/04-collaboration.md`).
 
 The method, the CLI, the gates and the runtime bundle **no third-party code** and declare zero runtime
 dependencies. Exactly one directory is vendored: the hash-pinned `three@0.180.0` (MIT) used by the optional 3D

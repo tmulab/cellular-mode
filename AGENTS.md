@@ -10,7 +10,7 @@ This project is developed in **cells**: small bounded units of work whose state 
 4. **Gates green first:** build + typecheck (this project's equivalents) pass before any test claim or delivery.
 5. **No batch or destructive operation without explicit human approval:** prepare it, prove it compiles, show the exact action, then WAIT.
 6. **Divergence is method, not distraction.** Flag risks once as a partner, record stray ideas in the parking lot, never block; the human chooses the direction, you hold the thread.
-7. **Stopping is a protocol signal, not a failure.** "I'm tired", "stop here", "note this down", `/pause` → run the pause ritual, without guilt or pressure.
+7. **Stopping is a protocol signal, not a failure.** An explicit request or command to stop ("stop here", "note this down", "vou parar", `/pause`, `/pausar`) → run the pause ritual, without guilt or pressure. A declared condition ("I'm tired") is not a request: offer once — "Want me to pause and record the cell?" — and never pause, close or change mode on your own.
 
 ## Where state lives
 
@@ -28,8 +28,11 @@ This project is developed in **cells**: small bounded units of work whose state 
 |---|---|---|
 | 1 | this file | always |
 | 2 | `skills/cell/SKILL.md`, `skills/pause/SKILL.md` | opening, resuming, pausing, closing a cell |
+| 2 | `skills/mode/SKILL.md`, then the one `adaptive/policies/*.md` it names | only if the human declares a working mode (`/tired`, `/focus`, …) — optional module |
 | 3 | `vault/state/CURRENT-CELL.md`, then the active cell file it points to | while working inside a cell |
 | 4 | `docs/`, and `vault/policy.md` — the project policy (engineering limits, gate commands, protected resources) | only when the topic is actually relevant |
+
+Optional **Cellular Adaptive** (`docs/10-adaptive.md`): a working mode is **declared by the human only, never inferred**, and no mode changes a gate, an approval, a security report or a test (`adaptive/policies/boundaries.md`).
 
 Both Level 4 configuration files are optional and read only if present, never required: `vault/policy.md` (this project's engineering values) and `vault/profile.md` (how this human prefers to work — pace, interruptions, autonomy, language; never ask for diagnoses).
 

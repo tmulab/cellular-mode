@@ -129,7 +129,11 @@ test('V23 the headline distinguishes "nothing asked" from "nothing accepted"', (
 });
 
 test('V23 the browser module renders text, never markup, and asks nothing on load', () => {
-  const area = read('web/advisor-area.mjs');
+  // Two modules since the mode-aware cap arrived: the area and its node builders. The claim is
+  // about the BROWSER CODE of this area, so both are read — splitting a file must not split a
+  // security property in half.
+  const rows = read('web/advisor-rows.mjs');
+  const area = read('web/advisor-area.mjs') + rows;
   assert.equal(area.includes('innerHTML'), false, 'a model sentence must never be assigned as markup');
   assert.equal(area.includes('outerHTML'), false);
   assert.equal(area.includes('insertAdjacentHTML'), false);
@@ -138,7 +142,8 @@ test('V23 the browser module renders text, never markup, and asks nothing on loa
   assert.match(area, /await client\.call\('status'\)/);
   assert.match(area, /ask\.addEventListener\('click'/);
   assert.equal(/setInterval|setTimeout/.test(area), false, 'nothing is asked on a timer');
-  assert.match(area, /maxlength: '500'/);
+  assert.match(rows, /maxlength: '500'/);
+  assert.equal(rows.includes('innerHTML'), false);
   assert.match(area, /data-origin/);
   // The page wires the real area now, and still declares the AI origin in the markup.
   const main = read('web/main.mjs');

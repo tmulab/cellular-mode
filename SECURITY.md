@@ -9,6 +9,10 @@ surface discussed here is the **Everything Is a Plugin** runtime under `eip/`.
 
 Versions in scope: the current `main` state. No backports.
 
+**Adaptive data (optional module).** A declared working mode lives only in `<project>/.cellular/adaptive/`, is
+git-ignored, holds no diagnosis or profile, is deleted by `reset` or `clear`, and is **never sent anywhere by this module**:
+no network, no telemetry, no external URL. Details: [`ADAPTIVE_REPORT.md`](ADAPTIVE_REPORT.md).
+
 ## Threat model
 
 The authoritative table — asset, threat, control that exists, residual risk — is

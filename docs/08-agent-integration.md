@@ -33,7 +33,8 @@ Available in this repository:
 
 | Path | For |
 |---|---|
-| `adapters/claude-code/.claude/skills/` | Claude Code — eleven skill pointers: the four lifecycle ones (`cell`, `pause`, and the Portuguese-compatibility aliases `celula`, `pausar`) plus the seven optional engineering skills |
+| `adapters/claude-code/.claude/skills/` | Claude Code — nineteen skill pointers: the four lifecycle ones (`cell`, `pause`, and the Portuguese-compatibility aliases `celula`, `pausar`), the seven optional engineering skills, and the eight **optional** mode skills of Cellular Adaptive (`tired`, `ready`, `focus`, `explore` + the Portuguese names) |
+| `adapters/claude-code/settings.adaptive.json` | Claude Code — an **opt-in** hook snippet for Cellular Adaptive. Not installed by cloning: project hooks run commands with no trust prompt |
 | `adapters/cursor/.cursor/rules/cellular-mode.mdc` | Cursor — an always-applied rule pointing at `AGENTS.md` |
 | `.claude/skills/` (repository root) | A copy of the Claude Code adapter, so this repository itself works when opened in Claude Code |
 
@@ -72,6 +73,27 @@ same two procedures — not variants of them.
 
 If you work in another language, add your phrases to the `description` of the canonical
 skills, or to your own `vault/profile.md`, and keep the file names as they are.
+
+## Optional: Cellular Adaptive, and what is actually guaranteed
+
+The adaptive module (`docs/10-adaptive.md`) is optional and experimental. Integrating it means
+the same thing as integrating the method: a pointer, never a copy. Any agent can follow the
+portable path — run `node tools/adaptive/cli.mjs context` when reconnecting to a cell and apply
+the block it prints; empty output means the default. Claude Code additionally gets eight skills
+the model cannot invoke and two optional hooks.
+
+The honest split, per agent, because this is the part it is tempting to overstate:
+
+| | Deterministic — enforced by code and tests | Model-dependent — **not** enforceable here |
+|---|---|---|
+| **Any agent** | the state and its validation, expiry on read, which policy files are read, the bytes of the assembled block, `source` recorded on every write | whether the agent runs `context` at all, and whether it then behaves the way the block describes |
+| **Claude Code** | the above, plus: a mode set from a prompt only when the prompt is **exactly** a slash command; mode skills carrying `disable-model-invocation: true`, so the model cannot invoke them; injection only when the block changed | the same: following the block is behaviour, not a gate |
+| **CLI, any shell** | everything the CLI does, including the refusal to forge `--source claude-hook` | an agent is *instructed* never to run `set` on its own initiative; the instruction is not enforceable, which is why provenance is recorded |
+
+**No part of this repository can guarantee that a model obeys a mode.** What it guarantees is
+that a mode is never invented, never inferred and never silently changed, and that whatever
+happened is auditable afterwards. Checking real behaviour is a human procedure:
+`tools/adaptive/MANUAL-VALIDATION.md` — **NOT YET PERFORMED**.
 
 ## Multiple agents
 
