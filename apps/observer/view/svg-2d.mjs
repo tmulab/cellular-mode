@@ -98,6 +98,12 @@ function edgeMarkup(edges, byId, dangling) {
   }).join('');
 }
 
+/** PURE. The length of the longest name a label will carry, in characters.
+ * @param {ReadonlyArray<GraphNode>} nodes @returns {number} */
+export function longestName(nodes) {
+  return nodes.reduce((longest, node) => Math.max(longest, String(node.name ?? node.id).length), 0);
+}
+
 /** @param {ReadonlyArray<GraphNode>} nodes @param {boolean} withLabels @returns {string} */
 function nodeMarkup(nodes, withLabels) {
   return nodes.map((node) => {
@@ -105,9 +111,13 @@ function nodeMarkup(nodes, withLabels) {
     const x = Math.round(node.x);
     const y = Math.round(-node.y);
     const name = escapeXml(node.name ?? node.id);
+    // The label travels in its own group, placed once here and RE-placed by the view at
+    // every scale (`view/fit-2d.mjs`): text that rides the drawing down becomes four pixels
+    // tall on a wide graph. The attribute below is what a reader with no script would see.
     const label = withLabels
-      ? `<text class="name" y="${RADIUS + 26}">${name}</text>`
-        + `<text class="sub" y="${RADIUS + 48}">${escapeXml(status.symbol)} ${escapeXml(status.label)}</text>`
+      ? `<g class="label" transform="translate(0,${RADIUS + 26})">`
+        + `<text class="name" y="0">${name}</text>`
+        + `<text class="sub" y="22">${escapeXml(status.symbol)} ${escapeXml(status.label)}</text></g>`
       : '';
     // The accessible name travels with the node, labels or not: a shape with no text is
     // still announced by a screen reader, and the table remains the full reading.
@@ -137,10 +147,13 @@ export function svgGraph(graph, options = {}) {
   // claims to be the whole truth.
   const caption = `${nodes.length} cells, ${edges.length} declared dependencies`
     + `, ${dangling.size} dangling (listed as warnings, not drawn)`;
+  // How long the longest NAME is, so the view can reserve room for it when it frames the
+  // drawing (`view/fit-2d.mjs`). Zero when no label is drawn — nothing to keep clear.
+  const labelChars = withLabels ? longestName(nodes) : 0;
   return `<svg viewBox="${box.minX} ${box.minY} ${box.width} ${box.height}" width="100%" height="100%"`
     + ' preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"'
     + ` role="list" aria-label="cell graph: ${caption}" data-labels="${withLabels}"`
-    + ` data-dangling="${dangling.size}">`
+    + ` data-label-chars="${labelChars}" data-dangling="${dangling.size}">`
     + `<g class="edges">${edgeMarkup(edges, byId, dangling)}</g>`
     + `<g class="nodes">${nodeMarkup(nodes, withLabels)}</g></svg>`;
 }

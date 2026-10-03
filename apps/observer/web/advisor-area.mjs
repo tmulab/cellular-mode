@@ -1,18 +1,19 @@
 // advisor-area.mjs - runs in the BROWSER. The ADVISOR area: a question box, one button, a
 // silent-mode toggle and a list of model-written recommendations.
 //
-// Everything about WHAT to show is in `../view/advisor-view.mjs`, which is pure and tested.
-// This module only builds nodes, and it is careful about four things:
+// Everything about WHAT to show is in `../view/advisor-view.mjs` and `advisor-presence.mjs`,
+// which are pure and tested. This module only builds nodes, and is careful about four things:
 //   the area is marked `data-origin="ai"` BEFORE anything is loaded, so an answer can never
 //     arrive looking like a measurement (the stylesheet makes that a different SHAPE);
 //   every statement is set with `textContent` - a model's sentence may legitimately contain a
 //     shell command, and no renderer here treats it as anything but text;
-//   the disabled state is a sentence, not an empty panel: the advisor is optional;
+//   the disabled state is a sentence, not an empty panel, and when the host's plugin list does
+//     not name the advisor that sentence is ALL there is: no probe, no 404 (criterion D23);
 //   nothing is asked on load. The area probes `status` (which consumes no call) and waits.
 import { el, errorNode, fieldNode, replace } from './dom.mjs';
-import { describeProbe } from '../view/availability.mjs';
+import { PROBING_NOTICE, advisorAreaState } from '../view/advisor-presence.mjs';
 import {
-  AI_BANNER, adapterLine, adviceRows, advisorHeadline, disabledNotice, statusMeta, validationNotes,
+  AI_BANNER, adapterLine, adviceRows, advisorHeadline, statusMeta, validationNotes,
 } from '../view/advisor-view.mjs';
 
 /** @typedef {{ call: (cap: string, input?: unknown) => Promise<{ ok: true, value: unknown } | { ok: false, error: { code: string, message: string } }> }} Client */
@@ -65,11 +66,13 @@ function rowNode(row, onSelect) {
 /**
  * Renders the area and wires its controls. Called once; the button re-renders the list.
  * @param {{ host: HTMLElement, key: string, origin: 'ai', client: Client,
- *   onSelect?: (id: string) => void }} spec
+ *   presence?: 'listed' | 'not-listed' | 'unknown', onSelect?: (id: string) => void }} spec
  */
-export async function renderAdvisorArea({ host, key, origin, client, onSelect = () => {} }) {
+export async function renderAdvisorArea({
+  host, key, origin, client, presence = 'unknown', onSelect = () => {},
+}) {
   host.setAttribute('data-origin', origin);
-  const headline = el('p', { class: 'probe', text: 'checking whether the advisor is loaded...' });
+  const headline = el('p', { class: 'probe', text: PROBING_NOTICE });
   const adapter = el('p', { class: 'capability advisor-adapter' });
   const notes = el('ul', { class: 'advisor-notes' });
   const list = el('ul', { class: 'findings advisor-list' });
@@ -93,14 +96,12 @@ export async function renderAdvisorArea({ host, key, origin, client, onSelect = 
       el('h2', { text: 'Advisor' }),
       el('span', { class: 'origin origin-ai', text: 'AI-GENERATED' }),
     ]),
-    el('p', { class: 'purpose' }, [
-      el('span', {
-        text: `${AI_BANNER}. Every sentence below was written by a model from a bounded`
-          + ' context (the active cell, its declared dependencies, the recent log window and the'
-          + ' last audit\'s verdicts). A label is the MODEL\'S OWN claim, checked only for being'
-          + ' grounded in that evidence. Nothing here is executed, and nothing here is a measurement.',
-      }),
-    ]),
+    el('p', { class: 'purpose' }, [el('span', {
+      text: `${AI_BANNER}. Every sentence below was written by a model from a bounded`
+        + ' context (the active cell, its declared dependencies, the recent log window and the'
+        + ' last audit\'s verdicts). A label is the MODEL\'S OWN claim, checked only for being'
+        + ' grounded in that evidence. Nothing here is executed, and nothing here is a measurement.',
+    })]),
     el('p', { class: 'capability' }, [
       el('span', { text: 'capability ' }), el('code', { text: key }), el('span', { text: ' · advise' }),
     ]),
@@ -117,14 +118,11 @@ export async function renderAdvisorArea({ host, key, origin, client, onSelect = 
   };
   enable(false);
 
-  /** @param {{ code: string, message: string }} failure */
-  const fail = (failure) => {
-    const described = disabledNotice(describeProbe({ ok: false, error: failure }));
-    headline.textContent = described.text;
-    headline.className = `probe probe-${described.state}`;
-    host.setAttribute('data-state', described.state);
-    enable(false);
-    replace(list, [el('li', { class: 'finding empty' }, [errorNode(failure.code, failure.message)])]);
+  /** @param {{ state: string, text: string }} said */
+  const say = (said) => {
+    headline.textContent = said.text;
+    headline.className = `probe probe-${said.state}`;
+    host.setAttribute('data-state', said.state);
   };
 
   /** @param {unknown} value */
@@ -160,7 +158,7 @@ export async function renderAdvisorArea({ host, key, origin, client, onSelect = 
     enable(true);
     if (!answer.ok) {
       // A refused call is not a disabled advisor: a limit answers INPUT_INVALID, and that
-      // sentence is the one a reader needs.
+      // sentence is the one a reader needs, verbatim.
       headline.textContent = `${answer.error.code}: ${answer.error.message}`;
       headline.className = 'probe probe-unknown';
       return;
@@ -178,9 +176,19 @@ export async function renderAdvisorArea({ host, key, origin, client, onSelect = 
   };
 
   ask.addEventListener('click', () => { void advise(); });
+  // The build's own plugin list decides whether there is anything to call. A capability the
+  // host does not LIST was never meant to answer, so the area states the disabled sentence
+  // and stops: probing it only to render its own 404 reports a configuration choice as a
+  // fault. A capability that IS listed is probed, and a refusal from it keeps its error.
+  const planned = advisorAreaState(presence);
+  if (!planned.probe) {
+    say(planned);
+    return;
+  }
   const probe = await client.call('status');
   if (!probe.ok) {
-    fail(probe.error);
+    say(advisorAreaState(presence, probe));
+    replace(list, [el('li', { class: 'finding empty' }, [errorNode(probe.error.code, probe.error.message)])]);
     return;
   }
   enable(true);

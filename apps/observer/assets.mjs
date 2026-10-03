@@ -27,8 +27,8 @@ const WEB_MODULES = [
 
 /** DOM-free modules shared by the browser and the node tests, served from `view/`. */
 const VIEW_MODULES = [
-  'tokens.mjs', 'fields.mjs', 'view-model.mjs', 'selection.mjs', 'svg-2d.mjs', 'availability.mjs',
-  'audit-view.mjs', 'advisor-view.mjs',
+  'tokens.mjs', 'fields.mjs', 'view-model.mjs', 'selection.mjs', 'svg-2d.mjs', 'fit-2d.mjs',
+  'availability.mjs', 'audit-view.mjs', 'advisor-view.mjs', 'advisor-presence.mjs',
 ];
 
 /** The vendored three.js build. Both files: the module only re-exports from the core. */

@@ -5,6 +5,8 @@
 // Ported from the original dashboard's `zoom2d.mjs`. The zoom state lives HERE, outside the
 // SVG, because the drawing is replaced whenever the model is refetched and the
 // magnification must not be lost when the data refreshes.
+import { fitTransform, intrinsicScale, labelTransform } from '../view/fit-2d.mjs';
+
 const THRESHOLD = 4;          // pixels of movement before a press becomes a drag
 const MIN_SCALE = 0.3;
 const MAX_SCALE = 8;
@@ -17,12 +19,39 @@ export function createZoom2d(host) {
   let pending = null;
   let last = [0, 0];
 
+  /** The two numbers every decision here needs: the panel in CSS px and the model box in
+   * user units. Read from the DOM each time, because the drawing is replaced whenever the
+   * model is refetched and the panel is resized by the window.
+   * @returns {{ svg: SVGElement, panel: { width: number, height: number }, labelChars: number,
+   *   box: { minX: number, minY: number, width: number, height: number } } | null} */
+  const geometry = () => {
+    const svg = /** @type {SVGElement | null} */ (host.querySelector('svg'));
+    if (svg === null) return null;
+    const viewBox = svg.getAttribute('viewBox');
+    if (viewBox === null) return null;
+    const [minX = 0, minY = 0, width = 1, height = 1] = viewBox.trim().split(/\s+/).map(Number);
+    const rect = host.getBoundingClientRect();
+    return {
+      svg,
+      panel: { width: rect.width, height: rect.height },
+      box: { minX, minY, width, height },
+      labelChars: Number(svg.getAttribute('data-label-chars') ?? 0),
+    };
+  };
+
   const apply = () => {
-    const svg = host.querySelector('svg');
-    if (svg === null) return;
-    const style = /** @type {SVGElement} */ (svg).style;
+    const view = geometry();
+    if (view === null) return;
+    const style = view.svg.style;
     style.transformOrigin = '0 0';
     style.transform = `translate(${state.x}px, ${state.y}px) scale(${state.k})`;
+    // A label is COUNTER-scaled: it must read the same whatever the drawing's scale is, and
+    // it must stay clear of its glyph while doing so. Above the level-of-detail threshold
+    // `svg-2d.mjs` emits no label group at all, so this loop is empty at 500 cells.
+    const label = labelTransform(intrinsicScale(view.panel, view.box) * state.k);
+    for (const group of view.svg.querySelectorAll('.label')) {
+      group.setAttribute('transform', label.transform);
+    }
   };
 
   // The pointer is NOT captured on pointerdown: with capture active the following `click`
@@ -80,7 +109,25 @@ export function createZoom2d(host) {
 
   return {
     apply,
-    fit() { state.x = 0; state.y = 0; state.k = 1; apply(); },
+
+    /** The ONE deterministic framing, used both by the `fit` control and as the initial
+     * view, so "fit" is a return rather than a discovery: the whole drawing, aspect-correct,
+     * padded clear of the panel edge, centred, and never magnified past the maximum. The
+     * arithmetic is pure and lives in `view/fit-2d.mjs`. */
+    fit() {
+      const view = geometry();
+      if (view === null) {
+        state.x = 0;
+        state.y = 0;
+        state.k = 1;
+        return apply();
+      }
+      const framed = fitTransform(view.panel, view.box, { labelChars: view.labelChars });
+      state.x = framed.x;
+      state.y = framed.y;
+      state.k = framed.k;
+      return apply();
+    },
 
     /** Keyboard equivalents of the gestures, so the view is usable without a pointer.
      * @param {number} dx @param {number} dy */
@@ -95,21 +142,18 @@ export function createZoom2d(host) {
      * `orbit.focus`, which is what makes clicking a node behave the same in both views.
      * @param {number} ux @param {number} uy @param {number} [k] */
     focus(ux, uy, k = 2.4) {
-      const svg = host.querySelector('svg');
-      if (svg === null || !Number.isFinite(ux)) return;
-      const viewBox = svg.getAttribute('viewBox');
-      if (viewBox === null) return;
-      const [minX = 0, minY = 0, boxW = 1, boxH = 1] = viewBox.trim().split(/\s+/).map(Number);
-      const box = host.getBoundingClientRect();
+      const view = geometry();
+      if (view === null || !Number.isFinite(ux)) return;
+      const { panel, box } = view;
       // The SVG fills the host, but the DRAWING inside it is scaled by the smaller factor
       // and centred (preserveAspectRatio="meet"), leaving letterbox margins. Ignoring that
       // slack is what made the focus land beside the node and the zoom look broken.
-      const scale = Math.min(box.width / boxW, box.height / boxH);
-      const padX = (box.width - boxW * scale) / 2;
-      const padY = (box.height - boxH * scale) / 2;
+      const scale = intrinsicScale(panel, box);
+      const padX = (panel.width - box.width * scale) / 2;
+      const padY = (panel.height - box.height * scale) / 2;
       state.k = k;
-      state.x = box.width / 2 - (padX + (ux - minX) * scale) * k;
-      state.y = box.height / 2 - (padY + (uy - minY) * scale) * k;
+      state.x = panel.width / 2 - (padX + (ux - box.minX) * scale) * k;
+      state.y = panel.height / 2 - (padY + (uy - box.minY) * scale) * k;
       apply();
     },
   };

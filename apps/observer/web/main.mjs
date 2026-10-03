@@ -3,8 +3,10 @@
 // view-model; every decision about HOW to reach the host is in the data client.
 import { must } from './dom.mjs';
 import {
-  ADVISOR_KEY, AUDIT_KEY, STATE_KEY, createApiClient, createFixtureClient, fixtureUrlFrom, sourceFrom,
+  ADVISOR_KEY, AUDIT_KEY, STATE_KEY, createApiClient, createFixtureClient, fetchPlugins,
+  fixtureUrlFrom, sourceFrom,
 } from './data-client.mjs';
+import { presenceOf } from '../view/availability.mjs';
 import { renderOverview, renderOverviewFailure } from './project-area.mjs';
 import { markSelectedRow, renderCellsTable } from './cells-table.mjs';
 import { hideCellDetail, renderCellDetail, renderDetailFailure } from './cell-detail.mjs';
@@ -132,12 +134,17 @@ async function start() {
   // area uses: an empty panel that could mean either teaches a reader nothing.
   await renderAuditArea({ host: must('audit'), key: AUDIT_KEY, client: auditClient });
   // The advisor exists too (Cell 3) but is DISABLED unless the launcher was given
-  // `--advisor <id>`, so this area's first job is to say which of those two worlds it is in.
+  // `--advisor <id>`, so this area's first job is to say which of those two worlds it is in
+  // — and the host already answers that, in `health.plugins`. Asking once here means the
+  // area can state "disabled" without calling a capability nobody loaded (criterion D23).
+  // Fixture mode has no host at all, so the list stays unread and the area probes as before.
+  const plugins = source === 'fixture' ? null : await fetchPlugins();
   await renderAdvisorArea({
     host: must('advisor'),
     key: ADVISOR_KEY,
     origin: 'ai',
     client: advisorClient,
+    presence: presenceOf(plugins, ADVISOR_KEY),
     onSelect: (id) => { void openCell(id); },
   });
 }

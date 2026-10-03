@@ -42,6 +42,11 @@ export function createGraphView({ flat, deep, caption, onSelect, onClear }) {
     onClear,
   });
 
+  // The panel's height follows its width (`.canvas` carries an aspect ratio), so a resize
+  // changes the scale the labels are counter-scaled against. Re-applying is cheap and keeps
+  // them at their readable size instead of leaving them wrong until the next repaint.
+  window.addEventListener('resize', () => { if (mode === '2d') zoom.apply(); });
+
   const paint2d = () => {
     // The ONLY markup-from-string in the application, and the string comes from
     // `view/svg-2d.mjs`, which escapes every value it writes and is tested for it.
@@ -57,9 +62,16 @@ export function createGraphView({ flat, deep, caption, onSelect, onClear }) {
     /** @param {unknown} value */
     setGraph(value) {
       graph = value;
-      if (mode === '2d') return paint2d();
-      scene?.dispose();
-      scene = null;
+      if (mode !== '2d') {
+        scene?.dispose();
+        scene = null;
+        return undefined;
+      }
+      paint2d();
+      // The INITIAL view is the fit, not the raw viewBox mapping: a model arriving in a
+      // panel it does not match is exactly the case `fit` was written for, and asking the
+      // reader to press a button before the drawing is legible is not a default.
+      zoom.fit();
       return undefined;
     },
 
@@ -67,6 +79,10 @@ export function createGraphView({ flat, deep, caption, onSelect, onClear }) {
     setFocus(id) {
       focus = id;
       if (mode === '2d') paint2d();
+      // Returning to the overview is returning to the initial view, so it is framed again:
+      // leaving the reader at the magnification of a cell they just closed, looking at an
+      // empty corner of a graph they did not ask to be inside, is not "clear".
+      if (id === null && mode === '2d') zoom.fit();
       if (id !== null) {
         if (mode === '3d') scene?.selectById(id);
         else interaction.selectById(id);

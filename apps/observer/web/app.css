@@ -97,6 +97,7 @@ h1 { margin: 0; font-size: .8rem; font-weight: 650; letter-spacing: .14em;
 .purpose, .capability { margin: .4rem 0; font-size: .82rem; color: var(--secondary); }
 .probe { margin: .4rem 0 0; font-size: .82rem; }
 .probe-absent { color: var(--status-paused); }
+.probe-disabled { color: var(--secondary); }
 .probe-unknown { color: var(--status-planned); }
 .probe-available { color: var(--status-done); }
 
@@ -115,10 +116,19 @@ h1 { margin: 0; font-size: .8rem; font-weight: 650; letter-spacing: .14em;
 .help { margin: .4rem 0 0; font-size: .72rem; color: var(--tertiary); }
 .help b { color: var(--secondary); }
 
-.canvas { position: relative; height: min(60vh, 28rem); overflow: hidden;
+/* The drawing is WIDE — the server's layout spreads cells along the x axis — so the panel
+   follows a landscape aspect ratio instead of being a fixed tall rectangle that the fit then
+   has to waste. Still clamped: never taller than 60vh or 28rem in a tall window, never
+   shorter than 12rem at 320 px, so the box is framed rather than stretched. */
+.canvas { position: relative; width: 100%; aspect-ratio: 16 / 9; height: auto;
+  min-height: 12rem; max-height: min(60vh, 28rem); overflow: hidden;
   border: 1px solid var(--border); border-radius: .6rem; cursor: grab;
   touch-action: none; }
-.canvas svg { display: block; width: 100%; height: 100%; }
+/* `overflow: visible` because the outer <svg> clips at its viewBox by default, and a label
+   is drawn BESIDE its node: a cell at the edge of the layout had its name sliced off even
+   though the panel had room. The panel itself still clips (`.canvas` above), so nothing
+   escapes the box — the fit just reserves the room and the label may now use it. */
+.canvas svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .edge { stroke: var(--tertiary); stroke-width: 3; fill: none; opacity: .4; }
 .edge.lit { stroke: var(--accent); opacity: .95; }
 .edge.dangling { stroke-dasharray: 10 8; }

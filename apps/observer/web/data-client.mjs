@@ -10,6 +10,8 @@
 // Every answer is normalised to `{ ok, value, error }` so no caller has to know whether
 // the refusal came from the host, the proxy or the browser.
 
+import { pluginKeys } from '../view/availability.mjs';
+
 /** @typedef {{ ok: true, value: unknown } | { ok: false, error: { code: string, message: string } }} Answer */
 
 export const STATE_KEY = 'observer.state';
@@ -59,6 +61,20 @@ export function createApiClient(key) {
       return normalise(payload, response.status);
     },
   };
+}
+
+/** The host's own answer to "what is loaded": `health.plugins`. Read ONCE by the page, so
+ * that an optional area whose plugin is not in the list can state that it is disabled
+ * without calling it and rendering the resulting 404 as if something had broken.
+ * A list that cannot be read is `null` — UNKNOWN, never "nothing is loaded".
+ * @returns {Promise<string[] | null>} */
+export async function fetchPlugins() {
+  try {
+    const response = await fetch('/api/v1/health', { headers: { Accept: 'application/json' } });
+    return pluginKeys(await response.json());
+  } catch {
+    return null;
+  }
 }
 
 /** The fixture client: the SAME interface, reading a recorded contract fixture. It exists

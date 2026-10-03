@@ -2,7 +2,9 @@
 
 A local, read-only dashboard over a Cellular Mode vault: counts, the active cell, the cells table, a cell
 detail panel, a timeline, a dependency graph in 2D with an optional 3D view, a deterministic AUDIT area and an
-optional, disabled-by-default ADVISOR area. It is an **independent application** served by its own loopback
+optional, disabled-by-default ADVISOR area. The graph arrives **framed** — the same deterministic fit the
+`fit` control applies — and its labels keep a readable size at any zoom, while above 160 cells the labels
+step aside and the shapes remain. It is an **independent application** served by its own loopback
 server with an `/api/v1` reverse proxy to the EIP host — [ADR 0003](../../docs/adr/0003-observer-frontend.md).
 Full stage-3 account: [`OBSERVER_REPORT.md`](../../OBSERVER_REPORT.md) · criteria:
 [`ACCEPTANCE.md`](ACCEPTANCE.md) · the part only a human can check: [`MANUAL-CHECKS.md`](MANUAL-CHECKS.md).
@@ -84,8 +86,11 @@ and then the host, and exits 0. Nothing is left listening and nothing was writte
 - **Disable the observer:** do not start it. It is not a service, there is nothing to switch off, and the
   runtime (`node eip/host/cli.mjs`) does not load any `observer.*` plugin.
 - **Disable the advisor:** omit `--advisor`. It is disabled by default, which here means *not in the plugin
-  list*: the key does not exist, a call answers `404 NOT_FOUND`, and the ADVISOR area states
-  `Advisor disabled (optional). Observer and Auditor work without it.`
+  list*: the key does not exist and a call answers `404 NOT_FOUND`. The page does not make that call — it
+  reads `health.plugins` first, sees no `observer.advisor`, and the ADVISOR area then states exactly
+  `Advisor disabled (optional). Observer and Auditor work without it.` with its controls disabled and **no
+  diagnostic**: a documented default is not a fault. An advisor that IS listed and then refuses still shows
+  its error, because that one is real ([ACCEPTANCE.md](ACCEPTANCE.md) D23).
 - **Disable the 3D view:** it is already off. 2D is the default and the three.js modules are imported only
   when the `show 3D` toggle asks for them.
 
