@@ -5,7 +5,7 @@
 // the honest part:
 //   READY ....... the toolchain is here, the implementation will be replayed
 //   SKIPPED ..... the toolchain is absent; the corpus was NOT run and nothing is claimed
-//   UNEXECUTED .. the source exists and was never executed on this machine, by design
+//   UNEXECUTED .. the source exists and is never built or run by this suite, by design
 //
 // Nothing here spawns a plugin: `prepare` returns an argv array, and the one place that turns
 // an argv array into a running plugin is `channel.mjs`.
@@ -127,10 +127,13 @@ export const IMPLEMENTATIONS = [
     language: 'C++17 (source only)',
     kind: 'source-only',
     dir: example('upp-cpp'),
+    // The reason states the SUITE's behaviour, never a property of the host it runs on: this
+    // runner does not build or execute the C++ example anywhere, so saying "no C++ compiler
+    // here" would be a false claim on any machine that has one.
     prepare: () => no('UNEXECUTED',
-      'this machine has no C++ compiler. The source is committed and has NEVER been compiled '
-      + 'or run here; see examples/upp-cpp/README.md for the exact command somebody with a '
-      + 'compiler should use, and treat every claim about it as unverified'),
+      'the C++ example is NOT EXECUTED by this suite, locally or in CI, by design, so it is '
+      + 'UNVERIFIED everywhere; see examples/upp-cpp/README.md for the exact build command and '
+      + 'the known gaps, and treat every claim about this row as unverified'),
   },
 ];
 

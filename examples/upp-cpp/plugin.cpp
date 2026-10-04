@@ -1,9 +1,9 @@
 // The UPP 1.0 conformance reference plugin, in C++17.
 //
-// *** NOT EXECUTED. *** This machine has no C++ compiler, so this file has NEVER been
-// compiled or run here, and the interop record in docs/upp/CONFORMANCE.md says so. Treat it
-// as a PROPOSAL: a translation of examples/upp-node/plugin.mjs that is believed correct and
-// has not been measured. The first person with a compiler should expect to fix something.
+// *** NOT EXECUTED. *** This suite never builds or runs this file — not locally, not in CI —
+// so it is UNVERIFIED everywhere, and the interop record in docs/upp/CONFORMANCE.md says so.
+// Treat it as a PROPOSAL: a translation of examples/upp-node/plugin.mjs that is believed
+// correct and has not been measured. Whoever executes it first should expect to fix something.
 //
 // Build (nothing fetched, no dependency, two headers beside this file):
 //   g++   -std=c++17 -O2 -o upp-plugin plugin.cpp

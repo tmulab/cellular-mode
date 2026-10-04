@@ -1,7 +1,7 @@
 // A hand-written JSON value, reader and writer for the C++ conformance plugin.
 //
-// *** NOT EXECUTED. *** This machine has no C++ compiler, so no line here has ever been
-// compiled or run. Read every claim as a PROPOSAL; examples/upp-cpp/README.md has the exact
+// *** NOT EXECUTED. *** This suite never builds or runs this file, so no line here has been
+// compiled or run by it. Read every claim as a PROPOSAL; examples/upp-cpp/README.md has the exact
 // build command and the list of known gaps. Dependency-free on purpose: the C++ standard
 // library has no JSON, and adding nlohmann or RapidJSON would make the README's claim false.
 //

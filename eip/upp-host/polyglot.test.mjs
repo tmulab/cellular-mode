@@ -7,7 +7,7 @@
 // partial credit and no "known failure" list.
 //
 // The C++ row is `UNEXECUTED` by construction: `prepare()` refuses, so there is nothing to run
-// and the reason says why. That is the honest shape for source nobody here has compiled.
+// and the reason says why — about the suite, not about any machine's toolchain.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { IMPLEMENTATIONS, ROOT } from './conformance-impl.mjs';
@@ -41,8 +41,24 @@ test('polyglot · C++ is UNEXECUTED, and the runner will not say anything else',
   const report = await runImplementation('cpp', { cases: CASES });
   assert.equal(report.status, 'UNEXECUTED');
   assert.equal(report.results.length, 0, 'nothing was replayed, so nothing is claimed');
-  assert.match(report.reason ?? '', /no C\+\+ compiler/);
+  assert.match(report.reason ?? '', /NOT EXECUTED/);
   assert.equal(summarize([report])[0]?.includes('PASS'), false);
+});
+
+test('polyglot · the C++ reason claims NOTHING about any compiler being present or absent', () => {
+  // The reason text goes verbatim into the interop record and into CI's job summary, where it
+  // is read on machines this repository knows nothing about. "no C++ compiler here" was a fact
+  // about ONE laptop stated as a property of the suite: a runner that HAS g++ would have been
+  // told a falsehood. The honest scope is the suite's own behaviour — it never builds or runs
+  // the C++ example anywhere — so the reason must say UNEXECUTED and UNVERIFIED, and must not
+  // mention a toolchain's presence at all.
+  const prepared = IMPLEMENTATIONS.find((impl) => impl.name === 'cpp')?.prepare();
+  assert.equal(prepared?.ok, false, 'cpp never prepares');
+  const reason = prepared?.ok === false ? prepared.reason : '';
+  assert.match(reason, /NOT EXECUTED/, 'the status is named in the words themselves');
+  assert.match(reason, /UNVERIFIED/, 'and the epistemic label is explicit');
+  assert.doesNotMatch(reason, /compiler/i, 'no claim about a compiler existing or not');
+  assert.doesNotMatch(reason, /\b(this|the) machine\b/i, 'no claim about any particular machine');
 });
 
 test('polyglot · an absent executable is a REASON, never an exception', () => {

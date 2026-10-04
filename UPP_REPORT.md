@@ -7,7 +7,8 @@ Nothing here is a result that was not executed.
 
 Specification: [`docs/upp/SPEC.md`](docs/upp/SPEC.md) · messages:
 [`SPEC-MESSAGES.md`](docs/upp/SPEC-MESSAGES.md) · audit: [`AUDIT.md`](docs/upp/AUDIT.md) ·
-criteria: [`ACCEPTANCE.md`](docs/upp/ACCEPTANCE.md) · interop:
+criteria: [`ACCEPTANCE.md`](docs/upp/ACCEPTANCE.md) · what is verified, unverified and
+proposed: [`STATUS.md`](docs/upp/STATUS.md) · interop:
 [`CONFORMANCE.md`](docs/upp/CONFORMANCE.md) · applications:
 [`APPLICATIONS.md`](docs/upp/APPLICATIONS.md) · security:
 [`SECURITY-REVIEW.md`](docs/upp/SECURITY-REVIEW.md) · decision:
@@ -53,8 +54,7 @@ Each line is **PROPOSED — not built**, and each says what it would cost:
 | **OS-level sandbox** | the prerequisite for untrusted plugins, and the largest gap in the architecture ([`SECURITY-REVIEW.md`](docs/upp/SECURITY-REVIEW.md) §3) |
 | **Ports for external plugins** | a port is an in-process function; a serialised port is a new contract, so v1 grants **none** and says so in code |
 | **Sibling calls from external plugins** | `dependencies` become `inject`, so composition is still checked, but `ctx.get` is unreachable from the far side of a pipe |
-| **C++ execution** | no C++ compiler on this machine. The source is committed and labelled **UNEXECUTED**; nothing about it is claimed |
-| **A third remote CI run** | it requires a push, which requires human authorization (`RELEASE_CHECKLIST.md` items 46, 48) |
+| **C++ execution** | this suite never builds or runs the C++ example, on any machine. The source is committed and labelled **UNEXECUTED**; nothing about it is claimed |
 | **Branch protection on `main`** | a repository setting, recommended in [`CI.md`](tools/gates/CI.md); **no setting was changed** |
 
 ## 4 · Which language integrations were tested
@@ -69,7 +69,7 @@ Each line is **PROPOSED — not built**, and each says what it would cost:
 | `python` | **PASS** | 11/11 | `Python 3.13.14` |
 | `java` | **PASS** | 11/11 | `openjdk version "21.0.10" 2026-01-20 LTS (via JAVA_HOME)` |
 | `rust` | **PASS** | 11/11 | `rustc 1.91.1 (ed61e7d7e 2025-11-07)` |
-| `cpp` | **UNEXECUTED** | — | this machine has no C++ compiler; the source has never been compiled or run here |
+| `cpp` | **UNEXECUTED** | — | not built or run by this suite, locally or in CI; **UNVERIFIED everywhere** |
 
 `UNEXECUTED` is not a pass, not a failure and not a skip: nothing was measured. On a machine
 missing a toolchain the row becomes `SKIPPED` with the version that *was* found, and one guard
@@ -86,11 +86,11 @@ C++) have documented gaps in their own READMEs.
 | **process (NDJSON over stdio)** | operational | `eip/upp-host/process.test.mjs`, `failures.test.mjs`, `lines.test.mjs`, `end-to-end.test.mjs` — full lifecycle, minimal env, deadline propagation, `upp.cancel`, 1 MiB frame cap both ways, malformed line `-32700`, crash `-32003`, exactly one restart, no orphan child |
 | **http (POST `<baseUrl>/upp`)** | operational | `eip/upp-host/http.test.mjs` — a full execute on loopback, pin refusal at `initialize`, `-32002` on no version overlap, `redirect: 'error'`, non-200/204 `-32003`, a non-loopback URL needing `allowRemote` and a token **name** |
 
-**VERIFIED:** the stage-5 suites are **259 tests, 259 pass, 0 fail, 0 skipped** (`node --test`
+**VERIFIED:** the stage-5 suites are **260 tests, 260 pass, 0 fail, 0 skipped** (`node --test`
 over `eip/upp/`, `eip/upp-host/`, `tests/upp-*`, `tests/gates-upp*`, `tests/ci-workflow*`,
-`tests/gates-ci-trailer*`, `tests/gates-test-counts`), inside a whole-suite `npm test` that is
-now **1028 tests, 1028 pass, 0 fail, 0 skipped**, 48 suites, exit 0 on Node 24.19.0 **and** on
-Node 22.13.1 — the 2026-10-04 run quoted in `RELEASE_CHECKLIST.md`.
+`tests/gates-ci-trailer*`, `tests/gates-test-counts`), inside a whole-suite `npm test` of
+**1029 tests, 1029 pass, 0 fail, 0 skipped**, 48 suites, exit 0 on Node 24.19.0 in this closing
+cell: 1028 are the tests CI re-ran on commit `5c18401` (§9), and this cell added one.
 
 ## 6 · Experimental capabilities
 
@@ -131,38 +131,39 @@ never approves its own consequential operation**; **plugin output is untrusted d
 
 ## 9 · CI verification results
 
+**The twice-corrected workflow RAN AND PASSED — VERIFIED** from the logs of run
+[`37194084612`](https://github.com/tmulab/cellular-mode/actions/runs/37194084612), conclusion
+`success`, commit `5c18401182529afa1771a74ba24a23bb93acf436`, image `ubuntu-24.04`. In **both**
+matrix jobs every step succeeded: install from the lockfile, typecheck, build/module load,
+tests, gates, release gate, cell state, toolchain probe, conformance, trailer and summary.
+
+| Evidence | `verify (node 22)` · Node v22.23.3 | `verify (node 24)` · Node v24.21.0 |
+|---|---|---|
+| typecheck · build | **0 errors** · module load **182 modules** | **0 errors** · module load **182 modules** |
+| tests | **1028 tests · 1028 pass · 0 fail · 0 skipped · 0 cancelled · 0 todo** | **1028 tests · 1028 pass · 0 fail · 0 skipped · 0 cancelled · 0 todo** |
+| Article-8 trailer | `1 commit(s): 1 MATCH` (`5c1840118252`), and *the trailer fingerprint equals the CI-computed one*: `sha256:f60827e7…adae805b`, tree `328beae4…c8fe567f` | identical |
+| conformance `--require python,java,rust` | in-process · node · python `3.12.14` · java `openjdk 21.0.12.1` (via `JAVA_HOME`) · rust `rustc 1.98.1` — **PASS 11/11** each; `cpp` **UNEXECUTED** | identical |
+
+The fingerprints agreeing is a bonus, not the check: a fingerprint hashes *bytes*, so a
+difference is expected and not a finding, and the git tree id is the binding comparison. Interop
+detail, local column beside the CI one: [`CONFORMANCE.md`](docs/upp/CONFORMANCE.md).
+
 **Local structural validation — VERIFIED.** The three `tests/ci-workflow*.test.mjs` files assert
 the workflow's shape: `permissions: contents: read` and nothing else, no secret,
 `persist-credentials: false`, the plain `pull_request` trigger and never `pull_request_target`,
 every action pinned to a full commit SHA, the real head commit with full history, the pinned
-`ubuntu-24.04` image, the Node `22`/`24` matrix equal to `engines.node`, a build step that runs
+`ubuntu-24.04` image, the Node `22`/`24` matrix equal to `engines.node`, a build step running
 the build legs ONLY, a `tests` step piping the spec reporter under `pipefail`, and **no mention
-of the local evidence directory or `verify:final`**.
-
-**Local trailer run — VERIFIED.** `node tools/gates/ci-trailer.mjs HEAD`: **1 MATCH**
-(`b92c7c8`, whose trailer names the tree the commit records) and **9 PRE_ARTICLE_8** (an absent
-trailer is excused before Article 8 and **never written retroactively**; a malformed, doubled or
-mismatching one fails at any age). The checkout's fingerprint differs, as expected with
-uncommitted work — the tree id is the binding check.
-
-**The first remote run FAILED, and that is what it is for — VERIFIED (run `37185128292`,
-`ubuntu-24.04`, Node 22.23.3): `989 passed, 2 failed, 993 total` from a step called `build`, no
-test name in the log.** Three defects: one step running three legs; a count parser blind to
-`cancelled`, so 989 + 2 never had to reach 993; and an `unref`'d advisor deadline timer that
-left a promise unable to settle, on Node 22 only. All three corrected.
-
-**The second remote run also FAILED — VERIFIED (run `37188606487`, `ubuntu-24.04`, Node 22
-*and* 24): the same two tests failed on both jobs**, so neither was version-specific. Both were
-platform defects of this repository: a test that spelled `\` into a path (a legal filename
-character on Linux, so the fixture wrote one oddly named file), and a documented byte count
-measured on a CRLF working copy of files committed as LF. The second is the serious one — it
-means `npm run verify:final` had been running the suite over bytes no commit would contain — so
-it is fixed as a MECHANISM: the policy loader normalises CRLF to LF, `verify:final` refuses
-before the suite whenever a controlled file's working bytes differ from the bytes git would
-commit, and authorization now requires `equivalent: true`, so older records authorize nothing
-([`tools/gates/BYTE-EQUIVALENCE.md`](tools/gates/BYTE-EQUIVALENCE.md)). The twice-corrected
-workflow has **not run remotely**: that result is UNKNOWN and nothing here may quote it.
-Detail: [`tools/gates/CI.md`](tools/gates/CI.md).
+of the local evidence directory or `verify:final`**. The first two remote runs FAILED, and that
+is what CI is for — VERIFIED. Run `37185128292` (Node 22): `989 passed, 2 failed, 993 total`
+from a step called `build`, no test name — one step running three legs, a count parser blind to
+`cancelled`, and an `unref`'d advisor deadline timer that could not fire on Node 22. Run
+`37188606487` (Node 22 *and* 24): the same two tests failed on both jobs — a test that spelled
+`\` into a path, legal in a Linux filename, and a documented byte count measured on a CRLF
+working copy of files committed as LF. The second is the serious one: `verify:final` had been
+verifying bytes no commit would contain, so it is fixed as a MECHANISM
+([`tools/gates/BYTE-EQUIVALENCE.md`](tools/gates/BYTE-EQUIVALENCE.md)). Run 3 is the evidence
+that all five corrections hold on Linux. History: [`CI.md`](tools/gates/CI.md).
 
 ## 10 · Final verification evidence
 
@@ -190,7 +191,6 @@ review for a whole stage, and the two results it hid were CANCELLED tests
 
 | Proposed cell | Done criterion (binary) |
 |---|---|
-| **Remote CI third run** | the twice-corrected workflow runs on GitHub; both matrix legs (node 22, node 24) conclude and the trailer verdict is quoted here from the job summary, not predicted |
 | **Branch protection** | `main` requires the `verify` check; the setting is recorded as a human decision in `RELEASE_CHECKLIST.md` item 47 |
 | **Streamed body caps** | the HTTP transport and the application probe refuse a response **while reading**, with a test that a 4 MiB body never reaches `response.text()` |
 | **TLS required for remote `baseUrl`** | `config.mjs` refuses a non-loopback `http://` endpoint, or an explicit operator opt-in records the cleartext-token risk; one red test per branch |

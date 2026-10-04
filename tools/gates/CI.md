@@ -1,10 +1,21 @@
 # Independent CI verification
 
-**Status: TWO REMOTE RUNS, BOTH FAILED, BOTH CORRECTED; THE THIRD RUN HAS NOT HAPPENED.** The
-workflow [`.github/workflows/verify.yml`](../../.github/workflows/verify.yml) has done its job
-twice: each run found real defects this machine could not see. The workflow's *shape* is
-VERIFIED by the three `tests/ci-workflow*.test.mjs` files here; the *result* of the corrected
-workflow is UNKNOWN until it runs remotely again.
+**Status: THREE REMOTE RUNS — 1 AND 2 FAILED AND WERE CORRECTED, RUN 3 PASSED.** The workflow
+[`.github/workflows/verify.yml`](../../.github/workflows/verify.yml) has done its job three
+times: each failure found real defects this machine could not see, and run 3 is the evidence that
+the corrections hold there. Shape VERIFIED by the three `tests/ci-workflow*.test.mjs` files
+here; result VERIFIED by run 3 itself.
+
+## Run 3 — PASSED (run `37194084612`)
+
+VERIFIED (the run's own log): conclusion `success`, commit `5c1840118252`, `ubuntu-24.04`, and
+in **both** jobs — `verify (node 22)` Node `v22.23.3`, `verify (node 24)` Node `v24.21.0` —
+every step succeeded: install from the lockfile, typecheck 0 errors, module load 182 modules,
+`1028 tests · 1028 pass · 0 fail · 0 skipped · 0 cancelled · 0 todo`, gates, release gate, cell state,
+conformance `--require python,java,rust` (in-process · node · python `3.12.14` · java
+`openjdk 21.0.12.1` via `JAVA_HOME` · rust `rustc 1.98.1` PASS 11/11 each, `cpp` UNEXECUTED), and
+trailer `1 commit(s): 1 MATCH` — CI fingerprint `sha256:f60827e7…adae805b` *equal* to the
+trailer's, tree `328beae4…c8fe567f`.
 
 ## Run 1, and what it found (run `37185128292`)
 
@@ -56,15 +67,13 @@ both were in this repository, not in CI:
 **The Node support policy follows from run 1.** One version is not "Node": `engines.node` is
 `^22 || ^24`, the matrix is `['22', '24']` with `fail-fast: false`, and
 `tests/ci-workflow-matrix.test.mjs` asserts the two lists are the same. Any other line is
-**unverified** — not forbidden, just without evidence here. The image is pinned to
-`ubuntu-24.04`: `ubuntu-latest` would move the evidence under the project.
+**unverified**. The image is pinned: `ubuntu-latest` would move the evidence under the project.
 
 ## Why it exists
 
 [`FINAL-VERIFICATION.md`](FINAL-VERIFICATION.md) lists two limitations no client-side mechanism
 can remove: `git push --no-verify` bypasses the hooks, and the gitignored evidence file is
-**local, per machine and self-attested**. A server-side re-run answers both: a machine the
-author does not control, on a checkout the author did not prepare. Both runs proved the point.
+**local, per machine, self-attested**. A server-side re-run answers both; all three runs did.
 
 ## What CI proves, and what the trailer proves
 
@@ -76,8 +85,8 @@ author does not control, on a checkout the author did not prepare. Both runs pro
 | the author ran the suite before committing | nothing here. The trailer is a *reference*, not an attestation | all of the above |
 
 CI **never reads the local evidence file**: it is gitignored, and a file the author can write is
-not evidence to a verifier. The workflow re-runs everything instead, and
-`tests/ci-workflow.test.mjs` asserts it names neither the evidence directory nor `verify:final`.
+not evidence to a verifier. It re-runs everything instead, and `tests/ci-workflow.test.mjs`
+asserts the workflow names neither the evidence directory nor `verify:final`.
 
 ## The PRE-ARTICLE-8 policy
 
@@ -95,22 +104,21 @@ commit before it has no `Verified-State` trailer and never could have had one, s
 | `PRE_ARTICLE_8` | an ancestor of `b92c7c8`, boundary excluded | reported, never failed |
 
 The boundary is **the first commit that carries a trailer**, so the pre-policy set is exactly
-`ancestors(b92c7c8) \ {b92c7c8}`, decided by `git merge-base --is-ancestor`. Three rules keep
-this from becoming an escape hatch: a trailer is **never written retroactively** for an old
-commit (that would be fabricated evidence, the precise dishonesty Article 8 exists to stop);
-being pre-boundary excuses an **absent** trailer only, since a malformed, doubled or
-mismatching trailer fails at any age; and **fail closed** — a checkout that cannot resolve the
-boundary (a shallow clone, a fork without the history) excuses *nothing*. An **empty range** is
-not a pass either: a check that examined no commit established nothing.
+`ancestors(b92c7c8) \ {b92c7c8}`, decided by `git merge-base --is-ancestor`. Three rules keep this
+from becoming an escape hatch: a trailer is **never written retroactively** for an old commit
+(that would be fabricated evidence, the precise dishonesty Article 8 exists to stop);
+pre-boundary excuses an **absent** trailer only, since a malformed, doubled or mismatching one
+fails at any age; and **fail closed** — a checkout that cannot resolve the boundary excuses
+*nothing*, and an **empty range** is not a pass either.
 
 ## How to read the job summary
 
-**The fingerprint line is informational.** CI recomputes the fingerprint of its own checkout
-and prints whether it equals the trailer's. A difference is **expected and not a finding**: the
-fingerprint hashes *bytes*, so an untracked file or a working-tree change changes it for the
-same commit. The **git tree id** is the binding comparison — git computes it identically
-everywhere. Treating that line as tamper detection would train a reader to ignore the line that
-does mean tampering. Each run appends one block ([`ci-summary.mjs`](ci-summary.mjs)):
+**The fingerprint line is informational.** CI recomputes its own checkout's fingerprint and
+prints whether it equals the trailer's. A difference is **expected and not a finding** — the
+fingerprint hashes *bytes*, so an untracked file changes it for the same commit — and the **git
+tree id** is the binding comparison. Treating that line as tamper detection would train a
+reader to ignore the line that does mean tampering. In run 3 the two happened to agree, which is
+a bonus and not the check. Each run appends one block ([`ci-summary.mjs`](ci-summary.mjs)):
 
 - **commit** — the SHA actually verified. On a pull request the workflow checks out the head
   commit, not the synthetic merge commit, which carries no trailer.
@@ -118,20 +126,19 @@ does mean tampering. Each run appends one block ([`ci-summary.mjs`](ci-summary.m
   state could not be read, which is never a pass.
 - **tests re-run here** — `N tests · N pass · N fail · N skipped · N cancelled · N todo`,
   parsed from `node --test`'s own summary ([`test-counts.mjs`](test-counts.mjs)). The six
-  numbers must ADD UP or the report is refused. **Skips are visible, not failures**: a
-  conformance row skips legitimately without a toolchain, `cpp` stays UNEXECUTED, and a skip is
-  never a pass. A **cancelled** row IS a failure: it did not run, so it established nothing.
+  numbers must ADD UP or the report is refused. **Skips are visible, not failures**: a row skips
+  legitimately without a toolchain and `cpp` stays UNEXECUTED everywhere, because this suite
+  never builds it. A **cancelled** row IS a failure: it did not run, so it established nothing.
 - **trailer verdict** plus one table row per commit, with the reason in full.
 
 ## Recommended branch protection — a RECOMMENDATION, nothing was changed
 
 No repository setting was touched, and none will be without explicit human action. What the
-human may choose to enable on `main`, once a green run exists: require **both** matrix checks,
+human may choose to enable on `main`, now that a green run exists: require **both** checks,
 `verify (node 22)` and `verify (node 24)`, because requiring one would verify one line; require
 a pull request before merging, so the check runs on the proposed state; disallow force pushes
 and branch deletion, since a rewritten history erases the audit trail; and **include
-administrators**, or the rule stops applying to the account most able to bypass it. Until that
-is enabled the workflow reports; it does not block. UNKNOWN until configured.
+administrators**. Until it is enabled the workflow reports and does not block — UNKNOWN.
 
 ## Running it locally
 
@@ -141,8 +148,7 @@ node tools/gates/ci-trailer.mjs --all           # the whole history, PRE_ARTICLE
 node tools/gates/ci-trailer.mjs <base>..<head>  # a range (what a pull request checks)
 ```
 
-VERIFIED on 2026-10-03, win32, Node 24.19.0: `HEAD` (`b92c7c8`) is `1 MATCH`; `--all` is
-`10 commit(s): 1 MATCH, 9 PRE_ARTICLE_8`, exit 0.
+VERIFIED 2026-10-03, win32: `HEAD` (`b92c7c8`) is `1 MATCH`, `--all` `1 MATCH, 9 PRE_ARTICLE_8`.
 
 ## Pinned actions
 
@@ -155,13 +161,13 @@ Resolved from the official tags with read-only `gh api` on 2026-10-03. Only `act
 | `actions/setup-python` | v7.0.0 | `5fda3b95a4ea91299a34e894583c3862153e4b97` |
 | `actions/setup-java` | v6.0.1 | `de7274f081f381c8f8158605e0321c36c376e2e6` |
 
-Rust is **probed, not installed**: the `ubuntu-24.04` image documents a preinstalled toolchain,
-and the `toolchains present on this runner` step runs `rustc --version` before the conformance
-step, so an absent compiler fails loudly instead of becoming a quiet `SKIPPED`. Nothing is
-fetched with `curl`, `rustup` or a package manager. **Epistemic status:** `rustc` here is
-INFERRED from the image documentation and ENFORCED by the probe; UNKNOWN until a run reports
-it. If the probe fails, the honest correction is to drop `rust` from `--require` and record it
-as NOT VERIFIED IN CI — never to install a toolchain with `curl | sh`.
+Rust is **probed, not installed**: the `toolchains present on this runner` step runs
+`rustc --version` before the conformance step, so an absent toolchain fails loudly instead of
+becoming a quiet `SKIPPED`. Nothing is
+fetched with `curl`, `rustup` or a package manager. **Epistemic status: VERIFIED by run 3** —
+the probe reported `rustc 1.98.1`, so the image's toolchain is no longer an inference. If the
+probe ever fails, the honest correction is to drop `rust` from `--require` and record it as NOT
+VERIFIED IN CI — never to install a toolchain with `curl | sh`.
 
 ## Conformance in CI is REQUIRED, not merely attempted
 
@@ -169,9 +175,9 @@ The runner is provisioned with Python 3.12 (`setup-python`), Temurin JDK 21 (`se
 `JAVA_HOME`) and the image's Rust toolchain, so a `SKIPPED` row there does not mean "no
 toolchain" — it means **the provisioning broke**. The step therefore runs
 `npm run upp:conformance -- --require python,java,rust`, and an unmet requirement exits 1
-([`conformance-required.mjs`](../../eip/upp-host/conformance-required.mjs)). On a developer
-machine nothing is required and a skip stays an honest, visible non-failure. `cpp` is **never**
-required: its source has never been compiled anywhere in this project.
+([`conformance-required.mjs`](../../eip/upp-host/conformance-required.mjs)). Run 3 reported PASS
+11/11 for all three. On a developer machine nothing is required and a skip stays an honest,
+visible non-failure. `cpp` is **never** required: this suite does not build or run it.
 
 ## Mutation proofs (each applied, observed red, reverted)
 
@@ -187,14 +193,8 @@ required: its source has never been compiled anywhere in this project.
 
 ## Limits of this cell
 
-- The **twice-corrected** workflow's behaviour on GitHub is UNKNOWN: only its structure was
-  checked here, and the third remote run has not happened. Both failures are VERIFIED and
-  every cause is fixed; that the fixes are sufficient *there* is INFERRED.
-- The suite passes on Node 22 and Node 24 on win32 (VERIFIED locally). **No Linux is available
-  on this machine**, so every claim about Linux — including that the two run-2 fixes hold
-  there — is INFERRED from the semantics of `node:path` and git's eol filters and stays UNKNOWN
-  until CI answers. A further platform finding would be a defect to fix, never a reason to
-  weaken a gate.
-- `rustc` on the runner image: see *Pinned actions*. UNKNOWN until the next run.
+- Run 3 answered what was UNKNOWN here: the corrected workflow passes on Linux, both Node lines.
+  **No Linux is available on this machine**, so CI stays the only evidence about it, and a
+  further platform finding is a defect to fix, never a reason to weaken a gate.
 - CI proves the suite passes, not that the change is correct, proportionate or well designed —
   those remain human review items ([`README.md`](README.md)).

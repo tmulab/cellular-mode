@@ -1,8 +1,8 @@
 // The JSON reader for the C++ conformance plugin.
 //
-// *** NOT EXECUTED. *** No C++ compiler on this machine; nothing here has been compiled or
-// run. A PROPOSAL, with its gaps listed in examples/upp-cpp/README.md — notably that `\uXXXX`
-// is NOT decoded (four hex digits are skipped and `?` substituted). The corpus contains no
+// *** NOT EXECUTED. *** This suite never builds or runs this file; nothing here has been
+// compiled or run by it. A PROPOSAL, with its gaps listed in examples/upp-cpp/README.md —
+// notably that `\uXXXX` is NOT decoded (four hex digits are skipped and `?` substituted). The corpus contains no
 // such escape, which is exactly why the gap is written down instead of discovered later.
 #pragma once
 

@@ -429,3 +429,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** verification evaluates the bytes Git will commit; a clean-worktree verification was assessed and documented, not chosen
 **Build:** green
 **Next step:** —
+
+---
+## 2026-10-04 08:16 · Cell: Stage 5 formal closure
+**Status:** ✔
+**Facts:** independent CI recorded: run 37194084612 success at 5c18401 on ubuntu-24.04, Node 22.23.3 and 24.21.0, each 1028/1028 with 0 fail, 0 cancelled, 0 skipped; trailer 1 MATCH and the CI fingerprint equals the trailer fingerprint; conformance in-process, node, python 3.12.14, java 21.0.12.1, rust 1.98.1 each 11/11 in CI, cpp UNEXECUTED; C++ message corrected to state only NOT EXECUTED and UNVERIFIED (test first, claims nothing about a compiler); docs/upp/STATUS.md separates verified, unverified examples and proposed; CONFORMANCE, UPP_REPORT, CI.md, checklist items 43 and 46, README updated; the four residual risks and process-is-not-a-sandbox unchanged (SECURITY.md and SECURITY-REVIEW.md zero diff); the dated cell-4 verdict sentence in docs/upp/ACCEPTANCE.md left as history
+**Decisions:** Stage 5 is closed; only branch protection (item 47) and commit/push of this closure (item 48) remain human decisions
+**Build:** green
+**Next step:** —

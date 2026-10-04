@@ -28,9 +28,9 @@ test('require · a required implementation nobody ran at all is unmet', () => {
 });
 
 test('require · UNEXECUTED is unmet too: cpp is never required, and may never be assumed', () => {
-  const unmet = unmetRequirements([report('cpp', 'UNEXECUTED', 'no C++ compiler here')], ['cpp']);
+  const unmet = unmetRequirements([report('cpp', 'UNEXECUTED', 'not built or run by this suite')], ['cpp']);
   assert.match(unmet[0] ?? '', /REQUIRED but is UNEXECUTED/);
-  assert.deepEqual(unmetRequirements([report('cpp', 'UNEXECUTED', 'no compiler')], []), [],
+  assert.deepEqual(unmetRequirements([report('cpp', 'UNEXECUTED', 'unverified everywhere')], []), [],
     'with nothing required, an UNEXECUTED row stays a visible non-failure');
 });
 

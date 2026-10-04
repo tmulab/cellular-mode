@@ -1,8 +1,9 @@
 # `examples/upp-cpp` — the UPP reference plugin in C++17 · **NOT EXECUTED**
 
-> **This source has never been compiled or run on the machine that wrote it.**
-> There is no C++ compiler here. Read every claim about it as a **PROPOSAL**, and expect the
-> first person with a compiler to have something to fix. `docs/upp/CONFORMANCE.md` records it
+> **This source is not built or run by this project's suite — not locally, not in CI.**
+> It is therefore **UNVERIFIED everywhere**; nothing here states whether any given machine
+> has a C++ toolchain. Read every claim about it as a **PROPOSAL**, and expect whoever
+> executes it first to have something to fix. `docs/upp/CONFORMANCE.md` records it
 > as `UNEXECUTED`, and the conformance runner refuses to report anything else for it — an
 > unexecuted implementation that showed up as green would be the worst kind of false green.
 
@@ -22,7 +23,7 @@ cl /std:c++17 /EHsc /Fe:upp-plugin.exe plugin.cpp
 ```
 
 Then add a `prepare()` for it in `IMPLEMENTATIONS` (`eip/upp-host/conformance-impl.mjs`) that
-probes the compiler, builds into `os.tmpdir()` the way the Rust row does, and returns the argv.
+probes the toolchain, builds into `os.tmpdir()` the way the Rust row does, and returns the argv.
 Until that exists and has been run, the row stays `UNEXECUTED`.
 
 ## Known gaps, besides being unexecuted

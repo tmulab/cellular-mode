@@ -1,8 +1,9 @@
 # UPP 1.0 interop record
 
-**VERIFIED 2026-10-03** by `npm run upp:conformance` on win32 (Windows 11), Node 24.19.0.
-Nothing below is claimed that was not executed in this cell. The one row that was not executed
-says so in capitals.
+**VERIFIED 2026-10-03** by `npm run upp:conformance` on win32 (Windows 11), Node 24.19.0, and
+**VERIFIED AGAIN 2026-10-04 in CI** on `ubuntu-24.04` under Node 22 and Node 24 — see *Verified
+in CI too*, below. Nothing below is claimed that was not executed. The one row that was not
+executed says so in capitals.
 
 The corpus, the matchers and the cases are described in
 [`upp/conformance/README.md`](../../upp/conformance/README.md); the criteria they answer
@@ -39,12 +40,36 @@ always `upp/conformance/manifest.json` and arrives as `argv[1]`.
 | `python` | Python 3, stdlib only | **PASS** | 11/11 | `Python 3.13.14` | `python examples/upp-python/plugin.py <manifest>` |
 | `java` | Java 21, single-file source launch | **PASS** | 11/11 | `openjdk version "21.0.10" 2026-01-20 LTS` (resolved via `JAVA_HOME`) | `java examples/upp-java/Plugin.java <manifest>` |
 | `rust` | Rust, `std` only | **PASS** | 11/11 | `rustc 1.91.1 (ed61e7d7e 2025-11-07)` | `rustc --edition 2021 -o <tmp>/upp-plugin examples/upp-rust/plugin.rs` then `<tmp>/upp-plugin <manifest>` |
-| `cpp` | C++17 | **UNEXECUTED** | — | none: this machine has no C++ compiler | would be `g++ -std=c++17 -O2 -o upp-plugin plugin.cpp` — see [`examples/upp-cpp/README.md`](../../examples/upp-cpp/README.md) |
+| `cpp` | C++17 | **UNEXECUTED** | — | none: this suite never builds or runs the C++ example, so it is UNVERIFIED everywhere | would be `g++ -std=c++17 -O2 -o upp-plugin plugin.cpp` — see [`examples/upp-cpp/README.md`](../../examples/upp-cpp/README.md) |
 
 Nothing was installed, downloaded or fetched to produce this table: Python used only its
 standard library, Java only `java.base` with no build tool, Rust only `std` with no `cargo` and
 no crate. The Rust binary is built into a fresh `os.tmpdir()` directory and nothing is written
 into the repository.
+
+## Verified in CI too — a second operating system, twice (2026-10-04)
+
+**VERIFIED** from the logs of GitHub Actions run
+[`37194084612`](https://github.com/tmulab/cellular-mode/actions/runs/37194084612), conclusion
+**success**, commit `5c18401`, image `ubuntu-24.04`. The CI step runs
+`npm run upp:conformance -- --require python,java,rust`, so a `SKIPPED` row there exits 1
+rather than passing quietly. The **local** column is unchanged; the CI columns are a different
+operating system, a different toolchain set, and a checkout nobody here prepared.
+
+| Row | Local (win32, 2026-10-03) | `verify (node 22)` · Node v22.23.3 | `verify (node 24)` · Node v24.21.0 |
+|---|---|---|---|
+| `in-process` | PASS 11/11 | **VERIFIED IN CI** — PASS 11/11, `node v22.23.3` | **VERIFIED IN CI** — PASS 11/11, `node v24.21.0` |
+| `node` | PASS 11/11 | **VERIFIED IN CI** — PASS 11/11, `node v22.23.3` | **VERIFIED IN CI** — PASS 11/11, `node v24.21.0` |
+| `python` | PASS 11/11 | **VERIFIED IN CI** — PASS 11/11, `Python 3.12.14` | **VERIFIED IN CI** — PASS 11/11, `Python 3.12.14` |
+| `java` | PASS 11/11 | **VERIFIED IN CI** — PASS 11/11, `openjdk 21.0.12.1` via `JAVA_HOME` | **VERIFIED IN CI** — PASS 11/11, `openjdk 21.0.12.1` via `JAVA_HOME` |
+| `rust` | PASS 11/11 | **VERIFIED IN CI** — PASS 11/11, `rustc 1.98.1` | **VERIFIED IN CI** — PASS 11/11, `rustc 1.98.1` |
+| `cpp` | UNEXECUTED | **UNEXECUTED** — never required, never built | **UNEXECUTED** — never required, never built |
+
+Both jobs also re-ran the whole suite on that checkout: **1028 tests · 1028 pass · 0 fail ·
+0 skipped · 0 cancelled · 0 todo** each. `rustc` on the runner image is therefore no longer
+INFERRED from the image documentation — the probe step reported it. `cpp` is **UNEXECUTED
+everywhere** this project has evidence from, and a C++ toolchain's presence or absence on any
+machine is not a claim this record makes.
 
 ## How to reproduce it
 
