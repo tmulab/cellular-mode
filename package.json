@@ -13,7 +13,8 @@
     "authorized": "node tools/gates/authorization.mjs status",
     "hooks:install": "git config core.hooksPath .githooks",
     "hooks:uninstall": "git config --unset core.hooksPath",
-    "rehearse:adaptive-removal": "node tools/gates/removal-rehearsal.mjs"
+    "rehearse:adaptive-removal": "node tools/gates/removal-rehearsal.mjs",
+    "upp:conformance": "node eip/upp-host/conformance-cli.mjs"
   },
   "engines": {
     "node": ">=18"

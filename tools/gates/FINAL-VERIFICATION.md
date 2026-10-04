@@ -75,11 +75,17 @@ One record is appended per run, failures included:
 ```json
 {"schema":"cellular-final-verification/1","at":"...","fingerprint":"<64 hex>",
  "tree":"<40 hex>","head":"<40 hex|null>",
- "checks":[{"name":"typecheck","exit":0,"summary":"..."}],"ok":true,"reason":"..."}
+ "checks":[{"name":"typecheck","exit":0,"summary":"..."},
+   {"name":"tests","exit":0,"summary":"719 tests · 719 pass · 0 fail · 0 skipped",
+    "counts":{"tests":719,"pass":719,"fail":0,"skipped":0},"skips":["..."]}],
+ "ok":true,"reason":"..."}
 ```
 
 `summary` is sanitised: a machine-local absolute path never reaches the file (the
-repository's own leak gate scans it like any other file).
+repository's own leak gate scans it like any other file). `counts` and `skips` are OPTIONAL
+and present only for a check that actually printed `node --test` numbers: "exit 0" with no
+count is a green nobody can audit ([`test-counts.mjs`](test-counts.mjs)). A SKIPPED test is
+listed, never failed and never counted as a pass.
 
 ## No circularity
 
@@ -123,8 +129,8 @@ Hooks honour `CELLULAR_NODE` to pin the node binary; otherwise `PATH` decides.
    client-side can. What remains is detection: an unverified commit has **no record for its
    tree**, so `node tools/gates/authorization.mjs audit <rev-range>` lists it, and the missing
    `Verified-State` trailer shows in `git log`. Enforcement that cannot be bypassed belongs on
-   the server (a protected branch requiring a check); this repository is private and has none
-   yet.
+   the server: the workflow is now written ([`CI.md`](CI.md)) but has **never run on GitHub**,
+   and no branch protection is configured, so today this limitation still stands in full.
 2. **Git is required.** Without a git work tree there is no controlled set to fingerprint, and
    `fingerprint.mjs` raises an error rather than answering. A gate that cannot run is UNKNOWN,
    never green.
@@ -144,14 +150,18 @@ Hooks honour `CELLULAR_NODE` to pin the node binary; otherwise `PATH` decides.
 6. **Timestamps are not evidence.** Only the fingerprint is. A record whose `at` is recent but
    whose `fingerprint` does not match the current state authorizes nothing.
 
-## Future work (PROPOSED, not built)
+## Future work
 
-- **Independent CI verification.** Re-run the mandatory suite on a clean server-side checkout
-  for every pushed commit, recompute the fingerprint from the commit's tree, compare it with the
-  `Verified-State` trailer, and make the result a required status check on a protected `main`.
-  That turns limitations 1 and 4 from "detectable" into "enforced" and gives an attestation
-  that is not self-reported. Done when: a push whose trailer is missing or does not match the
-  re-run is rejected by the server.
+- **Independent CI verification — IMPLEMENTED LOCALLY, NOT YET RUN REMOTELY.**
+  [`.github/workflows/verify.yml`](../../.github/workflows/verify.yml) re-runs the whole
+  mandatory suite on a clean server-side checkout and then compares each commit's
+  `Verified-State` trailer with `git rev-parse <commit>^{tree}` ([`ci-trailer.mjs`](ci-trailer.mjs)).
+  Its structure is VERIFIED by [`tests/ci-workflow.test.mjs`](../../tests/ci-workflow.test.mjs);
+  its behaviour on GitHub is **UNKNOWN** — the workflow runs for the first time on the first
+  push after a human authorizes one. Branch protection is a documented RECOMMENDATION and no
+  repository setting was changed. Remaining to be done: that first remote run, and making
+  `verify` a required status check on `main`. Rationale, the PRE-ARTICLE-8 policy and the
+  limits: [`CI.md`](CI.md).
 
 ## Module map
 
@@ -162,6 +172,9 @@ Hooks honour `CELLULAR_NODE` to pin the node binary; otherwise `PATH` decides.
 | `commit-range.mjs` | which commits a hook is being asked about |
 | `verify-final.mjs` | the ordered procedure and the `npm run verify:final` CLI |
 | `authorization.mjs` | "is this state authorized?", for the hooks, the CLI and the release gate |
+| `test-counts.mjs` | how many tests ran, parsed from what `node --test` printed (pure) |
+| `ci-trailer.mjs` | does a commit's trailer name the tree it records? (pure core + git shell) |
+| `ci-summary.mjs` | how a CI run reports what it established (pure + one append) |
 
 Tests: `tests/gates-final-verification.test.mjs` (the state rules, including the R-4
 regression) and `tests/gates-final-hooks.test.mjs` (the hooks, in throwaway repositories

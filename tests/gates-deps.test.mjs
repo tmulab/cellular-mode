@@ -138,6 +138,11 @@ test('deps · the real repository passes the gate it ships', () => {
     // Out of `npm test` on purpose: it copies the repository and runs the whole suite there,
     // which is minutes. `tests/optional-module-imports.test.mjs` is the fast half of AD29.
     'rehearse:adaptive-removal': 'node tools/gates/removal-rehearsal.mjs',
+    // The polyglot conformance replay. It is a script rather than a test-only entry point
+    // because an operator adding an implementation in a sixth language needs to run it
+    // directly, and because it is the command the interop record in
+    // docs/upp/CONFORMANCE.md cites for every row.
+    'upp:conformance': 'node eip/upp-host/conformance-cli.mjs',
   });
   for (const command of Object.values(pkg.scripts)) {
     assert.doesNotMatch(String(command), /--no-verify|npx |curl |\|\||;/, `suspicious script: ${command}`);

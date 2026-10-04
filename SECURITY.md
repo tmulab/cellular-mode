@@ -34,6 +34,37 @@ the agent audit trail is in memory and dies with the process.
 > execution **must not be enabled** without appropriate isolation (see *Before untrusted
 > plugins* below). — Approved scope, Hudson A. R. Bonomo, 2026-10-02.
 
+## External-process, HTTP and application plugins (UPP 1.0)
+
+A plugin may also run **outside** the host process — as a child process speaking NDJSON, as an
+HTTP service, or as an independently deployed application (`docs/upp/SPEC.md`). That changes
+the failure model and **not** the trust model, so the box above stands unamended:
+
+- **A separate process is failure isolation, not a sandbox.** It bounds a crash, a leak and a
+  busy loop. The child runs with the operator's own privileges and can read whatever that user
+  can read. Untrusted third-party plugins still need everything under *Before untrusted
+  plugins* below.
+- **Execution is authorised by the operator, never by a manifest.** `upp.config.json` — written
+  by a human, reviewed like source — lists each permitted plugin as an **argv array** (never a
+  shell string), with a `manifestSha256` pin and the environment-variable **names** it may see.
+  An id absent from that file is never spawned and never contacted; `allowNetwork: true` is
+  *refused*, because the host cannot enforce it. Spawning is `shell: false`, one site, confined
+  `cwd`, minimal environment — a host secret never reaches a plugin that did not ask.
+- **No ports cross the seam.** A `process` or `http` plugin receives **no kernel ports**; its
+  `permissions` array is a declaration for audit, not a grant. The approval gate still runs
+  **before the first byte reaches the transport**, so a denied consequential call is observable
+  as nothing having been sent.
+- **The pin covers the manifest, not the executable**, and **TLS is not enforced** on a
+  non-loopback `baseUrl` (loopback is the default; a remote one needs `allowRemote: true` plus
+  a bearer token read from an env var name). Plugin stderr is captured as diagnostics and
+  **never parsed as protocol**, and is not sanitised for a terminal.
+- **An application plugin is identity, never execution.** The kernel never loads it, never
+  proxies its frontend and gives it no service and no port; it reaches the system only as a
+  client of the HTTP API, where a caller still cannot approve itself.
+
+Full review — every boundary with its threat, its control (`file:function`), the test that
+proves it and its residual risk: **[`docs/upp/SECURITY-REVIEW.md`](docs/upp/SECURITY-REVIEW.md)**.
+
 ## What IS enforced (VERIFIED — `npm test`, `eip/*/ACCEPTANCE.md`)
 
 - **Approval fails closed.** A capability marked `consequential` cannot run without a

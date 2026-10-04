@@ -1,0 +1,48 @@
+{
+  "name": "07-execute-unknown-capability",
+  "why": "A capability the manifest does not declare. -32001: the plugin is the only thing that knows whether an id names anything, so this is a CLIENT error, not a plugin fault.",
+  "requests": [
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "upp.initialize",
+        "params": {
+          "protocolVersions": [
+            "1.0"
+          ],
+          "host": {
+            "name": "upp-conformance",
+            "version": "1.0",
+            "capabilities": {}
+          },
+          "config": {}
+        }
+      }
+    },
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "upp.execute",
+        "params": {
+          "capability": "exfiltrate",
+          "input": {}
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "id": 1,
+      "resultShape": {
+        "protocolVersion": "1.0"
+      },
+      "manifestPin": true
+    },
+    {
+      "id": 2,
+      "code": -32001
+    }
+  ]
+}

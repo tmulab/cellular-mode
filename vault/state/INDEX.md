@@ -46,3 +46,12 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [Stage 4 closure](cells/stage-4-closure.md) | vault, RELEASE_CHECKLIST, ADAPTIVE_REPORT, policy/relaxations | ✔ | 2026-10-03 | — |
 | [Final verification after last write](cells/final-verification-after-last-write.md) | tools/gates (fingerprint, verify-final, git hooks), tools/cellmode complete, constitution, skills | ✔ | 2026-10-03 | — |
 | [Article 8 rollout](cells/article-8-rollout.md) | git hooks, tools/gates/FINAL-VERIFICATION.md, RELEASE_CHECKLIST | ✔ | 2026-10-03 | — |
+| [UPP audit and specification](cells/upp-audit-and-specification.md) | docs/upp, docs/adr/0005 | ✔ | 2026-10-03 | — |
+| [UPP manifests and message contracts](cells/upp-manifests-and-message-contracts.md) | eip/upp (pure), upp/schemas | ✔ | 2026-10-03 | — |
+| [UPP transports and external processes](cells/upp-transports-and-external-processes.md) | eip/host upp transports (in-process compat, process NDJSON, http), upp.config.json | ✔ | 2026-10-03 | — |
+| [UPP polyglot conformance](cells/upp-polyglot-conformance.md) | upp/conformance, examples/upp-python, examples/upp-java, examples/upp-rust, examples/upp-cpp | ✔ | 2026-10-03 | — |
+| [Verification fragility fixes](cells/verification-fragility-fixes.md) | apps/observer/tests/proxy.test.mjs, eip/upp-host/toolchains.mjs | ✔ | 2026-10-03 | — |
+| [UPP application plugins](cells/upp-application-plugins.md) | eip/upp application manifests, eip/upp-host app registry, examples/upp-app-nextjs, docs/adr/0001 | ✔ | 2026-10-03 | — |
+| [Independent CI verification](cells/independent-ci-verification.md) | .github/workflows, tools/gates (ci-trailer, evidence counts), docs | ✔ | 2026-10-03 | — |
+| [UPP security review and closure](cells/upp-security-review-and-closure.md) | SECURITY.md, docs/upp, docs/09, README, UPP_REPORT.md, regression | ✔ | 2026-10-03 | — |
+| [Stage 5 approvals and verified commit](cells/stage-5-approvals-and-verified-commit.md) | docs/adr/0005, docs/adr/0001, RELEASE_CHECKLIST, README, UPP_REPORT, docs/09 | ✔ | 2026-10-04 | — |

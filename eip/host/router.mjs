@@ -82,8 +82,14 @@ const sendJson = (res, status, body, headers = {}) => send(
   { 'Cache-Control': 'no-store', ...headers },
 );
 
-/** @param {{ kernel: Kernel, plugins?: ReadonlyArray<Manifest>, devUi?: boolean }} wiring */
-export function createRouter({ kernel, plugins = [], devUi = false }) {
+/**
+ * @param {{ kernel: Kernel, plugins?: ReadonlyArray<Manifest>, devUi?: boolean,
+ *   applications?: () => ReadonlyArray<Record<string, unknown>> }} wiring
+ *   `applications` is the OPTIONAL projection of registered application plugins
+ *   (`eip/upp-host/applications.mjs`). Absent, the response is byte-identical to a host that
+ *   never heard of applications — the key appears only when a composition registered one.
+ */
+export function createRouter({ kernel, plugins = [], devUi = false, applications }) {
   /** @type {(key: string) => Manifest | undefined} */
   const manifestOf = (key) => plugins.find((manifest) => manifest.name === key);
   /** @type {(res: import('node:http').ServerResponse, what: string) => void} */
@@ -150,8 +156,16 @@ export function createRouter({ kernel, plugins = [], devUi = false }) {
             plugins: kernel.list().map((m) => m.name).filter((key) => kernel.isLoaded(key)).sort(),
           },
         });
-      case 'plugins':
-        return sendJson(res, 200, { ok: true, value: { plugins: kernel.list() } });
+      case 'plugins': {
+        // Additive, and only when there is something to add: an application plugin is NOT a
+        // kernel plugin, so it is listed beside them rather than among them — a client that
+        // ignores the key sees exactly what it saw before.
+        const listed = applications === undefined ? [] : applications();
+        return sendJson(res, 200, {
+          ok: true,
+          value: { plugins: kernel.list(), ...(listed.length === 0 ? {} : { applications: [...listed] }) },
+        });
+      }
       case 'capability':
         return capability(req, res, route.params);
       case 'dev-page':

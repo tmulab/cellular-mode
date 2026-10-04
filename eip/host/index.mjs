@@ -32,9 +32,16 @@ export const HOST_ADDRESS = '127.0.0.1';
  *   how to hand ports over, not which ones a particular application wants (see
  *   `eip/host/observer-composition.mjs`).
  * @param {number} [options.defaultTimeoutMs] deadline for calls that give none
+ * @param {() => ReadonlyArray<Record<string, unknown>>} [options.applications] the public
+ *   projection of registered APPLICATION plugins — `registry.describe` from
+ *   `eip/upp-host/applications.mjs`. ABSENT MEANS NO APPLICATIONS: the host gains no
+ *   dependency on the UPP layer, and `GET /api/v1/plugins` answers exactly as before.
+ *   An application is never loaded into the kernel, never proxied and never given a port;
+ *   it reaches the system as a CLIENT of this very API.
  */
 export async function createHost({
   plugins, approver, devUi = false, reportsDir, ports: extraPorts = {}, defaultTimeoutMs,
+  applications,
 }) {
   if (!Array.isArray(plugins) || plugins.length === 0) {
     throw new TypeError('createHost needs a non-empty array of plugin manifests');
@@ -56,7 +63,9 @@ export async function createHost({
   // will break when someone sorts a list.
   for (const manifest of plugins) await kernel.load(manifest.name, { ports });
 
-  const handle = createRouter({ kernel, plugins, devUi });
+  const handle = createRouter({
+    kernel, plugins, devUi, ...(applications === undefined ? {} : { applications }),
+  });
   const server = createServer((req, res) => {
     handle(req, res).catch((cause) => {
       // A fault in the edge itself. The kernel already contains plugin faults; this

@@ -15,9 +15,8 @@ everywhere else: in the directory layout, in the import gate, and in the tests.
 The independence is **mechanical**, not aspirational (VERIFIED by
 `tools/gates/boundaries.mjs`, rule `cellular-mode-is-runtime-independent`, and by
 `tests/`): Cellular Mode must keep working in a repository that has no `eip/` directory
-at all, so no file under `tools/cellmode/`, `skills/`, `docs/`, `adapters/` or
-`templates/` may import the runtime. Delete `eip/` and `api/` and the method is intact;
-delete `vault/state/` and the runtime still builds and tests.
+at all, so no file under `tools/cellmode/`, `skills/`, `docs/`, `adapters/` or `templates/` may import the runtime.
+Delete `eip/` and `api/` and the method is intact; delete `vault/state/` and the runtime still builds and tests.
 
 Three vocabulary lines that prevent most confusion:
 
@@ -38,6 +37,7 @@ A cell is not a plugin. A plugin is not an agent. None of the three is a core.
 | Plugins | `eip/plugins/<name>/` | one domain capability each, replaceable, SDK-only imports |
 | Optional observation | `eip/plugins/observer-{state,audit,advisor}/` + `apps/observer/` | read a vault, audit it, interpret it — the first *optional* plugin set, deletable without touching anything else |
 | Orchestration | `eip/orchestration/` | the single door an agent may use; allow-list + audit |
+| Protocol & transports | `eip/upp/` (pure rules), `eip/upp-host/` (operator config, spawn, HTTP) | the language-neutral host↔plugin contract, and the only modules that start a program or open a client socket — imported by composition alone |
 | Host / composition | `eip/host/` | the only module that knows every part: transport, ports, approver, dev UI |
 | Published contract | `api/openapi.json` | what an independent application may rely on |
 | External apps & UIs | outside this repository (`examples/api-client/` shows the shape) | own auth, own build, own release cadence |
@@ -77,11 +77,15 @@ Arrows point from the importer to the imported. Every arrow below is checked on 
         --X-->  eip/        cellular-mode-is-runtime-independent  (hard deny)
   eip/sdk, eip/kernel  --X-->  node:http|https|net|tls|dgram, eip/host
                               kernel-and-sdk-are-transport-free  (hard deny)
+
+  eip/host --> eip/upp-host --> eip/upp --> eip/sdk      upp-host-imports-protocol-kernel-entry-and-sdk
+             (spawn · HTTP · pins)   (pure)              + the kernel PUBLIC entry, nothing else
+  eip/upp  --X-->  eip/host, node:http|net|tls|fs|child_process     upp-is-transport-free  (hard deny)
+  sdk · kernel · plugins · orchestration · Cellular Mode  --X-->  eip/upp, eip/upp-host  (hard deny)
 ```
 
-Two arrows that are *absent* carry as much design as the ones that are present: a plugin
-never imports a sibling plugin (siblings arrive as contracts through `inject`, resolved
-at call time), and nothing imports the host. Transport is a leaf, not a foundation.
+Two arrows that are *absent* carry as much design as the ones that are present: a plugin never imports a sibling
+plugin (siblings arrive as contracts through `inject`, resolved at call time), and nothing imports the host. Transport is a leaf, not a foundation.
 
 ## 4 · The kernel: what it does, and what it does not
 
@@ -109,19 +113,18 @@ of these exists in code anywhere in this repository:
 |---|---|
 | **Discovery from disk** — scanning a directory for manifests | loading code found on disk is an authority decision; composition is currently an explicit list in `eip/host/cli.mjs`, which is reviewable |
 | **Hot reload** | `dispose` + `load` already give a reversible cycle; a *watcher* adds a second source of truth about what is running |
-| **Sandboxed execution of untrusted plugins** | see §8 — this is the largest gap, and it is architectural, not an omission |
-| **Multi-process / worker isolation** | prerequisite for the above; needs a serialisation boundary for ports and `inject`, which the contract does not have |
+| **Sandboxed execution of untrusted plugins** | see §8 — this is the largest gap, and it is architectural, not an omission. UPP's process transport is **failure isolation, not confinement** ([`upp/SECURITY-REVIEW.md`](upp/SECURITY-REVIEW.md) §3) |
+| **Worker isolation with ports across the seam** | UPP 1.0 crosses a process boundary by granting **no ports at all**; a *serialised* port is the design project the contract still does not have |
 | **Workflow coordination, planners, multi-agent delegation** | `eip/orchestration/README.md` states each open question; a plan is only as safe as the allow-list it is drawn from |
 | **Durable audit** | the gateway trail is in memory and dies with the process |
 
 ## 5 · The plugin contract
 
-The authoritative summary is **[`eip/sdk/README.md`](../eip/sdk/README.md)**: manifest
-fields, the `inject` vs **ports** distinction, the closed permission list, the schema
-subset, the error codes and the public surface. Three lines are worth repeating here
-because they shape the whole architecture: the plugin's `name` **is** the key it
-provides; sibling capabilities arrive through `inject` while infrastructure, secrets and
-processes arrive as **ports from the host**; and **keys degrade, ports fail loud**.
+The authoritative summary is **[`eip/sdk/README.md`](../eip/sdk/README.md)**: manifest fields,
+the `inject` vs **ports** distinction, the closed permission list, the schema subset, the error
+codes and the public surface. Three lines shape the whole architecture: the plugin's `name`
+**is** the key it provides; siblings arrive through `inject` while infrastructure, secrets and processes arrive as
+**ports from the host**; and **keys degrade, ports fail loud**. The language-neutral host↔plugin protocol over this same contract is specified in [`docs/upp/`](upp/SPEC.md) — UPP 1.0, [ADR 0005](adr/0005-universal-plugin-protocol.md) — with its boundaries reviewed in [`docs/upp/SECURITY-REVIEW.md`](upp/SECURITY-REVIEW.md).
 
 ## 6 · API integration
 
@@ -130,8 +133,7 @@ is **the** contract for anything outside this process. It is not documentation t
 trails the code: `eip/host/openapi.test.mjs` asserts that every route the server answers
 is documented, that every documented route is answered, that real response bodies
 validate against the documented schemas with the SDK validator, and that the error `code`
-enum equals the SDK's closed list. [`examples/api-client/`](../examples/api-client/) is a
-zero-dependency `fetch` client whose only purpose is to prove the document is enough.
+enum equals the SDK's closed list. [`examples/api-client/`](../examples/api-client/) is a zero-dependency `fetch` client whose only purpose is to prove the document is enough. UPP does not touch it: the host is the *client* of a plugin endpoint, so the published three-route contract does not move.
 
 ## 7 · Frontend separation
 
@@ -142,11 +144,10 @@ dependency tree, release cadence and — decisively — its own authentication. 
 the runtime only through `api/openapi.json`, and **the browser never calls the runtime
 directly**: the host binds `127.0.0.1` and sends no CORS headers, so the UI application
 calls the API from its own server, where it holds credentials and decides what the
-browser may ask for. A plugin's `devUi` is a static fragment for local diagnostics and
-simple admin, capped at 64 KB and served only with `--dev-ui`.
+browser may ask for. A plugin's `devUi` is a static fragment for local diagnostics and simple admin, capped at 64 KB and served only with `--dev-ui`. UPP's `type: "application"` **registers** such an application as a pinned identity the host may watch and, if the operator asks, start — it never loads it, proxies it or hands it a port ([ADR 0001](adr/0001-frontend-exception.md) amendment, [`docs/upp/APPLICATIONS.md`](upp/APPLICATIONS.md)).
 
 **The first case with teeth — the Cellular Observer.** [ADR 0003](adr/0003-observer-frontend.md) (*Accepted,
-proposed by agent, pending human confirmation*): three optional plugins on this same kernel —
+approved by Hudson A. R. Bonomo, 2026-10-03*): three optional plugins on this same kernel —
 `observer.state` (reads a vault), `observer.audit` (judges it against rules that already exist) and
 `observer.advisor` (interprets it; **not loaded unless asked for**) — plus an **independent local
 application**, `apps/observer/`, no framework and no build step, served by its own loopback server with an
@@ -196,5 +197,4 @@ approves a consequential act.
 
 Static analysis is not proof of security, and this table is not an audit. It is the list of claims a reviewer
 should try to break — and the four rows whose residual risk begins with "a plugin bypassing", "there is no
-authentication", "interactive only" and "in memory" are the ones that decide whether this runtime may leave a
-developer's machine. Today the honest answer is: it may not.
+authentication", "interactive only" and "in memory" are the ones that decide whether this runtime may leave a developer's machine. Today the honest answer is: it may not. The boundaries UPP added — operator config, manifest pin, spawn, framing, stderr, HTTP, applications, CI — are reviewed on the same shape in [`docs/upp/SECURITY-REVIEW.md`](upp/SECURITY-REVIEW.md).

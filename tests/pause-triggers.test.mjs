@@ -186,11 +186,13 @@ test('pause · ADR 0004 and its checklist items record the author approval', () 
   assert.ok(/Status:\*\* \*\*Accepted/.test(adr), 'ADR 0004 must be Accepted');
   assert.ok(!/pending human confirmation/i.test(adr), 'ADR 0004 must no longer read as pending');
   assert.ok(adr.includes('Hudson A. R. Bonomo'), 'ADR 0004 must name the deciding human');
-  const checklist = read('RELEASE_CHECKLIST.md');
-  assert.ok(!/awaiting the author/i.test(checklist),
-    'RELEASE_CHECKLIST.md must not leave the pause-trigger decision awaiting the author');
-  assert.ok(!/pending human confirmation/i.test(checklist),
-    'RELEASE_CHECKLIST.md item 36 must not read as pending human confirmation');
+  // Scoped to the two ROWS it is about: the checklist also records decisions legitimately still
+  // pending (stage 5 added two), and a file-wide search would forbid saying so truthfully.
+  const checklist = lines('RELEASE_CHECKLIST.md');
+  const row = (/** @type {number} */ n) => checklist.find((l) => l.startsWith(`| ${n} |`)) ?? '';
+  assert.ok(row(36) !== '' && row(40) !== '', 'items 36 and 40 must still be rows of the checklist');
+  assert.ok(!/awaiting the author/i.test(row(40)), 'item 40 must not leave the decision awaiting the author');
+  assert.ok(!/pending human confirmation/i.test(row(36)), 'item 36 must not read as pending human confirmation');
   assert.ok(
     !/Open decision — the pause skill/i.test(read('ADAPTIVE_REPORT.md')),
     'ADAPTIVE_REPORT.md must record the decision as resolved, not open',

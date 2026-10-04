@@ -1,0 +1,45 @@
+{
+  "name": "10-cancel-is-a-notification",
+  "why": "upp.cancel carries no id and gets no answer, even for a request the plugin never saw. A reply here would mean the plugin is answering notifications.",
+  "requests": [
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "upp.initialize",
+        "params": {
+          "protocolVersions": [
+            "1.0"
+          ],
+          "host": {
+            "name": "upp-conformance",
+            "version": "1.0",
+            "capabilities": {}
+          },
+          "config": {}
+        }
+      }
+    },
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "method": "upp.cancel",
+        "params": {
+          "id": 99
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "id": 1,
+      "resultShape": {
+        "protocolVersion": "1.0"
+      },
+      "manifestPin": true
+    },
+    {
+      "none": true
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "name": "11-health-then-shutdown-and-exit",
+  "why": "upp.health reports a status from the declared enum; upp.shutdown is answered; upp.exit is a notification and is never answered.",
+  "requests": [
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "upp.initialize",
+        "params": {
+          "protocolVersions": [
+            "1.0"
+          ],
+          "host": {
+            "name": "upp-conformance",
+            "version": "1.0",
+            "capabilities": {}
+          },
+          "config": {}
+        }
+      }
+    },
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "upp.health",
+        "params": {}
+      }
+    },
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "id": 3,
+        "method": "upp.shutdown",
+        "params": {}
+      }
+    },
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "method": "upp.exit",
+        "params": {}
+      }
+    }
+  ],
+  "expect": [
+    {
+      "id": 1,
+      "resultShape": {
+        "protocolVersion": "1.0"
+      },
+      "manifestPin": true
+    },
+    {
+      "id": 2,
+      "resultShape": {
+        "status": "ok"
+      }
+    },
+    {
+      "id": 3,
+      "result": {}
+    },
+    {
+      "none": true
+    }
+  ]
+}

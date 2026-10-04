@@ -1,0 +1,33 @@
+{
+  "name": "01-initialize-version-ok",
+  "why": "The host offers 1.0, the plugin picks 1.0, and the manifest it returns is byte-for-byte the pinned one (compared as canonical JSON, so key order is free).",
+  "requests": [
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "upp.initialize",
+        "params": {
+          "protocolVersions": [
+            "1.0"
+          ],
+          "host": {
+            "name": "upp-conformance",
+            "version": "1.0",
+            "capabilities": {}
+          },
+          "config": {}
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "id": 1,
+      "resultShape": {
+        "protocolVersion": "1.0"
+      },
+      "manifestPin": true
+    }
+  ]
+}

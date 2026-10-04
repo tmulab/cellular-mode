@@ -142,5 +142,5 @@ human had decided something. `passthroughOf(cause)` is the pure predicate, and
 `validateSchema` · `validateValue` · `check` · `KernelError` · `ContractError` ·
 `isKernelError` · `CODES` · `PASSTHROUGH_CODES` · `passthroughOf` ·
 `PERMISSIONS` · `KEY_PATTERN` ·
-`CAPABILITY_ID_PATTERN` · `MAX_DEV_UI_BYTES` · `SCHEMA_KEYWORDS` ·
+`CAPABILITY_ID_PATTERN` · `SEMVER_PATTERN` · `MAX_DEV_UI_BYTES` · `SCHEMA_KEYWORDS` ·
 `SCHEMA_TYPES`.

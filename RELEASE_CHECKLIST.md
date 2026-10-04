@@ -1,6 +1,6 @@
 # Release checklist — public release
 
-**Current verdict: no technical blocker left for stages 1-2; stage 3 is closed; stage 4 adds five items (36-41), four of them OPEN and human-only.**
+**Current verdict: no technical blocker left for stages 1-2; stage 3 is closed; stage 4 adds five items (36-41); stage 5 adds seven (44-50), four of them OPEN — two ADR confirmations, the first remote CI run, and the stage-5 commit.**
 R-1 was resolved on 2026-10-02 (item 15):
 the typecheck leg is real and reports 0 errors, and `check-all.mjs --release` exits 0. What
 remains is human-only authorization: publication (29). Security contact (6) set and push (28)
@@ -46,7 +46,7 @@ and UNKNOWN is never green).
 | 19 | Symlink-escape guard verified | ✅ VERIFIED on win32 | exercised through a directory **junction** (file symlink is `EPERM` unprivileged; `lstat` reports the junction as a symbolic link); removing the guard goes red — `eip/host/ACCEPTANCE.md` H11. POSIX symlink behaviour **UNKNOWN** (untested here) |
 
 | 42 | **Article 8 — the release is verified at its FINAL state** | 👤 human, per release | `npm run verify:final` must be the LAST action: it fingerprints the controlled set, runs typecheck · `node --test` · `check-all --release` · `cellmode check`, re-checks the fingerprint, and appends the record to `.cellular/evidence/final-verification.jsonl`. Any write afterwards — including the entry that marks this checklist done — **invalidates it and the suite must be re-run**. Confirm with `node tools/gates/authorization.mjs status`; for the commits being released, `node tools/gates/authorization.mjs audit <range>` must list no unverified tree. Mechanism and limits: [`tools/gates/FINAL-VERIFICATION.md`](tools/gates/FINAL-VERIFICATION.md) |
-| 43 | Independent CI verification of every pushed commit | ❌ future work (PROPOSED) | evidence is local and self-attested today (`tools/gates/FINAL-VERIFICATION.md` limitation 4); a server-side re-run that checks the `Verified-State` trailer and gates a protected `main` is registered as future work there |
+| 43 | Independent CI verification of every pushed commit | ⚠️ implemented, **not yet run remotely** | [`.github/workflows/verify.yml`](.github/workflows/verify.yml) re-runs typecheck · module load · `node --test` · gates · release gate · cell state · UPP conformance on a clean `ubuntu-latest` checkout, then compares each commit's `Verified-State` trailer with `git rev-parse <commit>^{tree}` ([`tools/gates/ci-trailer.mjs`](tools/gates/ci-trailer.mjs)) and writes commit, CI fingerprint, test counts and verdict to the job summary. `contents: read` only, no secret, every action pinned by SHA. Structure VERIFIED locally by [`tests/ci-workflow.test.mjs`](tests/ci-workflow.test.mjs) (13 tests) and the trailer check VERIFIED on `b92c7c8` (1 MATCH) and over the full history (9 PRE_ARTICLE_8). **Behaviour on GitHub is UNKNOWN: the workflow has never run there** — it runs on the first push after authorization. Branch protection for `main` is a documented RECOMMENDATION; no repository setting was changed — [`tools/gates/CI.md`](tools/gates/CI.md) |
 
 ## Honesty of the claims
 
@@ -136,6 +136,33 @@ node examples/text-stats/reproduce.mjs     -> 8 files identical, exit 0
 node examples/observer-demo/reproduce.mjs  -> 9 files identical, exit 0
 ```
 
+## Stage 5 — UPP and independent CI (added 2026-10-03)
+
+UPP and the CI workflow do **not** gate a release of the method; these items gate any claim
+that stage 5 is finished. Full account: [`UPP_REPORT.md`](UPP_REPORT.md) · security:
+[`docs/upp/SECURITY-REVIEW.md`](docs/upp/SECURITY-REVIEW.md).
+
+| | Item | Status | What is left |
+|---|---|---|---|
+| 44 | 👤 [ADR 0005](docs/adr/0005-universal-plugin-protocol.md) confirmed by the responsible human | ✅ APPROVED | approved by Hudson A. R. Bonomo, 2026-10-04 — UPP 1.0: JSON-RPC 2.0 over NDJSON, adapted into the existing kernel, no second runtime |
+| 45 | 👤 [ADR 0001](docs/adr/0001-frontend-exception.md) **amendment** (application plugins) confirmed | ✅ APPROVED | approved by Hudson A. R. Bonomo, 2026-10-04 — an independent frontend may be REGISTERED as `type: "application"`; registration is not in-process execution ([`docs/upp/APPLICATIONS.md`](docs/upp/APPLICATIONS.md)) |
+| 46 | CI has actually run on GitHub | ⚠️ **NOT YET RUN REMOTELY** | item 43 holds the detail. The structure is VERIFIED locally; the *behaviour* on GitHub is **UNKNOWN** until the first push after authorization. No remote run may be quoted before it exists |
+| 47 | Branch protection on `main` | ⚠️ **RECOMMENDATION only** | documented in [`tools/gates/CI.md`](tools/gates/CI.md); **no repository setting was changed** by this work. Without it, a push can land without a passing run. Enabling it is a human decision on a private repository |
+| 48 | 👤 Stage-5 work committed and pushed | ❌ **not done — needs authorization** | every stage-5 change is uncommitted in the working tree. Nothing was committed, pushed, tagged or published, and `--no-verify` was never used. The authorization is per action, as in items 33 and 39 |
+| 49 | Stage-5 gates and tests green | ✅ VERIFIED 2026-10-03 | the run quoted below, executed in the closing cell; `npm run rehearse:adaptive-removal` is green again after the regression recorded in `docs/upp/SECURITY-REVIEW.md` §4 |
+| 50 | No regression in the earlier stages | ✅ VERIFIED 2026-10-03 | `git diff --stat b92c7c8 -- tools/cellmode eip/kernel eip/sdk eip/plugins tools/adaptive adaptive apps/observer skills` = 4 files, all additive or test-only: `SEMVER_PATTERN` exported from the SDK (one definition, not two), its README line, and a load-sensitivity fix in the observer proxy test. `tools/cellmode` and `tools/adaptive`: **no change**, and the boundary gate denies them `eip/upp*` by name |
+
+```
+2026-10-03 run (stage 5, closing cell — quoted from UPP_REPORT.md):
+npm run typecheck                          -> both configurations, 0 errors
+npm test                                   -> 993 tests, 993 pass, 0 fail, 0 skipped, 48 suites
+npm run gates                              -> no findings, 0 pending exceptions
+node tools/gates/check-all.mjs --release   -> exit 0, no blockers
+npm run upp:conformance                    -> in-process · node · python · java · rust PASS 11/11; cpp UNEXECUTED
+npm run rehearse:adaptive-removal          -> AD29 VERIFIED (suite + gates green with the module deleted)
+node tools/gates/ci-trailer.mjs HEAD       -> 1 MATCH (history: 9 PRE_ARTICLE_8)
+```
+
 ## Who must decide what
 
 1. **Security contact** (item 6) — done: role address set on 2026-10-02.
@@ -145,6 +172,10 @@ node examples/observer-demo/reproduce.mjs  -> 9 files identical, exit 0
 4. **ADR 0004** (item 36) and the **pause-trigger decision** (item 40) — both decided by the
    author on 2026-10-03. The **stage-4 commit** (item 39) is still open and human-only, and
    item 37 (behavioural validation) stays deliberately **NOT PERFORMED** rather than guessed.
+
+5. **ADR 0005** (item 44), the **ADR 0001 amendment** (item 45), the **stage-5 commit and push**
+   (item 48) and **branch protection** (item 47) are open and human-only. Item 46 cannot be
+   closed by anyone until a push makes the workflow run.
 
 R-1 (item 15) was decided on 2026-10-02 and is closed. Nothing on this list may be marked
 green by an agent on its own initiative.

@@ -1,34 +1,24 @@
 // boundaries.mjs — import DIRECTION for the "Everything Is a Plugin" layout.
 //
-// The layout only means something if the arrows point one way, and an arrow that is
-// only written in a document gets reversed by the first convenient import. The rules
-// below are DATA: a reviewer can read the table without reading the algorithm, and a
-// new rule is a new object, not a new branch.
-//
-// `eip/` may not exist yet. A gate that fails on an absent directory would block the
-// cell that is building it, so absence is simply "no files matched, nothing to say".
-// The rules are tested on in-memory fixtures, which is why they must be data.
+// The layout only means something if the arrows point one way, and an arrow that is only
+// written in a document gets reversed by the first convenient import. This module is the
+// MATCHER: given files and rules, which imports break which arrow. It holds no rule of its
+// own, so a layering decision is never hidden inside a branch.
 import { ADAPTIVE_PURE_IMPORTS, HOST_GATE_IMPORTS, OBSERVER_PURE_IMPORTS } from './allowlists.mjs';
+import { RULES } from './rules.mjs';
 import { importSpecifiers } from './deps.mjs';
 
-// The import EXCEPTIONS are DATA and live in ./allowlists.mjs, each name checked by hand
-// with its reason beside it. Re-exported here because the rules below are what a reader comes
-// to this file for, and the lists are part of the same contract.
-export { ADAPTIVE_PURE_IMPORTS, HOST_GATE_IMPORTS, OBSERVER_PURE_IMPORTS };
+// The RULES live in ./rules.mjs and the import EXCEPTIONS in ./allowlists.mjs — a rule, its
+// exceptions and the matcher that applies them are three things to review, not one. All three
+// are re-exported here because this module is the address every caller already knows.
+export { ADAPTIVE_PURE_IMPORTS, HOST_GATE_IMPORTS, OBSERVER_PURE_IMPORTS, RULES };
 
-/** @typedef {import('./types.mjs').FileTuple} FileTuple */
-/** @typedef {import('./types.mjs').Finding} Finding */
-/**
- * One layering rule, as data. Either an ALLOW list or a DENY list, never both read:
- * `hasAllowList` decides which half applies.
- * @typedef {{ id: string, why: string, from: RegExp, allowPrefixes?: string[],
- *   allowExact?: string[], allowSelfDepth?: number,
- *   denyPrefixes?: string[], denyExact?: string[] }} Rule
- */
+/** @typedef {import('./types.mjs').FileTuple} FileTuple @typedef {import('./types.mjs').Finding} Finding */
+/** @typedef {import('./rules.mjs').Rule} Rule */
 /** @typedef {{ file: string, specifier: string, target: string, rule: string, why: string }} Violation */
 
-/** `eip/kernel/a.mjs` + `../sdk/b.mjs` -> `eip/sdk/b.mjs`. No disk access.
- * @param {string} fileRel @param {string} specifier @returns {string} */
+/** `eip/kernel/a.mjs` + `../sdk/b.mjs` -> `eip/sdk/b.mjs`. No disk access. @param {string}
+ * fileRel @param {string} specifier @returns {string} */
 export function resolveSpecifier(fileRel, specifier) {
   if (!specifier.startsWith('.')) return specifier;
   const segments = fileRel.split('/').slice(0, -1);
@@ -42,96 +32,6 @@ export function resolveSpecifier(fileRel, specifier) {
 
 /** @type {(path: string, depth: number) => string} */
 const prefixOf = (path, depth) => path.split('/').slice(0, depth).join('/') + '/';
-
-/**
- * The rules. Each has `from` (which files it governs) and either an ALLOW list
- * (anything else is a violation) or a DENY list (everything else is fine).
- *   allowPrefixes  - target path prefixes that are permitted
- *   allowExact     - exact target paths that are permitted (a public entry point)
- *   allowSelfDepth - target must share the file's first N path segments (own module)
- *   denyPrefixes / denyExact - forbidden targets
- * `node:` built-ins pass every ALLOW rule: this is a Node project and the standard
- * library is not a layering concern. A DENY rule may still name one (see transport).
- * @type {Rule[]}
- */
-/** @type {Rule[]} */
-export const RULES = [
-  {
-    id: 'sdk-depends-on-nothing',
-    why: 'eip/sdk is the floor: contract plus validators. If it imports the kernel, the contract stops being independently usable.',
-    from: /^eip\/sdk\//,
-    allowPrefixes: ['eip/sdk/'],
-  },
-  {
-    id: 'kernel-imports-sdk-only',
-    why: 'the kernel composes the contract; it must not know about hosts, plugins or orchestration.',
-    from: /^eip\/kernel\//,
-    allowPrefixes: ['eip/sdk/', 'eip/kernel/'],
-  },
-  {
-    id: 'plugin-imports-sdk-and-own-dir',
-    why: 'a plugin is replaceable: it may use the SDK, its own directory and shared domain code, never kernel internals, the host, orchestration, or a sibling plugin (siblings arrive through inject). An observer-* plugin and an adaptive-* plugin are each governed by their own rule instead, so that an extra allowance is read as an exception and not as the norm.',
-    from: /^eip\/plugins\/(?!observer-|adaptive-)[^/]+\//,
-    allowPrefixes: ['eip/sdk/', 'examples/text-stats/src/'],
-    allowSelfDepth: 3,
-  },
-  {
-    id: 'observer-plugin-imports-only-named-pure-modules',
-    why: 'the observer reads a Cellular Mode vault, and a second parser of that vault would be a second truth; so it may import the SDK, its own directory and the NAMED pure modules listed in OBSERVER_PURE_IMPORTS - never state.mjs, never paths.mjs, never the CLI, never a disk-reading gate shell, never the kernel or the host.',
-    from: /^eip\/plugins\/observer-[^/]+\//,
-    allowPrefixes: ['eip/sdk/'],
-    allowExact: [...OBSERVER_PURE_IMPORTS],
-    allowSelfDepth: 3,
-  },
-  {
-    id: 'adaptive-plugin-imports-only-named-pure-modules',
-    why: 'the optional adaptive plugin reports a mode the human declared and how long that declaration still stands, and a second implementation of temporal validity would be a second answer to a one-answer question; so it may import the SDK, its own directory and the NAMED pure modules listed in ADAPTIVE_PURE_IMPORTS - never io.mjs (the only module that writes), never main.mjs, cli.mjs or hook.mjs, never context.mjs, never the kernel or the host. It reads the state through a path-confined host PORT, so it needs no disk module at all.',
-    from: /^eip\/plugins\/adaptive-[^/]+\//,
-    allowPrefixes: ['eip/sdk/'],
-    allowExact: [...ADAPTIVE_PURE_IMPORTS],
-    allowSelfDepth: 3,
-  },
-  {
-    id: 'orchestration-uses-kernel-public-entry',
-    why: 'the agent gateway is a client of the kernel, not a part of it: it may import the kernel public entry and the SDK, not kernel internals.',
-    from: /^eip\/orchestration\//,
-    allowPrefixes: ['eip/sdk/'],
-    allowExact: ['eip/kernel/index.mjs'],
-    allowSelfDepth: 2,
-  },
-  {
-    id: 'host-composes-everything',
-    why: 'composition is the one place allowed to know all the parts - that is what makes the other layers independent. It may additionally import the three NAMED leaf modules of tools/gates listed in HOST_GATE_IMPORTS (the exclusion list, the evidence shape and the git-head reader), because those are facts about this repository that the host read ports and the gates must agree on exactly; everything else in tools/ stays out of reach.',
-    from: /^eip\/host\//,
-    allowPrefixes: ['eip/', 'examples/'],
-    allowExact: [...HOST_GATE_IMPORTS],
-  },
-  {
-    id: 'kernel-and-sdk-are-transport-free',
-    why: 'the runtime must not depend on a frontend or a transport. HTTP, sockets and the host live in eip/host.',
-    from: /^eip\/(sdk|kernel)\//,
-    denyPrefixes: ['eip/host/'],
-    denyExact: ['node:http', 'node:https', 'node:http2', 'node:net', 'node:tls', 'node:dgram'],
-  },
-  {
-    id: 'cellular-mode-is-runtime-independent',
-    why: 'Cellular Mode is a methodology. It must run in a repository that has no eip/ directory at all, so neither the CLI, the skills, the docs nor the optional adaptive module may import the runtime.',
-    from: /^(tools\/cellmode\/|tools\/adaptive\/|skills\/|docs\/|adapters\/|templates\/)/,
-    denyPrefixes: ['eip/'],
-  },
-  {
-    id: 'cellmode-does-not-depend-on-the-gates',
-    why: 'the method must keep working in a repository that has no tools/gates directory at all, so the CLI records a ✔ and PRINTS that completion is not yet authorized instead of checking the authorization itself. Article 8 is enforced by tools/gates, which may read the CLI; the arrow never points back.',
-    from: /^tools\/cellmode\//,
-    denyPrefixes: ['tools/gates/'],
-  },
-  {
-    id: 'adaptive-is-optional-and-isolated',
-    why: 'Cellular Adaptive is an OPTIONAL, experimental module: the method, the CLI, the Observer and the runtime must all keep working with tools/adaptive deleted, so none of them may import it. The host reads it through a port instead, and its own ALLOW rule already refuses the direct import; eip/plugins/adaptive-* is left out of THIS rule because cell 5 granted it one named allowlist in one place (adaptive-plugin-imports-only-named-pure-modules); every other plugin directory, including every observer-*, stays refused here.',
-    from: /^(tools\/cellmode\/|skills\/|docs\/|adapters\/|templates\/|eip\/(sdk|kernel)\/|eip\/plugins\/(?!adaptive-)[^/]+\/)/,
-    denyPrefixes: ['tools/adaptive/'],
-  },
-];
 
 /** @type {(rule: Rule, file: string, target: string) => boolean} */
 function allows(rule, file, target) {
@@ -152,10 +52,9 @@ function denies(rule, target) {
 const hasAllowList = (rule) => Boolean(rule.allowPrefixes || rule.allowExact || rule.allowSelfDepth);
 
 /**
- * PURE. `files` is `[{ path, text }]`. Returns `{ file, specifier, rule, why }`.
- * One import may violate more than one rule (a kernel file importing node:http
- * breaks both the allow list and the transport rule); both are reported, because
- * each is a separate claim a reader may care about.
+ * PURE. `files` is `[{ path, text }]`. Returns `{ file, specifier, rule, why }`. One import may
+ * violate more than one rule (a kernel file importing node:http breaks both the allow list and
+ * the transport rule); both are reported, because each is a separate claim a reader may care about.
  * @param {ReadonlyArray<FileTuple>} files @param {ReadonlyArray<Rule>} [rules]
  * @returns {Violation[]}
  */

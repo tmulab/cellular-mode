@@ -17,12 +17,17 @@ import { posix } from 'node:path';
 import { allFiles, read, report } from './helpers.mjs';
 
 /** The files that must keep working with the adaptive module deleted. `eip/host/adaptive-*`
- * is the module's own host half and is excluded: it is deleted along with it. */
+ * is the module's own host half and is excluded: it is deleted along with it. The `tests/`
+ * row was added in stage 5, cell 7: the repository-wide suites live there, they SURVIVE the
+ * deletion, and one of them (`upp-compat`) had acquired a static import of the optional
+ * plugin that only the slow rehearsal could see. A guard that cannot see the files the
+ * rehearsal runs is not the fast half of anything. */
 const SCOPE = Object.freeze([
   /^eip\/host\/(?!adaptive-)[^/]+\.mjs$/,
   /^apps\/observer\/(?!vendor\/).+\.mjs$/,
   /^tools\/cellmode\/.+\.mjs$/,
   /^eip\/plugins\/observer-[^/]+\/.+\.mjs$/,
+  /^tests\/(?!adaptive-integration\.|gates-adaptive-boundary\.)[^/]+\.mjs$/,
 ]);
 
 /** Repo-relative prefixes that ARE the optional module. A resolved specifier starting with one
@@ -33,9 +38,15 @@ const OPTIONAL = Object.freeze([
   'eip/host/adaptive-read-port',
 ]);
 
-/** The ONE module allowed to name an optional specifier at all, and only in a dynamic
+/** The module allowed to name an optional specifier at all, and only in a dynamic
  * `import()`: it is the composition, it runs behind the flag, and it answers `null`. */
 const COMPOSITION = 'eip/host/observer-composition.mjs';
+
+/** The two files allowed a DYNAMIC optional specifier, each for the same reason: they check
+ * whether the module is in the checkout and carry on without it. The compat suite is the
+ * second one — it maps every plugin manifest present, and "present" is a fact it reads rather
+ * than assumes. A third entry here should be argued for, not added. */
+const DYNAMIC_ALLOWED = Object.freeze([COMPOSITION, 'tests/upp-compat.test.mjs']);
 
 /** The smallest scope this test is still meaningful at. Mutating `SCOPE` to narrow the search
  * turns the whole file green for the wrong reason; these two numbers refuse that. */
@@ -140,7 +151,7 @@ test('optional module · only the composition names it, and only in a dynamic im
   /** @type {string[]} */
   const offenders = [];
   for (const rel of scoped) {
-    if (rel === COMPOSITION) continue;
+    if (DYNAMIC_ALLOWED.includes(rel)) continue;
     for (const { spec, line } of dynamicSpecifiers(read(rel))) {
       const resolved = resolveSpecifier(rel, spec);
       if (resolved !== null && isOptional(resolved)) offenders.push(`${rel}:${line}: ${spec}`);

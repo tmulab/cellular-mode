@@ -1,0 +1,51 @@
+{
+  "name": "03-capabilities",
+  "why": "upp.capabilities answers the capability table. Checked by SHAPE, not byte equality: the exact manifest is already pinned at initialize, and a hand-written implementation is allowed to emit this projection as a literal.",
+  "requests": [
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "upp.initialize",
+        "params": {
+          "protocolVersions": [
+            "1.0"
+          ],
+          "host": {
+            "name": "upp-conformance",
+            "version": "1.0",
+            "capabilities": {}
+          },
+          "config": {}
+        }
+      }
+    },
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "upp.capabilities",
+        "params": {}
+      }
+    }
+  ],
+  "expect": [
+    {
+      "id": 1,
+      "resultShape": {
+        "protocolVersion": "1.0"
+      },
+      "manifestPin": true
+    },
+    {
+      "id": 2,
+      "resultShape": {
+        "capabilities": {
+          "wordcount": {
+            "consequential": false
+          }
+        }
+      }
+    }
+  ]
+}

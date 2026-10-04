@@ -15,6 +15,7 @@ let app = null;
 let port = 0;
 /** Flips the stub into a server that never answers, for the timeout case. */
 let silent = false;
+let upstreamPort = 0;
 
 /** @param {string} path @param {string} method @param {string} [body]
  * @returns {Promise<{ status: number, body: string }>} */
@@ -46,13 +47,16 @@ before(async () => {
       res.end(JSON.stringify({ ok: true, value: { seen: req.url } }));
     });
   });
-  const upstreamPort = await new Promise((resolve) => {
+  upstreamPort = await new Promise((resolve) => {
     upstream.listen(0, BIND_ADDRESS, () => {
       const address = upstream.address();
       resolve(typeof address === 'object' && address !== null ? address.port : 0);
     });
   });
-  const server = createAppServer({ upstreamPort, maxBodyBytes: 256, timeoutMs: 300 });
+  // A realistic deadline for every ordinary case: a short one here made them answer 504 when the
+  // whole suite ran under load (found by Article 8's final verification, 2026-10-03). The
+  // timeout case gets its own server with the short deadline below.
+  const server = createAppServer({ upstreamPort, maxBodyBytes: 256, timeoutMs: 10_000 });
   ({ port } = await server.listen(0));
   app = server;
 });
@@ -122,13 +126,19 @@ describe('D4 · the limits are the edge, not the host', () => {
   });
 
   test('a silent upstream is 504 after the deadline, not a hung page', async () => {
+    const short = createAppServer({ upstreamPort, maxBodyBytes: 256, timeoutMs: 300 });
+    const saved = port;
+    ({ port } = await short.listen(0));
     silent = true;
     try {
       const answer = await call('/api/v1/health');
       assert.equal(answer.status, 504);
       assert.match(answer.body, /"code":"UPSTREAM_TIMEOUT"/);
+      assert.match(answer.body, /300 ms/, 'the short deadline is the one that fired');
     } finally {
       silent = false;
+      port = saved;
+      await short.close();
     }
   });
 

@@ -1,0 +1,45 @@
+{
+  "name": "08-unknown-method",
+  "why": "A method outside UPP 1.0. -32601, and the conversation survives it.",
+  "requests": [
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "upp.initialize",
+        "params": {
+          "protocolVersions": [
+            "1.0"
+          ],
+          "host": {
+            "name": "upp-conformance",
+            "version": "1.0",
+            "capabilities": {}
+          },
+          "config": {}
+        }
+      }
+    },
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "upp.frobnicate",
+        "params": {}
+      }
+    }
+  ],
+  "expect": [
+    {
+      "id": 1,
+      "resultShape": {
+        "protocolVersion": "1.0"
+      },
+      "manifestPin": true
+    },
+    {
+      "id": 2,
+      "code": -32601
+    }
+  ]
+}

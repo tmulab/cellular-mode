@@ -1,0 +1,55 @@
+{
+  "name": "04-execute-ok",
+  "why": "The one capability, on the happy path. Words are runs of non-whitespace, so the answer is exact and every language must agree on it.",
+  "requests": [
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "upp.initialize",
+        "params": {
+          "protocolVersions": [
+            "1.0"
+          ],
+          "host": {
+            "name": "upp-conformance",
+            "version": "1.0",
+            "capabilities": {}
+          },
+          "config": {}
+        }
+      }
+    },
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "upp.execute",
+        "params": {
+          "capability": "wordcount",
+          "input": {
+            "text": "the  quick\tbrown\nfox jumps"
+          },
+          "deadlineMs": 5000
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "id": 1,
+      "resultShape": {
+        "protocolVersion": "1.0"
+      },
+      "manifestPin": true
+    },
+    {
+      "id": 2,
+      "result": {
+        "output": {
+          "words": 5
+        }
+      }
+    }
+  ]
+}

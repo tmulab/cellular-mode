@@ -1,0 +1,30 @@
+{
+  "upp": "1.0",
+  "id": "text.wordcount",
+  "version": "1.0.0",
+  "description": "The UPP 1.0 conformance reference plugin. One capability, counting the words in a text. Every implementation in every language must serve THIS manifest: the host pins its canonical SHA-256, so a single changed character in any field is a refusal.",
+  "type": "capability",
+  "runtime": "process",
+  "entry": { "command": ["per-implementation", "see upp/conformance/README.md"] },
+  "capabilities": {
+    "wordcount": {
+      "description": "Count the words in a text. Words are runs of non-whitespace.",
+      "consequential": false,
+      "input": {
+        "type": "object",
+        "properties": { "text": { "type": "string", "maxLength": 4096 } },
+        "required": ["text"],
+        "additionalProperties": false
+      },
+      "output": {
+        "type": "object",
+        "properties": { "words": { "type": "integer", "minimum": 0 } },
+        "required": ["words"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "health": { "method": "upp.health" },
+  "lifecycle": { "startupTimeoutMs": 20000, "shutdownTimeoutMs": 2000 },
+  "extensions": {}
+}

@@ -4,6 +4,9 @@
   approval states the rule as: complex production interfaces remain independent
   applications communicating through defined APIs; simple plugin interfaces
   remain optional.
+- **Amended 2026-10-03; amendment approved by Hudson A. R. Bonomo, 2026-10-04:** see
+  *Amendment — application plugins* at the end. The decision below is unchanged;
+  the amendment only names a way to REGISTER an independent frontend.
 - **Date:** 2026-10-02
 - **Deciders:** Hudson A. R. Bonomo (approver), with the implementation agent as
   proposer
@@ -87,3 +90,30 @@ production use of a diagnostics surface.
 - **A generated client committed as runtime code (rejected).** A dependency
   nobody reads. A hand-written example client plus a validated contract gives the
   same integration path with none of the opacity.
+
+## Amendment — application plugins (2026-10-03, PENDING human confirmation)
+
+UPP 1.0 adds a plugin **kind** for this exact case, and it does not weaken the
+decision above. An independent frontend **MAY** optionally be registered as an
+application plugin (`type: "application"`, `docs/upp/APPLICATIONS.md`).
+
+**Registration is identity, not in-process execution.** The kernel never loads an
+application, never proxies its frontend, never gives it a service, a port or a
+capability. What registration adds is a reviewed name: a pinned manifest, an
+operator authorisation, a health state, and a line in `GET /api/v1/plugins`. The
+app still runs on its own, still brings its own build and routing, and still
+reaches the runtime **only** through `api/openapi.json` over HTTP, from its own
+server — points 1–4 of the decision stand word for word.
+
+What this buys: "everything is a plugin" becomes true for interfaces without a
+toolchain entering the runtime (ADR 0002 intact, measured by U32), and an
+operator can see the UI in the same inventory as everything else instead of in a
+deployment script nobody reads.
+
+What it deliberately does **not** buy: no CORS by default, no kernel port, no
+session handling in the host, no frontend code in `eip/`, no new route. An app
+that also wants to *provide* capabilities ships a second, ordinary capability
+manifest — so identity never implies execution.
+
+Registration stays **optional**: an independent frontend that is never listed in
+`upp.config.json` keeps working exactly as this ADR describes.

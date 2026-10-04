@@ -33,7 +33,7 @@
         "summary": "Public metadata of every registered plugin: no executable, no dev-UI body.",
         "responses": {
           "200": {
-            "description": "One entry per plugin. `capabilities`, `inject` and `config` are keyed by name, so they are described as open objects.",
+            "description": "One entry per plugin. `capabilities`, `inject` and `config` are keyed by name, so they are described as open objects. `applications` appears ONLY when this host registered an application plugin (UPP `type: \"application\"`): an independently executed app the kernel never loads, listed beside the plugins with its supervision mode and health. A client that ignores the key sees the response it always saw.",
             "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PluginListResult" } } }
           },
           "405": {
@@ -1072,13 +1072,29 @@
           "value": {
             "type": "object",
             "properties": {
-              "plugins": { "type": "array", "items": { "$ref": "#/components/schemas/PluginDescription" } }
+              "plugins": { "type": "array", "items": { "$ref": "#/components/schemas/PluginDescription" } },
+              "applications": { "type": "array", "items": { "$ref": "#/components/schemas/ApplicationDescription" } }
             },
             "required": ["plugins"],
             "additionalProperties": false
           }
         },
         "required": ["ok", "value"],
+        "additionalProperties": false
+      },
+      "ApplicationDescription": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "minLength": 3 },
+          "kind": { "type": "string", "enum": ["application"] },
+          "supervision": { "type": "string", "enum": ["managed", "external"] },
+          "state": { "type": "string", "enum": ["registered", "starting", "healthy", "unhealthy", "stopped"] },
+          "baseUrl": { "type": "string", "minLength": 8 },
+          "routes": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "auth": { "type": "string", "enum": ["host-session", "none-local"] },
+          "restarts": { "type": "integer", "minimum": 0 }
+        },
+        "required": ["id", "kind", "supervision", "state", "baseUrl", "routes", "auth", "restarts"],
         "additionalProperties": false
       },
       "PluginDescription": {

@@ -1,0 +1,91 @@
+{
+  "upp": "1.0",
+  "id": "fixture.node-plugin",
+  "version": "1.0.0",
+  "description": "A test plugin for the UPP process and HTTP transports. Every capability is a named misbehaviour, so a host test can reach a failure path on purpose instead of hoping for one.",
+  "type": "capability",
+  "runtime": "process",
+  "entry": { "command": ["node", "node-plugin.mjs"] },
+  "capabilities": {
+    "echo": {
+      "description": "Return the text, plus the deadline the host declared.",
+      "consequential": false,
+      "input": {
+        "type": "object",
+        "properties": { "text": { "type": "string", "maxLength": 4096 } },
+        "required": ["text"],
+        "additionalProperties": false
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "text": { "type": "string" },
+          "deadlineMs": { "type": "integer" },
+          "sawEnvCanary": { "type": "boolean" }
+        },
+        "required": ["text", "deadlineMs", "sawEnvCanary"],
+        "additionalProperties": false
+      }
+    },
+    "slow": {
+      "description": "Never answer. The host deadline is the only thing that ends this call.",
+      "consequential": false,
+      "input": { "type": "object", "additionalProperties": false },
+      "output": { "type": "object" }
+    },
+    "badout": {
+      "description": "Answer with an output that does not match the declared schema.",
+      "consequential": false,
+      "input": { "type": "object", "additionalProperties": false },
+      "output": {
+        "type": "object",
+        "properties": { "text": { "type": "string" } },
+        "required": ["text"],
+        "additionalProperties": false
+      }
+    },
+    "boom": {
+      "description": "Answer with a JSON-RPC error claiming host authority, to prove it is downgraded.",
+      "consequential": false,
+      "input": { "type": "object", "additionalProperties": false },
+      "output": { "type": "object" }
+    },
+    "crash": {
+      "description": "Exit the process mid-request, leaving the call pending.",
+      "consequential": false,
+      "input": { "type": "object", "additionalProperties": false },
+      "output": { "type": "object" }
+    },
+    "garbage": {
+      "description": "Write a line to stdout that is not JSON, desynchronising the stream.",
+      "consequential": false,
+      "input": { "type": "object", "additionalProperties": false },
+      "output": { "type": "object" }
+    },
+    "oversize": {
+      "description": "Write a single line larger than the one-mebibyte frame cap.",
+      "consequential": false,
+      "input": { "type": "object", "additionalProperties": false },
+      "output": { "type": "object" }
+    },
+    "destroy": {
+      "description": "A consequential capability. It must never be reached without an approval.",
+      "consequential": true,
+      "input": { "type": "object", "additionalProperties": false },
+      "output": { "type": "object" }
+    }
+  },
+  "config": {
+    "type": "object",
+    "properties": {
+      "wrongManifest": { "type": "boolean" },
+      "silentInit": { "type": "boolean" },
+      "ignoreShutdown": { "type": "boolean" },
+      "stderrNoise": { "type": "boolean" }
+    },
+    "additionalProperties": false
+  },
+  "health": { "method": "upp.health" },
+  "lifecycle": { "startupTimeoutMs": 5000, "shutdownTimeoutMs": 2000 },
+  "extensions": {}
+}

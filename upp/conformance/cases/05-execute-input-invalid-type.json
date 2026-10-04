@@ -1,0 +1,50 @@
+{
+  "name": "05-execute-input-invalid-type",
+  "why": "The declared input type is violated. The plugin is the one that sees the input first, so -32602 is its answer to give.",
+  "requests": [
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "upp.initialize",
+        "params": {
+          "protocolVersions": [
+            "1.0"
+          ],
+          "host": {
+            "name": "upp-conformance",
+            "version": "1.0",
+            "capabilities": {}
+          },
+          "config": {}
+        }
+      }
+    },
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "upp.execute",
+        "params": {
+          "capability": "wordcount",
+          "input": {
+            "text": 7
+          }
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "id": 1,
+      "resultShape": {
+        "protocolVersion": "1.0"
+      },
+      "manifestPin": true
+    },
+    {
+      "id": 2,
+      "code": -32602
+    }
+  ]
+}

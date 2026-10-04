@@ -1,0 +1,17 @@
+{
+  "upp": "1.0",
+  "id": "example.nextjs-ui",
+  "version": "1.0.0",
+  "description": "An example Next.js application plugin: its own server, its own sessions.",
+  "type": "application",
+  "runtime": "http",
+  "entry": { "baseUrl": "http://127.0.0.1:3200" },
+  "capabilities": {},
+  "application": {
+    "baseUrl": "http://127.0.0.1:3200",
+    "healthPath": "/api/healthz",
+    "routes": ["/", "/cells", "/cells/[slug]"],
+    "auth": "host-session",
+    "cors": { "allowedOrigins": [] }
+  }
+}

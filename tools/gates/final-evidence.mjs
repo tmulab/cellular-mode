@@ -14,7 +14,14 @@
 //
 // FAIL CLOSED: `parseFinalRecord` answers `null` for anything it does not fully recognise.
 
-/** @typedef {{ name: string, exit: number, summary: string }} CheckRecord */
+// The `counts`/`skips` fields on a check are OPTIONAL: a check that cannot report numbers
+// (typecheck, the static gates) omits them, and an older record stays readable. See
+// ./test-counts.mjs for why a green tests check with no count was a weakness.
+import { withMeasurements } from './test-counts.mjs';
+
+/** @typedef {import('./test-counts.mjs').TestCounts} TestCounts */
+/** @typedef {{ name: string, exit: number, summary: string, counts?: TestCounts,
+ *   skips?: string[] }} CheckRecord */
 /** @typedef {{ schema: string, at: string, fingerprint: string, tree: string,
  *   head: string | null, checks: CheckRecord[], ok: boolean, reason: string,
  *   after?: string }} FinalRecord */
@@ -86,7 +93,7 @@ export function finalRecord(input) {
     fingerprint,
     tree,
     head: typeof head === 'string' && head !== '' ? head : null,
-    checks: checks.map((c) => ({ name: c.name, exit: c.exit, summary: c.summary })),
+    checks: checks.map((c) => withMeasurements({ name: c.name, exit: c.exit, summary: c.summary }, c)),
     ok,
     reason,
     ...(input.after === undefined || input.after === fingerprint ? {} : { after: input.after }),
@@ -101,7 +108,8 @@ function parseCheck(value) {
   const exit = raw['exit'];
   if (typeof name !== 'string' || name === '') return null;
   if (typeof exit !== 'number' || !Number.isInteger(exit)) return null;
-  return { name, exit, summary: typeof raw['summary'] === 'string' ? raw['summary'] : '' };
+  const base = { name, exit, summary: typeof raw['summary'] === 'string' ? raw['summary'] : '' };
+  return withMeasurements(base, { counts: raw['counts'], skips: raw['skips'] });
 }
 
 /**

@@ -1,0 +1,17 @@
+{
+  "upp": "1.0",
+  "plugins": [],
+  "applications": [
+    {
+      "id": "example.nextjs-ui",
+      "supervision": "managed",
+      "command": ["node", "node_modules/next/dist/bin/next", "start", "--port", "3200", "--hostname", "127.0.0.1"],
+      "cwd": "./examples/upp-app-nextjs/app",
+      "env": ["UPP_HOST_API", "SESSION_SECRET"],
+      "manifestPath": "./examples/upp-app-nextjs/manifest.json",
+      "manifestSha256": "266e6318eeb13e9a54d5b587d7c57cd461ae46f47c3fee46d15120c7524a1721",
+      "timeouts": { "startupMs": 30000, "requestMs": 2000, "shutdownMs": 5000 },
+      "restart": false
+    }
+  ]
+}

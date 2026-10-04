@@ -19,6 +19,7 @@ export {
   KEY_PATTERN,
   MAX_DEV_UI_BYTES,
   PERMISSIONS,
+  SEMVER_PATTERN,
   describeManifest,
   validateManifest,
 } from './manifest.mjs';

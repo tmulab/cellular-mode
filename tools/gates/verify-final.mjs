@@ -22,8 +22,10 @@ import {
   FINAL_EVIDENCE_FILE, FINAL_EVIDENCE_PATH, FINAL_EVIDENCE_SEGMENTS,
   finalRecord, sanitizeSummary, verdict,
 } from './final-evidence.mjs';
+import { countsSummary, parseTestCounts, skipLines } from './test-counts.mjs';
 
 /** @typedef {import('./final-evidence.mjs').FinalRecord} FinalRecord */
+/** @typedef {import('./final-evidence.mjs').CheckRecord} CheckRecord */
 /** @typedef {{ exit: number, output: string }} CheckOutcome */
 /** @typedef {{ name: string, run: (root: string) => CheckOutcome }} Check */
 
@@ -96,13 +98,26 @@ export function runFinalVerification(options = {}) {
   const now = options.now ?? (() => new Date().toISOString());
   const before = repoState(root);
   assertEvidenceOutside(before.entries);
-  /** @type {Array<{ name: string, exit: number, summary: string }>} */
+  /** @type {CheckRecord[]} */
   const checks = [];
   for (const check of suite) {
     const outcome = check.run(root);
-    const summary = sanitizeSummary(outcome.output, root);
-    checks.push({ name: check.name, exit: outcome.exit, summary });
-    options.onProgress?.(`${outcome.exit === 0 ? '✅' : '❌'} ${check.name} — exit ${outcome.exit}`);
+    // A check that printed `node --test` counts is recorded WITH them: "exit 0" alone is a
+    // claim nobody can audit (./test-counts.mjs). Checks with no counts are unchanged, and
+    // the counts never decide the verdict — the exit code does.
+    const counts = parseTestCounts(outcome.output);
+    const skips = skipLines(outcome.output).map((line) => sanitizeSummary(line, root));
+    const summary = counts === null
+      ? sanitizeSummary(outcome.output, root)
+      : countsSummary(counts);
+    checks.push({
+      name: check.name, exit: outcome.exit, summary,
+      ...(counts === null ? {} : { counts }),
+      ...(skips.length === 0 ? {} : { skips }),
+    });
+    options.onProgress?.(`${outcome.exit === 0 ? '✅' : '❌'} ${check.name} — exit ${outcome.exit}`
+      + `${counts === null ? '' : ` · ${countsSummary(counts)}`}`);
+    for (const line of skips) options.onProgress?.(`   ﹣ skipped: ${line}`);
   }
   const after = fingerprintRepo(root);
   const diff = diffEntries(before.entries, after.entries);

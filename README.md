@@ -110,13 +110,15 @@ dropped by the gateway.
 ⚠️ **TRUSTED LOCAL PLUGINS ONLY. Plugins run in-process with full Node privileges — permissions and ports are a
 least-privilege contract, NOT a security sandbox.** Treat plugin code as trusted first-party code; untrusted
 plugins need isolation this runtime does not have: [`SECURITY.md`](SECURITY.md).
-Threat model: [`docs/09-architecture.md`](docs/09-architecture.md) §9 · contract: [`eip/sdk/README.md`](eip/sdk/README.md)
-· API: [`api/openapi.json`](api/openapi.json) · client: [`examples/api-client/`](examples/api-client/).
+Threat model: [`docs/09-architecture.md`](docs/09-architecture.md) §9 · contract: [`eip/sdk/README.md`](eip/sdk/README.md) · API: [`api/openapi.json`](api/openapi.json) · client: [`examples/api-client/`](examples/api-client/).
 
 **Optional: the Cellular Observer.** A local, read-only dashboard over a vault — counts, cells table, cell
 detail, timeline, a dependency graph in 2D with an optional 3D view, a deterministic audit area and a
 disabled-by-default advisor. `node apps/observer/cli.mjs --root <project>`, loopback only, no build step, no
 network: [`apps/observer/README.md`](apps/observer/README.md) · [`OBSERVER_REPORT.md`](OBSERVER_REPORT.md) · [ADR 0003](docs/adr/0003-observer-frontend.md).
+
+**Optional: UPP — a plugin written in another language.** UPP 1.0 is the host↔plugin contract: JSON-RPC 2.0 over NDJSON on stdio, over HTTP POST, or in-process — one protocol, three transports, registered into the *same* kernel through an adapter, so manifest validation, the approval gate, deadlines, cancellation and events all stay exactly where they were. Node, Python 3, Java 21 and Rust pass the same conformance corpus (`npm run upp:conformance`, 11 cases each); the C++ example ships as source and is **UNEXECUTED**. A separate process is **failure isolation, not a sandbox** — the scope is still trusted local plugins: [`docs/upp/SPEC.md`](docs/upp/SPEC.md) · [`SECURITY-REVIEW.md`](docs/upp/SECURITY-REVIEW.md) · [`UPP_REPORT.md`](UPP_REPORT.md) · [ADR 0005](docs/adr/0005-universal-plugin-protocol.md).
+**Independent CI — implemented, NOT yet run on GitHub.** [`.github/workflows/verify.yml`](.github/workflows/verify.yml) re-runs typecheck, module load, the suite, the gates, the release gate, the cell-state check and the polyglot conformance on a clean checkout, then compares each commit's Article-8 `Verified-State` trailer with the tree it records. `contents: read` only, no secret, every action pinned by commit SHA: [`tools/gates/CI.md`](tools/gates/CI.md).
 
 ## Cellular Adaptive (optional, experimental)
 
@@ -137,8 +139,7 @@ Agent-neutral: a tool needs only to read `AGENTS.md` and write under `vault/stat
 | Cursor | `adapters/cursor/` — an always-applied rule pointing at `AGENTS.md` |
 | Codex CLI, Gemini CLI, Copilot, Aider, generic chat | the per-tool table in [`adapters/README.md`](adapters/README.md) |
 
-**Honesty:** for Claude Code, skill **discovery** and **invocation** are VERIFIED live — all eleven skills were listed and
-`cell` was invoked through the pointer and followed (the other ten share the identical pointer shape but were not individually invoked). Every other adapter is **untested** — documented conventions only.
+**Honesty:** for Claude Code, skill **discovery** and **invocation** are VERIFIED live — all eleven skills were listed and `cell` was invoked through the pointer and followed (the other ten share the identical pointer shape but were not individually invoked). Every other adapter is **untested** — documented conventions only.
 
 ## Documentation
 
@@ -149,7 +150,7 @@ Agent-neutral: a tool needs only to read `AGENTS.md` and write under `vault/stat
 | [`docs/03-state-and-memory.md`](docs/03-state-and-memory.md) · [`04-collaboration.md`](docs/04-collaboration.md) | the five state files, formats, projection principle, integrity guard · handoff contracts and the approval boundary |
 | [`docs/06-context-engineering.md`](docs/06-context-engineering.md) · [`07-adaptation.md`](docs/07-adaptation.md) · [`08-agent-integration.md`](docs/08-agent-integration.md) | four context levels, recovery after compaction, injection stance · protocol vs profile and the adaptation test · integrating any agent |
 | [`docs/09-architecture.md`](docs/09-architecture.md) | the three domains, layers, dependency direction, authority, threat model |
-| [`docs/adr/`](docs/adr/) · [`SECURITY.md`](SECURITY.md) | architecture decision records (both **accepted**, 2026-10-02) · supported scope, threat model, what is and is not enforced |
+| [`docs/adr/`](docs/adr/) · [`docs/upp/`](docs/upp/SPEC.md) · [`SECURITY.md`](SECURITY.md) | five architecture decision records (all approved) · the language-neutral host↔plugin protocol, UPP 1.0, implemented and **experimental** · supported scope, threat model, what is and is not enforced |
 
 Templates: [`templates/`](templates/) — user profile, cell contract (with the full worked form: question → pre-committed decisions → declared scope → mechanical criteria with red-proof → verdict), handoff package, project policy. **Example:** [`examples/text-stats/`](examples/text-stats/) — a small project built through three cells, with its vault, code, tests and a reproduce script. [`vault/state/`](vault/state/) here is *this* repository's own development record, written by the real CLI; adopters run `init` in their own project.
 Reports: [`CONTEXT_AUDIT.md`](CONTEXT_AUDIT.md) · [`MIGRATION_REPORT.md`](MIGRATION_REPORT.md) · [`ARCHITECTURE_REPORT.md`](ARCHITECTURE_REPORT.md) · [`ADAPTIVE_REPORT.md`](ADAPTIVE_REPORT.md) · [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md).
@@ -164,8 +165,7 @@ npm run trilateral        # typecheck · build · tests — three honest lines w
 node tools/cellmode/cli.mjs check && node examples/text-stats/reproduce.mjs   # state guard; example
 ```
 
-**Zero RUNTIME dependencies, two development ones** (`typescript`, `@types/node`, pinned exactly) so the typecheck leg is a
-measurement, not a label — R-1 WITHDRAWN ([`policy/relaxations.md`](policy/relaxations.md), [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)). Without them it falls back to `node --check`, labelled **UNAVAILABLE (UNKNOWN)**: a gate that cannot run is not a pass.
+**Zero RUNTIME dependencies, two development ones** (`typescript`, `@types/node`, pinned exactly) so the typecheck leg is a measurement, not a label — R-1 WITHDRAWN ([`policy/relaxations.md`](policy/relaxations.md), [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)). Without them it falls back to `node --check`, labelled **UNAVAILABLE (UNKNOWN)**: a gate that cannot run is not a pass.
 **Contributing:** work in cells, write in English, include no personal data, run `npm test` — see [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Implemented vs experimental vs proposed
@@ -173,9 +173,9 @@ measurement, not a label — R-1 WITHDRAWN ([`policy/relaxations.md`](policy/rel
 | Status | What |
 |---|---|
 | **Implemented** | The method documentation (`docs/`, `templates/`) and the two procedures as agent-neutral prose (`skills/`). The `cellmode` CLI — a deterministic implementation of the file protocol. The optional `key-audit` tool. The four gates and the Trilateral runner (`tools/gates/`). Tests, run with `npm test`. |
-| **Implemented — minimal, experimental API (v1)** | The **Everything Is a Plugin** runtime: SDK contract and validators, kernel (register / load / dispose / execute / events), two example plugins, three optional `observer.*` plugins with the `apps/observer/` application, the HTTP host with `api/openapi.json`, the agent gateway. Each has acceptance criteria and a recorded mutation verdict (`eip/*/ACCEPTANCE.md`). **Local development only**, API not frozen: no authentication, no rate limiting, loopback-bound, **trusted local plugins only** ([`SECURITY.md`](SECURITY.md)). |
+| **Implemented — minimal, experimental API (v1)** | The **Everything Is a Plugin** runtime: SDK contract and validators, kernel (register / load / dispose / execute / events), two example plugins, three optional `observer.*` plugins with the `apps/observer/` application, the HTTP host with `api/openapi.json`, the agent gateway, and **UPP 1.0** — the host↔plugin protocol with its three transports, its polyglot conformance corpus and the application-plugin kind. Each has acceptance criteria and a recorded mutation verdict (`eip/*/ACCEPTANCE.md`). **Local development only**, API not frozen: no authentication, no rate limiting, loopback-bound, **trusted local plugins only** ([`SECURITY.md`](SECURITY.md)). |
 | **Experimental / untested** | Adapters for every tool other than Claude Code: Cursor, OpenAI Codex CLI, Gemini CLI, GitHub Copilot, Aider, generic chat — documented conventions, not live runs. For Claude Code, skill *invocation* (discovery is verified). |
-| **Proposed — not built** | Workflow orchestration: multi-step workflows, planners, multi-agent delegation, durable audit (`eip/orchestration/README.md`). Plugin discovery from disk, hot reload, sandboxed execution of untrusted plugins, process isolation (`docs/09-architecture.md` §4). Multi-agent locking — "one active cell" is a convention checked after the fact, not a lock. |
+| **Proposed — not built** | Workflow orchestration: multi-step workflows, planners, multi-agent delegation, durable audit (`eip/orchestration/README.md`). Plugin discovery from disk, hot reload, sandboxed execution of untrusted plugins — UPP's process transport is *failure* isolation, never confinement (`docs/09-architecture.md` §4, `docs/upp/SECURITY-REVIEW.md` §3); gRPC and WASM transports, an MCP bridge, ports and sibling calls for external plugins (`docs/upp/SPEC.md` §12). Multi-agent locking — "one active cell" is a convention checked after the fact, not a lock. |
 | **Out of scope by decision** | A production frontend *inside* the runtime: complex UIs are independent applications consuming `api/openapi.json`, never plugins — [ADR 0001](docs/adr/0001-frontend-exception.md), [ADR 0003](docs/adr/0003-observer-frontend.md). No framework, no build step, no Next.js. |
 
 ## Authorship and origins

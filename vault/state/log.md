@@ -341,3 +341,75 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** no --no-verify; the commit must carry the Verified-State trailer
 **Build:** green
 **Next step:** —
+
+---
+## 2026-10-03 14:32 · Cell: UPP audit and specification
+**Status:** ✔
+**Facts:** docs/upp/AUDIT.md (30 capabilities with file:line evidence: 14 exist and are reused, 13 to build, 3 out of scope), docs/upp/SPEC.md + SPEC-MESSAGES.md (UPP 1.0 on JSON-RPC 2.0, NDJSON over stdio, existing schema subset, error mapping onto the closed kernel CODES with PASSTHROUGH preventing forged authority codes), docs/upp/ACCEPTANCE.md U1-U41, ADR 0005 pending human confirmation; api/openapi.json unaffected
+**Decisions:** optional config member on upp.initialize approved by the lead (an out-of-process plugin must receive its validated config); PLUGIN_UNAVAILABLE maps onto PLUGIN_ERROR, no new kernel code
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 14:55 · Cell: UPP manifests and message contracts
+**Status:** ✔
+**Facts:** eip/upp pure modules (version negotiation, JSON-RPC envelopes and framing limits, error mapping with remote authority codes forced to PLUGIN_ERROR, manifest with argv-array entries and closed security sections, compat toUppManifest for all six existing plugins) + upp/schemas JSON generated from the JS source with a drift check; three new boundary rules; 82 new tests, 822/822; 5 mutations red; a false green in the drift test (the test regenerated what it checked) found by mutation and fixed structurally
+**Decisions:** published JSON schemas state shape only; conditional rules live in validateUppManifest and the asymmetry is tested both ways
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 15:39 · Cell: UPP transports and external processes
+**Status:** ✔
+**Facts:** eip/upp-host: strict operator config with manifest sha256 pin, single spawn site with shell false and argv array, minimal env, NDJSON byte-chunk framing (defect found: a line was extracted before measuring, so 9 bytes passed an 8-byte cap; fixed test-first), handshake judged on version and identity, one-answer-per-id correlation, lifecycle with health and at most one restart, http transport loopback by default without redirects, registerUppPlugin into the existing kernel (no ports, consequential preserved, approval before transport proven); RULES table moved to tools/gates/rules.mjs; 58 + boundary tests, 890/890; 9 mutations red
+**Decisions:** U10 (in-process UPP equivalence) left PROPOSED here and moved to cell 4 conformance; allowNetwork true refused as not implemented; external plugins cannot call siblings in v1
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 17:23 · Cell: UPP polyglot conformance
+**Status:** ✔
+**Facts:** upp/conformance corpus (11 JSON cases + reference manifest text.wordcount); one runner through the existing single spawn site; matrix executed this cell: in-process JS (U10) 11/11, node 11/11, python 3.13 11/11, java 21 11/11, rust 1.91 std-only 11/11, cpp UNEXECUTED (no compiler, source only); skip-is-not-pass proven with a synthetic absent-toolchain row after two mutations came back false green; 11 mutations, 2 recorded as unreachable defence-in-depth; flaky 400 ms default deadline raised to 5 s; 914/914 tests
+**Decisions:** no toolchain installed or package fetched; Java located via JAVA_HOME, never a hard-coded path
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 17:37 · Cell: Verification fragility fixes
+**Status:** ✔
+**Facts:** Article 8 refused cell 4: its first final verification FAILED (3 observer proxy tests got 504 because one 300 ms deadline was shared by every case under load; python skipped because the WindowsApps alias printed nothing under load), although the cell had reported 914/914; fixes: ordinary proxy cases use a 10 s deadline and the timeout case its own 300 ms server (asserting the short deadline fired); probe retries only exit-0-with-no-output at most twice, with 3 new tests proving a real silence or a non-zero exit is still reported (mutation red)
+**Decisions:** a cell's own green run is not authorization; only verify:final on the final state is
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 18:20 · Cell: UPP application plugins
+**Status:** ✔
+**Facts:** application plugins: closed application section (relative health and route paths, exact CORS origins, capabilities empty), operator applications list with managed or external supervision, origin-locked no-redirect health checks, registry state machine with one restart max via the existing spawn site, adapter refuses application manifests (no kernel service or port), optional applications array in GET /api/v1/plugins (OpenAPI additive), runnable fixture app proving the client direction (its consequential call gets 403 APPROVAL_REQUIRED without approver); defect found: startup probe marked an app unhealthy before it bound, fixed; ADR 0001 amended pending human confirmation; Next.js example manifest validates, code UNTESTED; 22 new tests, 939/939; 6 mutations red
+**Decisions:** registration is not in-process execution; an application is a client of the host API, never a kernel participant
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 18:59 · Cell: Independent CI verification
+**Status:** ✔
+**Facts:** GitHub Actions workflow .github/workflows/verify.yml (push and pull_request only, contents read only, no secrets, persist-credentials false, actions pinned by SHA: checkout v7.0.1, setup-node v7.0.0, setup-python v7.0.0, setup-java v6.0.1) re-runs the whole mandatory suite plus conformance on a clean runner; tools/gates/ci-trailer.mjs compares the Verified-State tree with the real commit tree (local run: HEAD b92c7c8 MATCH, full history 1 MATCH and 9 PRE_ARTICLE_8); verify-final now records tests/pass/fail/skipped and lists skips; lead added a guard test that every piped step declares shell bash so pipefail applies (mutation red); workflow NOT yet run on GitHub; branch protection only recommended
+**Decisions:** the trailer is a claim about a tree, never proof that tests passed; CI's own run is the evidence; pre-Article-8 commits are reported, never failed, never backfilled
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-03 19:35 · Cell: UPP security review and closure
+**Status:** ✔
+**Facts:** docs/upp/SECURITY-REVIEW.md (9 trust boundaries with threat, control, executed test and residual risk; in-process stays trusted-local-only; process isolation is not a sandbox), SECURITY.md section, UPP_REPORT.md, docs/09 + README + docs/06 + checklist items 44-50; defect found: AD29 had regressed (a UPP compat test statically imported the optional adaptive plugin; the static guard excluded tests/) and the rehearsal is not in the mandatory suite, fixed test-first by widening the guard into npm test and loading the plugin dynamically; over-broad pause-trigger guard rescoped with 2 mutations; regression versus b92c7c8 limited to 4 justified files, tools/cellmode and tools/adaptive unchanged; conformance 5 implementations 11/11, cpp UNEXECUTED; CI workflow never run on GitHub
+**Decisions:** Stage 5 closes awaiting the author: ADR 0005 and the ADR 0001 amendment, commit and push authorization (the first push triggers the first CI run), branch protection
+**Build:** green
+**Next step:** —
+
+---
+## 2026-10-04 04:11 · Cell: Stage 5 approvals and verified commit
+**Status:** ✔
+**Facts:** ADR 0005 and the ADR 0001 amendment approved by the author 2026-10-04, recorded in the ADRs and checklist items 44-45; stale pending mentions fixed in README, UPP_REPORT and docs/09 (ADR 0003 had been approved 2026-10-03 but docs/09 still said pending); this entry precedes the final verification, the verified commit, the private push and the first GitHub Actions run, whose result is reported outside this entry
+**Decisions:** a failing first CI run is preserved and diagnosed, never weakened, and no corrective change is committed without authorization
+**Build:** green
+**Next step:** —

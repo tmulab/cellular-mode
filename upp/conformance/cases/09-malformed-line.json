@@ -1,0 +1,40 @@
+{
+  "name": "09-malformed-line",
+  "why": "A line that is not JSON at all. The plugin answers -32700 with a null id, because the id could not be read. It must not try to repair the line.",
+  "requests": [
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "upp.initialize",
+        "params": {
+          "protocolVersions": [
+            "1.0"
+          ],
+          "host": {
+            "name": "upp-conformance",
+            "version": "1.0",
+            "capabilities": {}
+          },
+          "config": {}
+        }
+      }
+    },
+    {
+      "line": "this is not json"
+    }
+  ],
+  "expect": [
+    {
+      "id": 1,
+      "resultShape": {
+        "protocolVersion": "1.0"
+      },
+      "manifestPin": true
+    },
+    {
+      "id": null,
+      "code": -32700
+    }
+  ]
+}

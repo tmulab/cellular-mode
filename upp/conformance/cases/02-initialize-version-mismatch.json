@@ -1,0 +1,30 @@
+{
+  "name": "02-initialize-version-mismatch",
+  "why": "The host offers only a version the plugin does not speak. The plugin must refuse with -32002 and must NOT fall back to a version nobody offered.",
+  "requests": [
+    {
+      "message": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "upp.initialize",
+        "params": {
+          "protocolVersions": [
+            "2.0"
+          ],
+          "host": {
+            "name": "upp-conformance",
+            "version": "1.0",
+            "capabilities": {}
+          },
+          "config": {}
+        }
+      }
+    }
+  ],
+  "expect": [
+    {
+      "id": 1,
+      "code": -32002
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "$comment": "GENERATED from eip/upp/schemas.mjs - do not edit by hand. Written in the SDK schema subset (eip/sdk/schema.mjs): type, properties, required, additionalProperties:false, items, enum, minLength, maxLength, minimum, maximum, maxItems. SHAPE only: the conditional rules (entry per runtime, capability ids, forbidden keys in a security-sensitive section) are specified in docs/upp/SPEC.md and enforced by eip/upp/manifest.mjs. Do not read this file as the whole contract.",
+  "upp": "1.0",
+  "title": "UPP 1.0 plugin manifest",
+  "description": "The shape of a Universal Plugin Protocol manifest.",
+  "fields": [
+    "upp",
+    "id",
+    "version",
+    "description",
+    "type",
+    "runtime",
+    "entry",
+    "capabilities",
+    "permissions",
+    "dependencies",
+    "config",
+    "health",
+    "lifecycle",
+    "application",
+    "extensions"
+  ],
+  "schema": {
+    "type": "object",
+    "properties": {
+      "upp": {
+        "type": "string",
+        "enum": [
+          "1.0"
+        ]
+      },
+      "id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128
+      },
+      "version": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64
+      },
+      "description": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1024
+      },
+      "type": {
+        "type": "string",
+        "enum": [
+          "capability",
+          "application"
+        ]
+      },
+      "runtime": {
+        "type": "string",
+        "enum": [
+          "in-process",
+          "process",
+          "http"
+        ]
+      },
+      "entry": {
+        "type": "object"
+      },
+      "capabilities": {
+        "type": "object"
+      },
+      "permissions": {
+        "type": "array",
+        "maxItems": 6,
+        "items": {
+          "type": "string",
+          "enum": [
+            "fs.read",
+            "fs.write",
+            "net.outbound",
+            "process.spawn",
+            "clock",
+            "random"
+          ]
+        }
+      },
+      "dependencies": {
+        "type": "object"
+      },
+      "config": {
+        "type": "object"
+      },
+      "health": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "intervalMs": {
+            "type": "integer",
+            "minimum": 100
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "lifecycle": {
+        "type": "object",
+        "properties": {
+          "startupTimeoutMs": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "shutdownTimeoutMs": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "application": {
+        "type": "object",
+        "properties": {
+          "baseUrl": {
+            "type": "string",
+            "minLength": 1
+          },
+          "healthPath": {
+            "type": "string",
+            "minLength": 1
+          },
+          "routes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "maxItems": 256
+          },
+          "auth": {
+            "type": "string",
+            "enum": [
+              "host-session",
+              "none-local"
+            ]
+          },
+          "cors": {
+            "type": "object",
+            "properties": {
+              "allowedOrigins": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "maxItems": 64
+              }
+            },
+            "required": [
+              "allowedOrigins"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "baseUrl",
+          "healthPath",
+          "routes",
+          "auth",
+          "cors"
+        ],
+        "additionalProperties": false
+      },
+      "extensions": {
+        "type": "object"
+      }
+    },
+    "required": [
+      "upp",
+      "id",
+      "version",
+      "description",
+      "type",
+      "runtime",
+      "entry",
+      "capabilities"
+    ],
+    "additionalProperties": false
+  }
+}

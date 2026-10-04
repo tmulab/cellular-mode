@@ -8,7 +8,8 @@ import { validateSchema } from './schema.mjs';
 /** `domain.capability-key` — the name IS the key the plugin provides. */
 export const KEY_PATTERN = /^[a-z][a-z0-9-]*\.[a-z][a-z0-9-]*$/;
 export const CAPABILITY_ID_PATTERN = /^[a-z][a-z0-9-]*$/;
-const SEMVER = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
+/** Semver, exported so no other layer has to restate it: one definition, not two. */
+export const SEMVER_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 
 /** Closed list. A permission the kernel cannot name is a permission nobody granted. */
 export const PERMISSIONS = Object.freeze([
@@ -38,7 +39,7 @@ function checkIdentity(m, out) {
   if (typeof m.name !== 'string' || !KEY_PATTERN.test(m.name)) {
     out.push(err('name', 'name must be a key like "domain.capability-key"'));
   }
-  if (typeof m.version !== 'string' || !SEMVER.test(m.version)) {
+  if (typeof m.version !== 'string' || !SEMVER_PATTERN.test(m.version)) {
     out.push(err('version', 'version must be semver, e.g. "1.0.0"'));
   }
   if (m.sdk !== SDK_VERSION) {

@@ -1,0 +1,30 @@
+{
+  "upp": "1.0",
+  "id": "fixture.http-plugin",
+  "version": "1.0.0",
+  "description": "A test plugin reached over HTTP. The host does not start it, which is the point: the pin and the loopback rule are the only identity guarantees available.",
+  "type": "capability",
+  "runtime": "http",
+  "entry": { "baseUrl": "http://127.0.0.1:9999" },
+  "capabilities": {
+    "echo": {
+      "description": "Return the text, plus the deadline the host declared.",
+      "consequential": false,
+      "input": {
+        "type": "object",
+        "properties": { "text": { "type": "string", "maxLength": 4096 } },
+        "required": ["text"],
+        "additionalProperties": false
+      },
+      "output": {
+        "type": "object",
+        "properties": { "text": { "type": "string" }, "deadlineMs": { "type": "integer" } },
+        "required": ["text", "deadlineMs"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "health": { "method": "upp.health", "path": "/upp" },
+  "lifecycle": { "startupTimeoutMs": 5000, "shutdownTimeoutMs": 2000 },
+  "extensions": {}
+}
