@@ -43,6 +43,25 @@ test('ci · every step that pipes a command declares shell: bash (pipefail)', ()
   }
 });
 
+// The suite is piped on purpose: `tee` keeps the log so the counts in the job summary are the
+// ones the runner printed. That is only safe with pipefail, and it is the step whose failure
+// matters most — the first remote run reported a test failure as a BUILD failure, so from now
+// on the suite runs in a step named `tests`, with a reporter that names each failing test.
+test('ci · the suite runs in its own step, with the spec reporter, piped under pipefail', () => {
+  const blocks = stepBlocks(readFileSync(WORKFLOW, 'utf8'));
+  const suite = blocks.filter((block) => block.some((line) => /^\s*- name: tests\s*$/.test(line)));
+  assert.equal(suite.length, 1, 'exactly one step is the suite');
+  const command = commandOf(suite[0] ?? []);
+  assert.match(command, /^node --test --test-reporter=spec 2>&1 \| tee "\$RUNNER_TEMP\/tests\.log"$/);
+  assert.equal(pipes(command), true);
+  assert.ok((suite[0] ?? []).some((line) => /^\s+shell:\s*bash\s*$/.test(line)),
+    'without shell: bash the exit code would be tee\'s, and a failing suite would pass');
+  // The build step must NOT run the suite: that is what hid the test names.
+  const build = blocks.filter((block) => block.some((line) => /- name: build/.test(line)));
+  assert.equal(build.length, 1);
+  assert.match(commandOf(build[0] ?? []), /trilateral\.mjs --legs typecheck,build$/);
+});
+
 test('ci · the pipe detector tells a pipe from ||, from a block indicator and from plain text', () => {
   assert.equal(pipes('node --test 2>&1 | tee log'), true);
   assert.equal(pipes('a || b'), false);

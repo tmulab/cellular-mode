@@ -30,7 +30,8 @@
  * measures it, and `null` where the leg ran but the number could not be read.
  * @typedef {{ status: 'pass' | 'fail' | 'warn', text: string, detail?: string,
  *   errors?: number, modules?: number,
- *   counts?: { passed: number | null, failed: number | null, total: number | null }
+ *   counts?: { passed: number | null, failed: number | null, total: number | null,
+ *     skipped?: number | null, cancelled?: number | null, todo?: number | null }
  * }} LegResult
  */
 

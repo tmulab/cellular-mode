@@ -413,3 +413,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** a failing first CI run is preserved and diagnosed, never weakened, and no corrective change is committed without authorization
 **Build:** green
 **Next step:** —
+
+---
+## 2026-10-04 05:07 · Cell: CI failure correction
+**Status:** ✔
+**Facts:** root cause of CI run 37185128292: call-model.mjs unref'd the deadline timer, so a never-answering adapter left the call unsettled when nothing else held the loop (Node 22 cancelled V20/V21; Node 24 masked it); a second defect found by the new test: a signal aborted before the listener was attached never rejected; fixed (timer ref'd while pending, cleared in finally, aborted state read first) with 6 regression tests incl. child processes that exited 13 before the fix; counts now include cancelled/skipped/todo and must add up, cancelled is a failure; workflow: ubuntu-24.04 pinned, matrix node 22 and 24, build step runs typecheck and build only, tests in their own step with the spec reporter under pipefail, conformance requires python, java and rust; engines ^22 || ^24; local: Node 24.19 and Node 22.13 both 1015/1015 with 0 cancelled; rustc on the runner INFERRED until the remote run
+**Decisions:** no assertion weakened and no timeout raised; rust is dropped from the requirement only if the remote probe proves it absent
+**Build:** green
+**Next step:** —

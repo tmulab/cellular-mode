@@ -4,6 +4,17 @@
 # the whole mandatory suite on a clean checkout and then asks whether each commit's
 # Verified-State trailer refers to the tree it actually records. See tools/gates/CI.md.
 #
+# WHAT THE FIRST RUN TAUGHT THIS FILE (run 37185128292, tools/gates/CI.md):
+#   - one step may not run more than one leg. `trilateral.mjs` runs typecheck, the
+#     module-load gate AND the suite, so a failing TEST was reported as a failing BUILD with
+#     no test name in the log. The build step is now `--legs typecheck,build`, and the suite
+#     has its own step with the spec reporter.
+#   - one Node version is not "Node". The defect that run found reproduces on 22 and not on
+#     24, so both lines are a matrix and `fail-fast: false` keeps the second answer.
+#   - the runner image is pinned. `ubuntu-latest` would move the evidence under the project.
+#   - a SKIPPED conformance row means something different here than on a laptop: this runner
+#     is PROVISIONED, so python, java and rust are REQUIRED. cpp stays UNEXECUTED.
+#
 # Least privilege: contents: read and nothing else, no secret, no persisted credential,
 # every action pinned to a full commit SHA, and the plain pull_request trigger only —
 # never the privileged target variant, which would run fork code with write access.
@@ -22,8 +33,13 @@ concurrency:
 
 jobs:
   verify:
-    name: verify
-    runs-on: ubuntu-latest
+    name: verify (node ${{ matrix.node }})
+    runs-on: ubuntu-24.04
+    strategy:
+      # Both lines are wanted even when one fails: "it breaks on 22 only" is the finding.
+      fail-fast: false
+      matrix:
+        node: ['22', '24']
     steps:
       # SHAs resolved from the official tags on 2026-10-03 (read-only `gh api`).
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -37,8 +53,8 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          # engines.node is >=18; 22 is the current even (LTS) line within that range.
-          node-version: '22'
+          # engines.node names exactly the lines this matrix verifies: 22 and 24.
+          node-version: ${{ matrix.node }}
           cache: npm
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -51,11 +67,11 @@ jobs:
         run: npm ci
       - name: typecheck
         run: npm run typecheck
-      - name: build (module load)
-        run: node tools/gates/trilateral.mjs
+      - name: build (module load, NOT the suite)
+        run: node tools/gates/trilateral.mjs --legs typecheck,build
       - name: tests
         shell: bash
-        run: node --test 2>&1 | tee "$RUNNER_TEMP/tests.log"
+        run: node --test --test-reporter=spec 2>&1 | tee "$RUNNER_TEMP/tests.log"
       - name: gates (size, secrets, deps, boundaries)
         run: npm run gates
       - name: release gate
@@ -68,8 +84,8 @@ jobs:
           rustc --version
           python --version
           "$JAVA_HOME/bin/java" -version
-      - name: upp conformance (every toolchain present; cpp stays UNEXECUTED)
-        run: npm run upp:conformance
+      - name: upp conformance (python, java and rust REQUIRED; cpp stays UNEXECUTED)
+        run: npm run upp:conformance -- --require python,java,rust
       - name: Verified-State trailer and job summary
         shell: bash
         run: node tools/gates/ci-trailer.mjs --counts "$RUNNER_TEMP/tests.log"

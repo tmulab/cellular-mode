@@ -1,11 +1,45 @@
 # Independent CI verification
 
-**Status: IMPLEMENTED LOCALLY, NOT YET RUN REMOTELY.** The workflow
-[`.github/workflows/verify.yml`](../../.github/workflows/verify.yml) **has never run on
-GitHub**. It runs for the first time on the first push after the human authorizes one.
-Everything claimed below about its *shape* is VERIFIED by
-[`tests/ci-workflow.test.mjs`](../../tests/ci-workflow.test.mjs) on this machine; everything
-about its *result* is UNKNOWN until that first run exists.
+**Status: THE FIRST REMOTE RUN FAILED. CORRECTED; THE SECOND RUN HAS NOT HAPPENED.** The
+workflow [`.github/workflows/verify.yml`](../../.github/workflows/verify.yml) ran on GitHub for
+the first time and did its job: it found a real defect this machine could not see. The
+correction is described below. Everything claimed about the workflow's *shape* is VERIFIED by
+[`tests/ci-workflow.test.mjs`](../../tests/ci-workflow.test.mjs) and
+[`tests/ci-workflow-matrix.test.mjs`](../../tests/ci-workflow-matrix.test.mjs) on this machine;
+the *result* of the corrected workflow is UNKNOWN until it runs remotely again.
+
+## The first run, and what it found (run `37185128292`)
+
+VERIFIED (the run's own log): `ubuntu-24.04`, Node `22.23.3`, failed at the step
+**`build (module load)`** with `tests: 989 passed, 2 failed, 993 total` and **not one test
+name**. Three separate defects, one symptom:
+
+1. **The step ran more than one leg.** `trilateral.mjs` runs typecheck, the module-load gate
+   *and* the whole suite, so a failing TEST was reported as a failing BUILD, and the reporter
+   output was swallowed. **Corrected:** the build step is now
+   `node tools/gates/trilateral.mjs --legs typecheck,build`, and the suite has its own step,
+   `node --test --test-reporter=spec 2>&1 | tee "$RUNNER_TEMP/tests.log"`, which names every
+   failing test in the log.
+2. **The counts did not add up, and nothing said so.** 989 + 2 is 991, not 993: two results
+   were neither passed nor failed. They were **CANCELLED** tests, and the parser did not read
+   `cancelled`, `skipped` or `todo` at all. **Corrected:** [`test-counts.mjs`](test-counts.mjs)
+   reads all six numbers, `countsProblem` FAILS the leg when the parts do not reach the total
+   and when `cancelled > 0` — a cancelled test did not run, so it is never a pass.
+3. **The defect itself.** `eip/plugins/observer-advisor/call-model.mjs` called `unref()` on its
+   deadline timer. With a never-answering adapter the model call was the only pending work, so
+   Node judged the loop idle and tore it down before the deadline could fire: the promise could
+   never settle, and `node --test` on **Node 22** cancelled the two tests that exercise it
+   (`V20`, `V21`). On **Node 24** the same code passed — which is why only CI saw it.
+   **Corrected:** the timer stays ref'd and is cleared in `finally` on every path, and a signal
+   that was already aborted is now *read* rather than waited for. Both are proved in a child
+   process by `eip/plugins/observer-advisor-deadline.test.mjs`, which fails on every Node
+   version before the fix (the child exits 13: unsettled top-level await).
+
+**The Node support policy follows from this.** One version is not "Node": `engines.node` is
+`^22 || ^24`, the matrix is `['22', '24']` with `fail-fast: false`, and
+`tests/ci-workflow-matrix.test.mjs` asserts the two lists are the same. Any other line is
+**unverified** — not forbidden, just not something this project has evidence about. The runner
+image is pinned to `ubuntu-24.04`, because `ubuntu-latest` moves the evidence under the project.
 
 ## Why it exists
 
@@ -13,12 +47,11 @@ about its *result* is UNKNOWN until that first run exists.
 mechanism can remove:
 
 1. `git push --no-verify` bypasses the hooks, and nothing client-side can prevent it.
-2. The evidence in the gitignored evidence file is **local, per machine and self-attested**:
-   the same machine that made the change says the suite passed, and no one else can inspect
-   the record.
+2. The gitignored evidence file is **local, per machine and self-attested**: the machine that
+   made the change says the suite passed, and no one else can inspect the record.
 
-A server-side re-run answers both, because it is performed by a machine the author does not
-control, on a checkout the author did not prepare.
+A server-side re-run answers both: a machine the author does not control, on a checkout the
+author did not prepare. The first run proved the point by finding a defect this machine hid.
 
 ## What CI proves, and what the trailer proves
 
@@ -28,10 +61,10 @@ control, on a checkout the author did not prepare.
 | the local run was about **this** tree | the `Verified-State` trailer, compared with `git rev-parse <commit>^{tree}` | CI, which cannot see the local run |
 | the author ran the suite before committing | nothing here. The trailer is a *reference*, not an attestation | both of the above |
 
-CI **never reads the local evidence file**. It is not in the checkout (it is gitignored), and
-reading it would be worthless anyway: a file the author can write is not evidence to a
-verifier. The workflow re-runs everything instead. `tests/ci-workflow.test.mjs` asserts that
-the workflow mentions neither the evidence directory nor `verify:final`.
+CI **never reads the local evidence file**: it is gitignored, and a file the author can write is
+not evidence to a verifier. The workflow re-runs everything instead, and
+`tests/ci-workflow.test.mjs` asserts it mentions neither the evidence directory nor
+`verify:final`.
 
 ## The PRE-ARTICLE-8 policy
 
@@ -79,26 +112,26 @@ Each run appends one block to the job summary ([`ci-summary.mjs`](ci-summary.mjs
   commit, not GitHub's synthetic merge commit, because the merge commit carries no trailer.
 - **CI fingerprint** / **CI working tree** — what this checkout hashed to. `UNKNOWN` means the
   state could not be read, which is never a pass.
-- **tests re-run here** — `N tests · N pass · N fail · N skipped`, parsed from `node --test`'s
-  own summary ([`test-counts.mjs`](test-counts.mjs)). **Skips are visible, not failures**: the
-  polyglot conformance rows skip legitimately when a toolchain is absent, and `cpp` stays
-  UNEXECUTED. A skipped row is never counted as a pass.
+- **tests re-run here** — `N tests · N pass · N fail · N skipped · N cancelled · N todo`,
+  parsed from `node --test`'s own summary ([`test-counts.mjs`](test-counts.mjs)). The six
+  numbers must ADD UP, and the report is refused when they do not. **Skips are visible, not
+  failures**: the polyglot conformance rows skip legitimately on a machine without a
+  toolchain, and `cpp` stays UNEXECUTED. A skipped row is never counted as a pass. A
+  **cancelled** row, by contrast, IS a failure: it did not run, so it established nothing.
 - **trailer verdict** plus one table row per commit, with the reason in full.
 
 ## Recommended branch protection — a RECOMMENDATION, nothing was changed
 
 No repository setting was touched by this cell, and none will be without explicit human
-action. What the human may choose to enable on `main`, once a first run exists:
+action. What the human may choose to enable on `main`, once a green run exists:
 
-- require the status check named **`verify`** to pass before merging;
+- require **both** matrix checks, `verify (node 22)` and `verify (node 24)` — the matrix renames
+  them, and requiring only one would verify only one line;
 - require a pull request before merging (so the check runs on the proposed state);
 - disallow force pushes and branch deletion (a rewritten history erases the audit trail);
-- **include administrators**, otherwise the rule stops applying to the one account most able
-  to bypass it;
-- optionally require branches to be up to date before merging.
+- **include administrators**, or the rule stops applying to the account most able to bypass it.
 
-Until that is enabled the workflow is informative only: it reports, it does not block.
-UNKNOWN until configured.
+Until that is enabled the workflow reports; it does not block. UNKNOWN until configured.
 
 ## Running it locally
 
@@ -123,9 +156,24 @@ Resolved from the official tags with read-only `gh api` on 2026-10-03. Only `act
 | `actions/setup-python` | v7.0.0 | `5fda3b95a4ea91299a34e894583c3862153e4b97` |
 | `actions/setup-java` | v6.0.1 | `de7274f081f381c8f8158605e0321c36c376e2e6` |
 
-Rust is **probed, not installed**: `rustc` is preinstalled on `ubuntu-latest`, and the
-conformance runner reports `SKIPPED` with a reason if it is absent. Nothing is fetched with
-`curl`, `rustup` or a package manager.
+Rust is **probed, not installed**: the `ubuntu-24.04` image documents a preinstalled Rust
+toolchain, and the `toolchains present on this runner` step runs `rustc --version` before the
+conformance step, so an absent compiler fails loudly instead of becoming a quiet `SKIPPED`.
+Nothing is fetched with `curl`, `rustup` or a package manager. **Epistemic status:** that
+`rustc` is present on this image is INFERRED from the image documentation and ENFORCED by the
+probe; it is UNKNOWN until the second remote run. If the probe fails there, the honest
+correction is to drop `rust` from `--require` and record it as NOT VERIFIED IN CI — never to
+install a toolchain with `curl | sh`.
+
+## Conformance in CI is REQUIRED, not merely attempted
+
+The runner is provisioned with Python 3.12 (`setup-python`), Temurin JDK 21 (`setup-java`, via
+`JAVA_HOME`) and the image's Rust toolchain, so a `SKIPPED` row there does not mean "this
+machine has no toolchain" — it means **the provisioning broke**. The step therefore runs
+`npm run upp:conformance -- --require python,java,rust`, and an unmet requirement exits 1
+([`conformance-required.mjs`](../../eip/upp-host/conformance-required.mjs)). On a developer
+machine nothing is required and a skip stays an honest, visible non-failure. `cpp` is **never**
+required: its source has never been compiled anywhere in this project.
 
 ## Mutation proofs (each applied, observed red, reverted)
 
@@ -135,12 +183,18 @@ conformance runner reports `SKIPPED` with a reason if it is absent. Nothing is f
 | pre-boundary never excuses a broken trailer | `classify` returns `PRE_ARTICLE_8` whenever `preArticle8` holds | `verdict · being pre-Article-8 excuses an ABSENT trailer, never a broken one` |
 | fail closed on an unknown boundary | `checkRange` treats an unresolvable boundary as "everything is pre-policy" | `ci-trailer · an UNKNOWN boundary fails closed: nothing is excused` |
 | counts are real, not invented | `parseTestCounts` defaults a missing field to `0` | `counts · an incomplete or unparsable summary is null, never a zero` |
+| the deadline fires with nothing else holding the loop | re-add `timer.unref?.()` in `call-model.mjs` | `deadline · an adapter that never answers is REFUSED even when nothing else holds the loop` (child exits 13) |
+| an already-aborted signal still settles the call | `expired` only *listens* for `abort`, never reads `aborted` | `deadline · a signal already aborted before the call refuses without reaching the adapter` (cancelled at 4 s) |
 | the workflow stays least-privilege | `permissions` gains `pull-requests: write` | `workflow · the only permission granted is contents: read` |
 
 ## Limits of this cell
 
-- The workflow's **behaviour on GitHub is UNKNOWN**. Only its structure was checked.
-- `node --test` has never been executed on Linux in this repository; a platform-specific test
-  may well be red on the first run. That is a finding to fix, not a reason to weaken a gate.
+- The **corrected** workflow's behaviour on GitHub is UNKNOWN: only its structure was checked
+  here, and the second remote run has not happened. The first run's failure is VERIFIED and
+  its three causes are fixed; that the fixes are sufficient *there* is INFERRED.
+- The suite now passes on Node 22 and Node 24 on win32 (VERIFIED locally). On Linux it has run
+  once, and failed for the reasons above; a further platform-specific finding is possible, and
+  it would be a finding to fix, not a reason to weaken a gate.
+- `rustc` on the runner image: see the note under *Pinned actions*. UNKNOWN until the next run.
 - CI proves the suite passes. It does not prove the change is correct, proportionate or well
   designed — those remain human review items ([`README.md`](README.md)).

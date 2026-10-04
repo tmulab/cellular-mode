@@ -129,8 +129,9 @@ Hooks honour `CELLULAR_NODE` to pin the node binary; otherwise `PATH` decides.
    client-side can. What remains is detection: an unverified commit has **no record for its
    tree**, so `node tools/gates/authorization.mjs audit <rev-range>` lists it, and the missing
    `Verified-State` trailer shows in `git log`. Enforcement that cannot be bypassed belongs on
-   the server: the workflow is now written ([`CI.md`](CI.md)) but has **never run on GitHub**,
-   and no branch protection is configured, so today this limitation still stands in full.
+   the server: the workflow has now RUN on GitHub once ([`CI.md`](CI.md)) and failed, finding a
+   real defect; it was corrected and has not run again, and no branch protection is configured,
+   so today this limitation still stands in full.
 2. **Git is required.** Without a git work tree there is no controlled set to fingerprint, and
    `fingerprint.mjs` raises an error rather than answering. A gate that cannot run is UNKNOWN,
    never green.
@@ -152,16 +153,17 @@ Hooks honour `CELLULAR_NODE` to pin the node binary; otherwise `PATH` decides.
 
 ## Future work
 
-- **Independent CI verification — IMPLEMENTED LOCALLY, NOT YET RUN REMOTELY.**
+- **Independent CI verification — RAN ONCE, FAILED, CORRECTED, NOT RE-RUN.**
   [`.github/workflows/verify.yml`](../../.github/workflows/verify.yml) re-runs the whole
   mandatory suite on a clean server-side checkout and then compares each commit's
   `Verified-State` trailer with `git rev-parse <commit>^{tree}` ([`ci-trailer.mjs`](ci-trailer.mjs)).
-  Its structure is VERIFIED by [`tests/ci-workflow.test.mjs`](../../tests/ci-workflow.test.mjs);
-  its behaviour on GitHub is **UNKNOWN** — the workflow runs for the first time on the first
-  push after a human authorizes one. Branch protection is a documented RECOMMENDATION and no
-  repository setting was changed. Remaining to be done: that first remote run, and making
-  `verify` a required status check on `main`. Rationale, the PRE-ARTICLE-8 policy and the
-  limits: [`CI.md`](CI.md).
+  Its first remote run found a defect this machine could not see (a deadline timer that could
+  not fire on Node 22), and two reporting defects that let the failure arrive nameless. All
+  three are corrected; the structure is VERIFIED by the three
+  `tests/ci-workflow*.test.mjs` files, and the result of the CORRECTED workflow is **UNKNOWN**
+  until it runs remotely again. Branch protection is a documented RECOMMENDATION and no
+  repository setting was changed. Remaining: that second remote run, and making both matrix
+  checks required on `main`. Rationale, the PRE-ARTICLE-8 policy and the limits: [`CI.md`](CI.md).
 
 ## Module map
 
@@ -172,7 +174,7 @@ Hooks honour `CELLULAR_NODE` to pin the node binary; otherwise `PATH` decides.
 | `commit-range.mjs` | which commits a hook is being asked about |
 | `verify-final.mjs` | the ordered procedure and the `npm run verify:final` CLI |
 | `authorization.mjs` | "is this state authorized?", for the hooks, the CLI and the release gate |
-| `test-counts.mjs` | how many tests ran, parsed from what `node --test` printed (pure) |
+| `test-counts.mjs` | how many tests ran, parsed from what `node --test` printed; the six counts must ADD UP, and a CANCELLED test is a failure (pure) |
 | `ci-trailer.mjs` | does a commit's trailer name the tree it records? (pure core + git shell) |
 | `ci-summary.mjs` | how a CI run reports what it established (pure + one append) |
 

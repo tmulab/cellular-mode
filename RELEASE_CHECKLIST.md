@@ -146,7 +146,7 @@ that stage 5 is finished. Full account: [`UPP_REPORT.md`](UPP_REPORT.md) · secu
 |---|---|---|---|
 | 44 | 👤 [ADR 0005](docs/adr/0005-universal-plugin-protocol.md) confirmed by the responsible human | ✅ APPROVED | approved by Hudson A. R. Bonomo, 2026-10-04 — UPP 1.0: JSON-RPC 2.0 over NDJSON, adapted into the existing kernel, no second runtime |
 | 45 | 👤 [ADR 0001](docs/adr/0001-frontend-exception.md) **amendment** (application plugins) confirmed | ✅ APPROVED | approved by Hudson A. R. Bonomo, 2026-10-04 — an independent frontend may be REGISTERED as `type: "application"`; registration is not in-process execution ([`docs/upp/APPLICATIONS.md`](docs/upp/APPLICATIONS.md)) |
-| 46 | CI has actually run on GitHub | ⚠️ **NOT YET RUN REMOTELY** | item 43 holds the detail. The structure is VERIFIED locally; the *behaviour* on GitHub is **UNKNOWN** until the first push after authorization. No remote run may be quoted before it exists |
+| 46 | CI has actually run on GitHub | ⚠️ **RAN ONCE, FAILED, CORRECTED — AWAITING THE SECOND REMOTE RUN** | run `37185128292` (`ubuntu-24.04`, Node 22.23.3) FAILED: `989 passed, 2 failed, 993 total`, reported by the `build` step with no test name. Three defects found and fixed — an `unref`'d advisor deadline timer that could not fire on Node 22, a count parser blind to `cancelled`, and one step running three legs ([`tools/gates/CI.md`](tools/gates/CI.md)). The corrected workflow (pinned `ubuntu-24.04`, Node 22/24 matrix) is VERIFIED locally in shape only; its remote *result* is **UNKNOWN** until the next authorized push. No remote run may be quoted before it exists |
 | 47 | Branch protection on `main` | ⚠️ **RECOMMENDATION only** | documented in [`tools/gates/CI.md`](tools/gates/CI.md); **no repository setting was changed** by this work. Without it, a push can land without a passing run. Enabling it is a human decision on a private repository |
 | 48 | 👤 Stage-5 work committed and pushed | ❌ **not done — needs authorization** | every stage-5 change is uncommitted in the working tree. Nothing was committed, pushed, tagged or published, and `--no-verify` was never used. The authorization is per action, as in items 33 and 39 |
 | 49 | Stage-5 gates and tests green | ✅ VERIFIED 2026-10-03 | the run quoted below, executed in the closing cell; `npm run rehearse:adaptive-removal` is green again after the regression recorded in `docs/upp/SECURITY-REVIEW.md` §4 |
@@ -174,8 +174,9 @@ node tools/gates/ci-trailer.mjs HEAD       -> 1 MATCH (history: 9 PRE_ARTICLE_8)
    item 37 (behavioural validation) stays deliberately **NOT PERFORMED** rather than guessed.
 
 5. **ADR 0005** (item 44), the **ADR 0001 amendment** (item 45), the **stage-5 commit and push**
-   (item 48) and **branch protection** (item 47) are open and human-only. Item 46 cannot be
-   closed by anyone until a push makes the workflow run.
+   (item 48) and **branch protection** (item 47) are open and human-only. Item 46 has now run
+   once and FAILED; it cannot be closed by anyone until a push makes the CORRECTED workflow run
+   and that run is green.
 
 R-1 (item 15) was decided on 2026-10-02 and is closed. Nothing on this list may be marked
 green by an agent on its own initiative.

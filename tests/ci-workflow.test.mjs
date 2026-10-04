@@ -4,46 +4,20 @@
 // of every action, and the fact that each mandatory command names a script or a file that
 // actually exists.
 //
-// The parser is a MINIMAL line-based reader, sufficient for THIS file and no more. A YAML
-// dependency is refused (zero runtime dependencies, and a dev one for a 70-line file is a
-// supply-chain risk for nothing); in exchange, the workflow must stay in the plain shape
-// this reader understands, which is itself asserted below (two-space indent, no anchors, no
-// flow mappings at the top level).
+// The reader it uses is ./workflow-reader.mjs; the properties the FIRST REMOTE RUN taught this
+// project (the matrix, the pinned image, the build/tests split, the required toolchains) are
+// asserted in ./ci-workflow-matrix.test.mjs, and the pipefail guard in
+// ./ci-workflow-pipefail.test.mjs. Three files, one per review, at the 200-line rule.
 //
-// NOT PROVED HERE: that the workflow passes on GitHub. It has never run there (see
-// tools/gates/CI.md). This file proves its shape and its safety properties, nothing else.
+// NOT PROVED HERE: that the workflow passes on GitHub. Its first run FAILED and was corrected;
+// the corrected file has not run remotely yet (tools/gates/CI.md). This file proves its shape
+// and its safety properties, nothing else.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from '../tools/gates/scan.mjs';
-
-const WORKFLOW = '.github/workflows/verify.yml';
-const text = readFileSync(join(ROOT, WORKFLOW), 'utf8');
-const lines = text.replace(/\r/g, '').split('\n');
-const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
-
-/** The lines of a top-level block, without its key line and with the indent removed.
- * @param {string} key @returns {string[]} */
-function block(key) {
-  const start = lines.findIndex((line) => line === `${key}:` || line.startsWith(`${key}: `));
-  if (start === -1) return [];
-  /** @type {string[]} */
-  const out = [];
-  for (const line of lines.slice(start + 1)) {
-    if (line.trim() === '' || line.startsWith('#')) continue;
-    if (!line.startsWith(' ')) break;
-    out.push(line.trim());
-  }
-  return out;
-}
-
-/** Every `key: value` pair at any depth, as `key` → first value seen.
- * @param {string} key @returns {string[]} */
-const valuesOf = (key) => lines
-  .map((line) => new RegExp(`^\\s*(?:- )?${key}:\\s*(.*)$`).exec(line.replace(/\r/g, '')))
-  .filter((match) => match !== null)
-  .map((match) => (match[1] ?? '').trim());
+import { WORKFLOW, block, lines, pkg, text, valuesOf } from './workflow-reader.mjs';
 
 test('workflow · the file exists, is plain YAML and stays lean', () => {
   assert.ok(existsSync(join(ROOT, WORKFLOW)), `${WORKFLOW} must exist`);
@@ -116,15 +90,6 @@ test('workflow · dependencies come from the lockfile, never from a resolver', (
   assert.ok(existsSync(join(ROOT, 'package-lock.json')), 'npm ci needs package-lock.json');
 });
 
-test('workflow · the Node version is a real one and satisfies engines', () => {
-  const declared = valuesOf('node-version');
-  assert.equal(declared.length, 1, 'exactly one node-version');
-  const chosen = Number((declared[0] ?? '').replace(/['"]/g, '').split('.')[0]);
-  const floor = Number(String(pkg.engines?.node ?? '').replace(/[^\d.]/g, '').split('.')[0]);
-  assert.ok(Number.isInteger(chosen) && chosen >= floor,
-    `node-version ${chosen} must satisfy engines.node ${pkg.engines?.node}`);
-  assert.equal(chosen % 2, 0, 'an even major is an LTS line; an odd one is never supported long');
-});
 
 test('workflow · the polyglot toolchains are provisioned, and Rust is probed not installed', () => {
   assert.ok(text.includes('actions/setup-python'), 'Python is needed by the conformance row');

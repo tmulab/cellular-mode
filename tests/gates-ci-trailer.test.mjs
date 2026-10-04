@@ -176,11 +176,12 @@ test('summary · an unreadable state is UNKNOWN, never a match', () => {
 test('summary · the job summary carries the commit, the counts and the verdict', () => {
   const md = summaryMarkdown({
     rows: [ROW], result: { total: 1, failed: 0, ok: true, reason: '1 commit(s): 1 MATCH' },
-    state: { fingerprint: FP, tree: TREE }, counts: { tests: 9, pass: 8, fail: 0, skipped: 1 },
+    state: { fingerprint: FP, tree: TREE },
+    counts: { tests: 9, pass: 8, fail: 0, skipped: 1, cancelled: 0, todo: 0 },
     sha: '2'.repeat(40),
   }).join('\n');
   assert.match(md, new RegExp(`commit: \`${'2'.repeat(40)}\``));
-  assert.match(md, /9 tests · 8 pass · 0 fail · 1 skipped/);
+  assert.match(md, /9 tests · 8 pass · 0 fail · 1 skipped · 0 cancelled · 0 todo/);
   assert.match(md, /trailer verdict: ✅/);
   assert.match(md, /no `\.cellular\/`\nevidence is read here/, 'CI must not claim local evidence as proof');
 });

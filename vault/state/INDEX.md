@@ -55,3 +55,4 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [Independent CI verification](cells/independent-ci-verification.md) | .github/workflows, tools/gates (ci-trailer, evidence counts), docs | ✔ | 2026-10-03 | — |
 | [UPP security review and closure](cells/upp-security-review-and-closure.md) | SECURITY.md, docs/upp, docs/09, README, UPP_REPORT.md, regression | ✔ | 2026-10-03 | — |
 | [Stage 5 approvals and verified commit](cells/stage-5-approvals-and-verified-commit.md) | docs/adr/0005, docs/adr/0001, RELEASE_CHECKLIST, README, UPP_REPORT, docs/09 | ✔ | 2026-10-04 | — |
+| [CI failure correction](cells/ci-failure-correction.md) | eip/plugins/observer-advisor/call-model.mjs, .github/workflows/verify.yml, tools/gates (trilateral, test counts), package.json engines | ✔ | 2026-10-04 | — |

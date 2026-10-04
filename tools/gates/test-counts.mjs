@@ -15,12 +15,20 @@
 // Pure on purpose: the parser is exercised on real captured output in
 // tests/gates-test-counts.test.mjs, with no suite to run and no repository to create.
 
-/** @typedef {{ tests: number, pass: number, fail: number, skipped: number }} TestCounts */
+/** @typedef {{ tests: number, pass: number, fail: number, skipped: number,
+ *   cancelled: number, todo: number }} TestCounts */
 
-/** The four numbers a record keeps. `suites`, `cancelled`, `todo` and `duration_ms` are
- * printed by node too and deliberately left out: they are not the claim being audited.
+/** The six numbers a record keeps: every outcome `node --test` can report, so that they ADD
+ * UP to `tests` and a reader can check the arithmetic. `cancelled` and `todo` were left out
+ * once, as "not the claim being audited", and that is exactly how the first remote CI run
+ * came to report `989 passed, 2 failed, 993 total`: the two cancelled tests of the advisor
+ * deadline defect had nowhere to be counted. `suites` and `duration_ms` stay out — they are
+ * not test outcomes and do not belong in the sum.
  * @type {ReadonlyArray<keyof TestCounts>} */
-const FIELDS = Object.freeze(['tests', 'pass', 'fail', 'skipped']);
+const FIELDS = Object.freeze(['tests', 'pass', 'fail', 'skipped', 'cancelled', 'todo']);
+
+/** The outcomes that must add up to `tests`. @type {ReadonlyArray<keyof TestCounts>} */
+const OUTCOMES = Object.freeze(['pass', 'fail', 'skipped', 'cancelled', 'todo']);
 
 /** The default cap on how many skipped-test lines a record keeps. */
 export const SKIP_LIMIT = 20;
@@ -52,8 +60,38 @@ export function parseTestCounts(output) {
     pass: found['pass'] ?? -1,
     fail: found['fail'] ?? -1,
     skipped: found['skipped'] ?? -1,
+    cancelled: found['cancelled'] ?? -1,
+    todo: found['todo'] ?? -1,
   };
   return FIELDS.every((field) => isCount(counts[field])) ? counts : null;
+}
+
+/**
+ * PURE. Why a set of counts cannot be trusted, or `null` when nothing is wrong with it.
+ *
+ * Two rules, both learned from the first remote CI run (tools/gates/CI.md):
+ *   - the parts must reach the total. A report whose numbers do not add up has a hole in it,
+ *     and a hole is where a defect hides. `null` counts are the largest hole of all.
+ *   - a CANCELLED test is a FAILURE. It did not run, so it established nothing, and it was
+ *     stopped by something — a hung promise, a timeout, a crashed file. That is a result to
+ *     investigate, never a result to count as green. Skipped and todo are legitimate and
+ *     stay visible instead (see skipLines).
+ * @param {TestCounts | null} counts @returns {string | null}
+ */
+export function countsProblem(counts) {
+  if (counts === null) {
+    return 'counts do not add up: the reporter did not report all of'
+      + ` ${FIELDS.join(', ')} — UNKNOWN, never green`;
+  }
+  const sum = OUTCOMES.reduce((total, field) => total + counts[field], 0);
+  if (sum !== counts.tests) {
+    return `counts do not add up: ${OUTCOMES.map((f) => `${counts[f]} ${f}`).join(' + ')}`
+      + ` = ${sum}, but the reporter said ${counts.tests} tests`;
+  }
+  if (counts.cancelled > 0) {
+    return `${counts.cancelled} test(s) CANCELLED: a cancelled test did not run and is never a pass`;
+  }
+  return null;
 }
 
 /**
@@ -71,6 +109,8 @@ export function parseCountsValue(value) {
     pass: Number(raw['pass']),
     fail: Number(raw['fail']),
     skipped: Number(raw['skipped']),
+    cancelled: Number(raw['cancelled']),
+    todo: Number(raw['todo']),
   };
 }
 
@@ -120,5 +160,6 @@ export function withMeasurements(base, source) {
  * @param {TestCounts | null} counts @returns {string} */
 export function countsSummary(counts) {
   if (counts === null) return 'counts UNKNOWN (the output did not report them)';
-  return `${counts.tests} tests · ${counts.pass} pass · ${counts.fail} fail · ${counts.skipped} skipped`;
+  return `${counts.tests} tests · ${counts.pass} pass · ${counts.fail} fail`
+    + ` · ${counts.skipped} skipped · ${counts.cancelled} cancelled · ${counts.todo} todo`;
 }

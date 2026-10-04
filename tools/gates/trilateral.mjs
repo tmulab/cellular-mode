@@ -30,6 +30,7 @@ import { join } from 'node:path';
 import { EVIDENCE_FILE, EVIDENCE_PATH, EVIDENCE_SEGMENTS, evidenceRecord } from './evidence.mjs';
 import { readGitHead } from './git-head.mjs';
 import { ROOT, readTuples } from './scan.mjs';
+import { LEGS, exitCodeFor, selectedLegs, testsResult } from './trilateral-legs.mjs';
 import { partitionModules } from './top-level.mjs';
 import { runTypecheck } from './typecheck.mjs';
 
@@ -44,27 +45,6 @@ const sourceFiles = () => readTuples(ROOT, (rel) => rel.endsWith('.mjs') && !/(^
 // process.execPath: that path contains spaces, and a shell would split it.
 /** @type {(cmd: string, args: string[], shell?: boolean) => import('node:child_process').SpawnSyncReturns<string>} */
 const run = (cmd, args, shell = false) => spawnSync(cmd, args, { cwd: ROOT, encoding: 'utf8', shell });
-
-/** PURE. Parses the counts out of `node --test` output (TAP or spec reporter).
- * @param {string} output
- * @returns {{ pass: number | null, fail: number | null, total: number | null }} */
-export function parseTestCounts(output) {
-  /** @type {(label: string) => number | null} */
-  const pick = (label) => {
-    const m = new RegExp(`^(?:#|ℹ)\\s*${label}\\s+(\\d+)`, 'm').exec(output ?? '');
-    return m ? Number(m[1]) : null;
-  };
-  return { pass: pick('pass'), fail: pick('fail'), total: pick('tests') };
-}
-
-/** PURE. The three results in, one exit code out. Only the STATUS of each leg is
- * read, so that is all the parameter asks for.
- * @param {{ typecheck: { status: string }, build: { status: string },
- *   tests: { status: string } }} legs @returns {number} */
-export function exitCodeFor({ typecheck, build, tests }) {
-  if (typecheck.status === 'fail') return 1;
-  return build.status === 'pass' && tests.status === 'pass' ? 0 : 1;
-}
 
 const MARK = { pass: '✅', fail: '❌', warn: '⚠️' };
 /** @type {(result: LegResult) => string} */
@@ -119,24 +99,20 @@ async function buildLeg(files) {
 /** @returns {LegResult} */
 function testsLeg() {
   const out = run(process.execPath, ['--test', '--test-reporter=tap']);
-  const text = `${out.stdout ?? ''}\n${out.stderr ?? ''}`;
-  const { pass, fail, total } = parseTestCounts(text);
-  const counts = { passed: pass, failed: fail, total };
-  if (pass === null) {
-    return { status: 'fail', text: 'tests: could not parse the reporter output', counts, detail: text.slice(-500) };
-  }
-  const ok = out.status === 0 && fail === 0;
-  return {
-    status: ok ? 'pass' : 'fail',
-    counts,
-    text: `tests: ${pass} passed, ${fail} failed, ${total} total (node --test)`,
-  };
+  return testsResult(`${out.stdout ?? ''}\n${out.stderr ?? ''}`, out.status);
 }
 
-/** @returns {Promise<{ typecheck: LegResult, build: LegResult, tests: LegResult }>} */
-export async function trilateral() {
-  const files = sourceFiles();
-  return { typecheck: typecheckLeg(files), build: await buildLeg(files), tests: testsLeg() };
+/** The legs `only` names, and nothing else. A leg not asked for is ABSENT from the answer —
+ * never a synthesised pass.
+ * @param {ReadonlyArray<'typecheck' | 'build' | 'tests'>} [only]
+ * @returns {Promise<Partial<Record<'typecheck' | 'build' | 'tests', LegResult>>>} */
+export async function trilateral(only = LEGS) {
+  const files = only.length === 0 ? [] : sourceFiles();
+  return {
+    ...(only.includes('typecheck') ? { typecheck: typecheckLeg(files) } : {}),
+    ...(only.includes('build') ? { build: await buildLeg(files) } : {}),
+    ...(only.includes('tests') ? { tests: testsLeg() } : {}),
+  };
 }
 
 /**
@@ -159,13 +135,35 @@ export function writeEvidence(legs, root = ROOT) {
 
 /** @param {string[]} [argv] */
 async function main(argv = process.argv.slice(2)) {
-  const results = await trilateral();
-  for (const key of /** @type {const} */ (['typecheck', 'build', 'tests'])) {
-    process.stdout.write(`${line(results[key])}\n`);
-    if (results[key].detail) process.stderr.write(`  ${results[key].detail}\n`);
+  /** @type {Array<'typecheck' | 'build' | 'tests'>} */
+  let only;
+  try {
+    only = selectedLegs(argv);
+  } catch (error) {
+    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    return 2;
+  }
+  const results = await trilateral(only);
+  for (const key of LEGS) {
+    const leg = results[key];
+    // A leg that did not run SAYS so, in the same place a reader looks for its verdict.
+    if (leg === undefined) {
+      process.stdout.write(`⚠️ ${key}: NOT RUN — this invocation asked for ${only.join(', ')}\n`);
+      continue;
+    }
+    process.stdout.write(`${line(leg)}\n`);
+    if (leg.detail) process.stderr.write(`  ${leg.detail}\n`);
   }
   if (argv.includes('--evidence')) {
-    process.stdout.write(`evidence: wrote ${writeEvidence(results)} (gitignored)\n`);
+    // A record of fewer than three legs would be read as a Trilateral Verification. It is not.
+    if (only.length !== LEGS.length) {
+      process.stderr.write('--evidence needs all three legs: a partial record would be read as a full one\n');
+      return 2;
+    }
+    const { typecheck, build, tests } = results;
+    if (typecheck !== undefined && build !== undefined && tests !== undefined) {
+      process.stdout.write(`evidence: wrote ${writeEvidence({ typecheck, build, tests })} (gitignored)\n`);
+    }
   }
   return exitCodeFor(results);
 }

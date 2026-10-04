@@ -8,8 +8,20 @@
 // would have happened to the dashboard.
 //
 // Two signals compose into one: the capability's own (cancellation from the kernel) and the
-// advisor's timeout. `AbortSignal.any` would say this in one line and is not used, because
-// this runtime supports Node 18.
+// advisor's timeout. `AbortSignal.any` would say this in one line and is not used: the
+// explicit wiring is what the `finally` below can undo, handle by handle.
+//
+// TWO WAYS THIS FUNCTION ONCE FAILED TO SETTLE, both fixed below and both proved by
+// observer-advisor-deadline.test.mjs, in a child process:
+//   1. the deadline timer was `unref`'d, so when the model call was the only pending work
+//      Node judged the loop idle and tore it down before the timer could fire. The call never
+//      settled: on Node 22 `node --test` reported "Promise resolution is still pending but the
+//      event loop has already resolved" and CANCELLED the test. A timer the correctness of
+//      this function depends on must keep the process alive; `clearTimeout` in the `finally`
+//      is what keeps it from outliving the call.
+//   2. a signal that was ALREADY aborted when the call began aborted `deadline` before the
+//      `expired` listener was attached — and `addEventListener('abort')` on an aborted signal
+//      never fires. The state is therefore read, not only awaited.
 //
 // Nothing here reads the answer. Whatever comes back is `unknown` on purpose: the validator
 // is the only thing allowed to have an opinion about a model's text.
@@ -34,13 +46,16 @@ export async function callModel({
   const forward = () => deadline.abort();
   if (signal?.aborted === true) deadline.abort();
   else signal?.addEventListener('abort', forward, { once: true });
+  // REF'd on purpose: see note 1 in the header. The timer is cleared on every exit path.
   const timer = setTimeout(forward, timeoutMs);
-  timer.unref?.();
   /** @type {Promise<never>} */
   const expired = new Promise((_resolve, reject) => {
-    deadline.signal.addEventListener('abort', () => reject(new Error(
+    const give = () => reject(new Error(
       `the model adapter "${adapter.id}" did not answer within ${timeoutMs} ms`,
-    )), { once: true });
+    ));
+    // Read the state first: an already-aborted signal emits no event (note 2).
+    if (deadline.signal.aborted) give();
+    else deadline.signal.addEventListener('abort', give, { once: true });
   });
   try {
     const answer = await Promise.race([

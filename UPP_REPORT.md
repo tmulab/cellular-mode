@@ -19,18 +19,11 @@ The stage began with a read-only audit of the existing runtime
 ([`AUDIT.md`](docs/upp/AUDIT.md): **EXISTS 14 · BUILD 13 · OUT 3** over 30 capabilities), and
 the audit is the reason the stage is small. Reused **unchanged, through the same code path**:
 
-- **The kernel.** `register` / `load` / `dispose` / `execute` / events. An external plugin is
-  registered as an ordinary `definePlugin` manifest whose service proxies the transport, so
-  input validation, the approval gate, the deadline, cancellation, output validation,
-  `DEPENDENCY_MISSING`, `DEPENDENCY_CYCLE` and `onDispose` are the kernel's, not a copy.
-  **There is no second runtime and no second registry.**
-- **The SDK as the contract floor.** `KEY_PATTERN`, `CAPABILITY_ID_PATTERN`, the semver
-  pattern, the 11-keyword schema subset, the closed `CODES` list, `PASSTHROUGH_CODES`,
-  `definePlugin`. The UPP validator *imports* these; it restates none of them.
+- **The kernel.** `register` / `load` / `dispose` / `execute` / events. An external plugin is registered as an ordinary `definePlugin` manifest whose service proxies the transport, so input validation, the approval gate, the deadline, cancellation, output validation, `DEPENDENCY_MISSING`, `DEPENDENCY_CYCLE` and `onDispose` are the kernel's, not a copy. **There is no second runtime and no second registry.**
+- **The SDK as the contract floor.** `KEY_PATTERN`, `CAPABILITY_ID_PATTERN`, the semver pattern, the 11-keyword schema subset, the closed `CODES` list, `PASSTHROUGH_CODES`, `definePlugin`. The UPP validator *imports* these; it restates none of them.
 - **The host's authority boundaries.** The approver, the refusal of a caller-supplied
   `approval`, the loopback bind, the no-CORS rule, the 64 KiB body cap.
-- **The gate framework.** **Five** new layering rules are **data** in `tools/gates/rules.mjs` (three for `eip/upp`, two for `eip/upp-host`);
-  the 200-line rule, the secrets and deps legs and the removal rehearsal are untouched.
+- **The gate framework.** **Five** new layering rules are **data** in `tools/gates/rules.mjs` (three for `eip/upp`, two for `eip/upp-host`); the 200-line rule, the secrets and deps legs and the removal rehearsal are untouched.
 - **One spawn site.** Application supervision reuses `eip/upp-host/channel.mjs` rather than
   calling `spawn` a second time, so `shell: false` and the minimal environment have one home.
 
@@ -64,7 +57,7 @@ Each line is **PROPOSED — not built**, and each says what it would cost:
 | **Ports for external plugins** | a port is an in-process function; a serialised port is a new contract, so v1 grants **none** and says so in code |
 | **Sibling calls from external plugins** | `dependencies` become `inject`, so composition is still checked, but `ctx.get` is unreachable from the far side of a pipe |
 | **C++ execution** | no C++ compiler on this machine. The source is committed and labelled **UNEXECUTED**; nothing about it is claimed |
-| **A remote CI run** | it requires a push, which requires human authorization (`RELEASE_CHECKLIST.md` items 46, 48) |
+| **A second remote CI run** | it requires a push, which requires human authorization (`RELEASE_CHECKLIST.md` items 46, 48) |
 | **Branch protection on `main`** | a repository setting, recommended in [`CI.md`](tools/gates/CI.md); **no setting was changed** |
 
 ## 4 · Which language integrations were tested
@@ -145,52 +138,55 @@ agent never approves its own consequential operation**, and **plugin output is u
 
 ## 9 · CI verification results
 
-**Local structural validation — VERIFIED.** `tests/ci-workflow.test.mjs` (13 tests) and
-`tests/ci-workflow-pipefail.test.mjs` assert the workflow's shape: `permissions: contents:
-read` and nothing else, no secret, `persist-credentials: false`, the plain `pull_request`
-trigger and never `pull_request_target`, every action pinned to a full commit SHA, the real
-head commit checked out with full history, and **no mention of the local evidence directory or
-`verify:final`** — a verifier that reads the author's own record verifies nothing.
+**Local structural validation — VERIFIED.** The three `tests/ci-workflow*.test.mjs` files
+assert the workflow's shape: `permissions: contents: read` and nothing else, no secret,
+`persist-credentials: false`, the plain `pull_request` trigger and never `pull_request_target`,
+every action pinned to a full commit SHA, the real head commit with full history, the pinned
+`ubuntu-24.04` image, the Node `22`/`24` matrix equal to `engines.node`, a build step that runs
+the build legs ONLY, a `tests` step that pipes the spec reporter under `pipefail`, and **no
+mention of the local evidence directory or `verify:final`** — a verifier that reads the
+author's own record verifies nothing.
 
-**Local trailer run — VERIFIED.** `node tools/gates/ci-trailer.mjs HEAD` over this repository:
-**1 MATCH** (HEAD, `b92c7c8` — its `Verified-State` trailer names the tree the commit records)
-and **9 PRE_ARTICLE_8** (every commit before Article 8 arrived; an absent trailer is excused
-there and **never written retroactively**, while a malformed, doubled or mismatching one fails
-at any age). The fingerprint of the working checkout differs from the trailer's, as expected
+**Local trailer run — VERIFIED.** `node tools/gates/ci-trailer.mjs HEAD`: **1 MATCH**
+(`b92c7c8`, whose trailer names the tree the commit records) and **9 PRE_ARTICLE_8** (an absent
+trailer is excused before Article 8 and **never written retroactively**; a malformed, doubled
+or mismatching one fails at any age). The working checkout's fingerprint differs, as expected
 with uncommitted work — the tree id is the binding check.
 
-**The workflow has NOT run on GitHub.** It has never executed there, so its behaviour on a
-runner is **UNKNOWN**. It runs for the first time on the first push after a human authorizes
-one. Nothing in this repository may quote a remote result before that run exists.
+**The first remote run FAILED, and that is what it is for — VERIFIED (run `37185128292`,
+`ubuntu-24.04`, Node 22.23.3): `989 passed, 2 failed, 993 total` from a step called `build`, no
+test name in the log.** Three defects: one step running three legs; a count parser blind to
+`cancelled`, so 989 + 2 never had to reach 993; and an `unref`'d advisor deadline timer that
+left a promise unable to settle, on Node 22 only. All three are corrected and proved locally on
+Node 22 and 24; the corrected file has **not run remotely**, so that result is UNKNOWN and
+nothing here may quote it. Detail: [`tools/gates/CI.md`](tools/gates/CI.md).
 
 ## 10 · Final verification evidence
 
 *The authoritative Article-8 record for stage 5 is produced by the lead's `npm run verify:final`
-after this cell's last write; this paragraph is deliberately left as a pointer and is not
-edited to quote it.* The record lives **outside the verified state**, by design: it is appended
-to `.cellular/evidence/final-verification.jsonl`, which is **gitignored, local, per machine and
-self-attested**, and it fingerprints the controlled file set *as it stood when the command ran*
-— so any write afterwards, including a line added to this report, invalidates it and the suite
-must be re-run. That is exactly why §9 exists: the server-side re-run is the half of Article 8
-that a local file cannot provide. Mechanism and limits:
+after this cell's last write; this paragraph is a pointer and is not edited to quote it.* The
+record lives **outside the verified state**, by design: it is appended to the **gitignored,
+local, per machine, self-attested** `.cellular/evidence/final-verification.jsonl` and
+fingerprints the controlled set *as it stood when the command ran*, so any later write —
+including a line added to this report — invalidates it. That is exactly why §9 exists: the
+server-side re-run is the half of Article 8 a local file cannot provide. Mechanism and limits:
 [`tools/gates/FINAL-VERIFICATION.md`](tools/gates/FINAL-VERIFICATION.md).
 
-**Two verification lessons stage 5 paid for, recorded so they are not re-learned.**
-(1) Cell 4's *first* final verification **FAILED**, twice over: the observer proxy test used a
-300 ms upstream deadline that answered `504` when the whole suite ran under load, and a
-toolchain probe found the Windows `WindowsApps` `python` shim — an executable that exists and
-runs nothing. Both were real defects in the *verification*, not in the feature, and both were
-fixed (a dedicated short-deadline server for the timeout case; a probe that retries and reports
-an absent executable as a REASON, never an exception). (2) A green leg with no number behind it
-is unauditable, so the evidence record now carries **real test counts** and lists skipped tests
-with their reasons (`tools/gates/test-counts.mjs`) — a suite that ran nothing used to produce
-the same record as a full run.
+**Three verification lessons stage 5 paid for, recorded so they are not re-learned.**
+(1) Cell 4's *first* final verification **FAILED** twice over: an observer proxy test whose
+300 ms upstream deadline answered `504` under suite load, and a toolchain probe that found the
+Windows `WindowsApps` `python` shim — an executable that exists and runs nothing. Both were
+defects in the *verification*, not in the feature, and both were fixed. (2) A green leg with no
+number behind it is unauditable, so the record carries **real test counts** and lists skipped
+tests with their reasons. (3) Counts must ADD UP and name every outcome: `989 + 2 = 993` passed
+review for a whole stage, and the two results it hid were CANCELLED tests
+(`tools/gates/test-counts.mjs`, §9).
 
 ## 11 · Remaining technical work — PROPOSED cells, with done criteria
 
 | Proposed cell | Done criterion (binary) |
 |---|---|
-| **Remote CI first run** | a push is authorized; the `verify` workflow run exists on GitHub; its conclusion and the trailer verdict are quoted here from the run's job summary, not predicted |
+| **Remote CI second run** | the corrected workflow runs on GitHub; both matrix legs (node 22, node 24) conclude and the trailer verdict is quoted here from the job summary, not predicted |
 | **Branch protection** | `main` requires the `verify` check; the setting is recorded as a human decision in `RELEASE_CHECKLIST.md` item 47 |
 | **Streamed body caps** | the HTTP transport and the application probe refuse a response **while reading**, with a test that a 4 MiB body never reaches `response.text()` |
 | **TLS required for remote `baseUrl`** | `config.mjs` refuses a non-loopback `http://` endpoint, or an explicit operator opt-in records the cleartext-token risk; one red test per branch |

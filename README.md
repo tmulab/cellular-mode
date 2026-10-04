@@ -4,7 +4,7 @@
 explicit contract — and keep their state recorded, so that stopping is cheap and resuming is
 almost instant, whether the next session is tomorrow, in three weeks, or with another agent.
 
-Plain Markdown. Zero runtime dependencies. No runtime required. Node ≥ 18. Apache-2.0.
+Plain Markdown. Zero runtime dependencies. No runtime required. Node 22 or 24 (the two lines CI verifies; `engines.node` is `^22 || ^24`). Apache-2.0.
 **Not yet release-ready — see [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md)** · security scope: [`SECURITY.md`](SECURITY.md).
 
 ## The problem

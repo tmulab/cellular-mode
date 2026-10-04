@@ -17,7 +17,7 @@
     "upp:conformance": "node eip/upp-host/conformance-cli.mjs"
   },
   "engines": {
-    "node": ">=18"
+    "node": "^22 || ^24"
   },
   "devDependencies": {
     "@types/node": "24.19.1",
