@@ -1,19 +1,18 @@
 // io.mjs — the ONLY module of Cellular Adaptive that touches a filesystem or stdin.
 //
 // Everything else here is arithmetic over values, which is why the rest can be tested without
-// a temporary directory. Three rules govern this file.
+// a temporary directory. Four rules govern this file.
 //
 // CONFINED. Every path comes from one root and a constant name, and `confine()` refuses
 // anything that would leave `<root>/.cellular/adaptive/`. The state lives outside `vault/`
-// deliberately: the vault is the authoritative record of the work, and a preference that is
-// true for one afternoon has no business in it.
+// deliberately: the vault records the work, and a preference true for one afternoon is not that.
 //
 // TOLERANT. A missing file is an absence. A malformed one is a REPORT — never repaired, never
 // deleted, never read as an absence, because it is the human's file and "nothing was declared"
 // is a different claim from "I could not read this".
 //
-// ATOMIC. Writes are renamed into place, so a reader on the hot path of a prompt never meets
-// half a document.
+// ATOMIC. Writes are renamed into place, so a reader never meets half a document.
+// CANONICAL. A policy text is normalised to LF on the way in, and only that (`canonicalPolicy`).
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname, join, resolve, sep } from 'node:path';
@@ -28,6 +27,9 @@ export const STATE_REL = '.cellular/adaptive';
 /** Where the on-demand policy texts live, relative to the root. Read, never written. */
 export const POLICY_REL = 'adaptive/policies';
 
+/** The three file names, named once so `clear` and `adaptivePaths` cannot disagree. */
+const FILES = Object.freeze(['session.json', 'preferences.json', 'injected.json']);
+
 /** @type {(dir: string, name: string) => string} */
 export function confine(dir, name) {
   const full = resolve(dir, name);
@@ -38,17 +40,16 @@ export function confine(dir, name) {
 }
 
 /** Every path this module may touch, from a single root. `injected.json` is reserved for the
- * context-injection cache of cell 4 and is not read or written here.
- * @param {string} root */
+ * context-injection cache of cell 4, not read or written here. @param {string} root */
 export function adaptivePaths(root) {
   const base = resolve(root);
   const dir = join(base, '.cellular', 'adaptive');
   return {
     root: base,
     dir,
-    session: confine(dir, 'session.json'),
-    preferences: confine(dir, 'preferences.json'),
-    injected: confine(dir, 'injected.json'),
+    session: confine(dir, String(FILES[0])),
+    preferences: confine(dir, String(FILES[1])),
+    injected: confine(dir, String(FILES[2])),
   };
 }
 
@@ -84,16 +85,16 @@ function writeJson(file, value) {
 }
 
 /** The raw parsed session, or an absence, or a report. Validation is NOT performed here:
- * `validity.mjs` decides what the value means; this module decides only whether there was
- * anything to read. @param {string} root @returns {{ value: unknown, error: string | null }} */
+ * `validity.mjs` decides what the value means, this module only whether there was anything to
+ * read. @param {string} root @returns {{ value: unknown, error: string | null }} */
 export function readSession(root) {
   return readJson(adaptivePaths(root).session, `${STATE_REL}/session.json`);
 }
 
 /** The preference file, validated, so every consumer sees one shape with the defaults filled
  * in. An invalid file is an ERROR, not a fallback: quietly ignoring what somebody wrote is how
- * a setting stops meaning anything.
- * @param {string} root @returns {{ value: Preferences | null, error: string | null }} */
+ * a setting stops meaning anything. @param {string} root
+ * @returns {{ value: Preferences | null, error: string | null }} */
 export function readPreferences(root) {
   const label = `${STATE_REL}/preferences.json`;
   const raw = readJson(adaptivePaths(root).preferences, label);
@@ -106,9 +107,16 @@ export function readPreferences(root) {
   return { value: null, error: `${label} is not a valid preference file${where}` };
 }
 
+/** CANONICAL. A line ending belongs to a CHECKOUT, not to a policy: `.gitattributes` commits
+ * these files as LF and a Windows working copy may hold CRLF for the same bytes, while the
+ * injected block is measured in bytes and its size documented. So: CRLF to LF, and NOTHING
+ * else — a lone CR, a tab, a trailing space and a blank line are content and survive
+ * (./policy-bytes.test.mjs). @type {(text: string) => string} */
+const canonicalPolicy = (text) => text.split('\r\n').join('\n');
+
 /** The on-demand policy texts, read from the PROJECT (`<root>/adaptive/policies/`) so an
- * adopting project may edit its own. A file that is absent or unreadable is REPORTED, never
- * substituted: `context.mjs` must never be handed a silent blank.
+ * adopting project may edit its own. An absent or unreadable file is REPORTED, never
+ * substituted: `context.mjs` is never handed a silent blank.
  * @param {string} root @param {ReadonlyArray<string>} relPaths repository-relative paths
  * @returns {{ texts: Record<string, string>, missing: string[] }} */
 export function readPolicyTexts(root, relPaths) {
@@ -123,9 +131,10 @@ export function readPolicyTexts(root, relPaths) {
       missing.push(rel);
       continue;
     }
+    // Normalised on the way in, so every consumer sees the canonical bytes.
     const read = readText(confine(dir, name));
     if (read.missing || read.error !== null) missing.push(rel);
-    else texts[rel] = read.content;
+    else texts[rel] = canonicalPolicy(read.content);
   }
   return { texts, missing };
 }
@@ -136,8 +145,8 @@ export function writeSession(root, session) {
   return `${STATE_REL}/session.json`;
 }
 
-/** Refuses to write anything the reader would reject — in particular a preference file
- * carrying a mode or any other condition key.
+/** Refuses to write anything the reader would reject — in particular a preference file carrying
+ * a mode or any other condition key.
  * @param {string} root @param {Preferences} preferences @returns {string} the path written */
 export function writePreferences(root, preferences) {
   const parsed = validatePreferences(preferences);
@@ -156,7 +165,7 @@ export const hashOf = (text) => createHash('sha256').update(text, 'utf8').digest
 
 /** The injection cache: ONE entry, never a history. It answers a single question — was this
  * exact block already given to this session — so a log of what was injected when, which would
- * be a record about a person by another name, never has to exist.
+ * be a record about a person by another name, never has to exist. Hence no history here.
  * @param {string} root @returns {{ sessionId: string, hash: string }} */
 export function readInjected(root) {
   const raw = readJson(adaptivePaths(root).injected, `${STATE_REL}/injected.json`).value;
@@ -182,19 +191,8 @@ export function deleteSession(root) {
 /** Deletes every file of the module and NAMES what it deleted. No backup: it is the human's
  * data. @param {string} root @returns {string[]} */
 export function clear(root) {
-  const paths = adaptivePaths(root);
-  /** @type {string[]} */
-  const deleted = [];
-  const entries = [
-    { file: paths.session, name: 'session.json' },
-    { file: paths.preferences, name: 'preferences.json' },
-    { file: paths.injected, name: 'injected.json' },
-  ];
-  for (const { file, name } of entries) {
-    if (existsSync(file)) {
-      rmSync(file);
-      deleted.push(`${STATE_REL}/${name}`);
-    }
-  }
-  return deleted;
+  const { dir } = adaptivePaths(root);
+  const present = FILES.filter((name) => existsSync(confine(dir, name)));
+  for (const name of present) rmSync(confine(dir, name));
+  return present.map((name) => `${STATE_REL}/${name}`);
 }

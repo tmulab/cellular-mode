@@ -164,7 +164,10 @@ test('counts · verify-final records and PRINTS the counts it observed', { skip:
       { tests: 2, pass: 1, fail: 0, skipped: 1, cancelled: 0, todo: 0 });
     assert.equal(check?.summary,
       '2 tests · 1 pass · 0 fail · 1 skipped · 0 cancelled · 0 todo');
-    assert.ok(printed[0]?.includes('1 skipped'), `counts must be printed: ${printed.join(' | ')}`);
+    // The byte-equivalence check reports FIRST, because it decides whether the suite runs at
+    // all (tools/gates/byte-equivalence.mjs); the counts of the suite itself come next.
+    assert.match(String(printed[0]), /^✅ byte equivalence — \d+ file\(s\) compared, 0 differing$/);
+    assert.ok(printed[1]?.includes('1 skipped'), `counts must be printed: ${printed.join(' | ')}`);
     assert.ok(printed.some((line) => line.includes('no JDK on this machine')),
       'a skipped test must be listed, not merely counted');
   } finally {

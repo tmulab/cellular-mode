@@ -56,3 +56,4 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [UPP security review and closure](cells/upp-security-review-and-closure.md) | SECURITY.md, docs/upp, docs/09, README, UPP_REPORT.md, regression | ✔ | 2026-10-03 | — |
 | [Stage 5 approvals and verified commit](cells/stage-5-approvals-and-verified-commit.md) | docs/adr/0005, docs/adr/0001, RELEASE_CHECKLIST, README, UPP_REPORT, docs/09 | ✔ | 2026-10-04 | — |
 | [CI failure correction](cells/ci-failure-correction.md) | eip/plugins/observer-advisor/call-model.mjs, .github/workflows/verify.yml, tools/gates (trilateral, test counts), package.json engines | ✔ | 2026-10-04 | — |
+| [Second CI correction and Article 8 integrity](cells/second-ci-correction-and-article-8-integrity.md) | eip/host/repo-read-port.test.mjs, tools/adaptive policy loading, tools/gates verify-final byte equivalence | ✔ | 2026-10-04 | — |

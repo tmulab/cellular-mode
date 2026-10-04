@@ -19,6 +19,9 @@ import { appendFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { diffEntries, fingerprintRepo, repoState } from './fingerprint.mjs';
 import {
+  CORRECTIVE_ACTION, MAX_RECORDED, checkByteEquivalence, equivalenceReason,
+} from './byte-equivalence.mjs';
+import {
   FINAL_EVIDENCE_FILE, FINAL_EVIDENCE_PATH, FINAL_EVIDENCE_SEGMENTS,
   finalRecord, sanitizeSummary, verdict,
 } from './final-evidence.mjs';
@@ -98,9 +101,16 @@ export function runFinalVerification(options = {}) {
   const now = options.now ?? (() => new Date().toISOString());
   const before = repoState(root);
   assertEvidenceOutside(before.entries);
+  // STEP 4b, BEFORE the suite: the bytes about to be verified must be the bytes git would
+  // commit. Running minutes of checks over bytes that will be converted on the way into the
+  // index produces a green for a state that exists nowhere (./byte-equivalence.mjs).
+  const equivalence = checkByteEquivalence(root, before.entries.map((entry) => entry.path));
+  options.onProgress?.(`${equivalence.equivalent ? '✅' : '❌'} byte equivalence — `
+    + `${equivalence.checked} file(s) compared, ${equivalence.differing.length} differing`);
   /** @type {CheckRecord[]} */
   const checks = [];
-  for (const check of suite) {
+  // An empty suite is never a pass (`verdict`), so a refusal here cannot be mistaken for one.
+  for (const check of equivalence.equivalent ? suite : []) {
     const outcome = check.run(root);
     // A check that printed `node --test` counts is recorded WITH them: "exit 0" alone is a
     // claim nobody can audit (./test-counts.mjs). Checks with no counts are unchanged, and
@@ -119,9 +129,11 @@ export function runFinalVerification(options = {}) {
       + `${counts === null ? '' : ` · ${countsSummary(counts)}`}`);
     for (const line of skips) options.onProgress?.(`   ﹣ skipped: ${line}`);
   }
-  const after = fingerprintRepo(root);
+  const after = equivalence.equivalent ? fingerprintRepo(root) : before;
   const diff = diffEntries(before.entries, after.entries);
-  const result = verdict({ checks, before: before.fingerprint, after: after.fingerprint });
+  const result = equivalence.equivalent
+    ? verdict({ checks, before: before.fingerprint, after: after.fingerprint })
+    : { ok: false, reason: equivalenceReason(equivalence) };
   const record = finalRecord({
     at: now(),
     fingerprint: before.fingerprint,
@@ -131,6 +143,8 @@ export function runFinalVerification(options = {}) {
     ok: result.ok,
     reason: result.reason,
     ...(after.fingerprint === before.fingerprint ? {} : { after: after.fingerprint }),
+    equivalent: equivalence.equivalent,
+    drifted: equivalence.differing.slice(0, MAX_RECORDED),
   });
   const evidencePath = appendEvidence(root, record);
   return { ok: result.ok, reason: result.reason, record, before, after, diff, evidencePath };
@@ -165,6 +179,10 @@ function main(argv = process.argv.slice(2)) {
   write(`fingerprint: sha256:${result.before.fingerprint}`);
   write(`tree: ${result.before.tree}  head: ${result.before.head ?? '(no commit)'}`);
   for (const line of diffLines(result.diff)) write(line);
+  if (result.record.equivalent === false) {
+    for (const path of result.record.drifted ?? []) write(`  not the committed bytes: ${path}`);
+    write(`  → ${CORRECTIVE_ACTION}`);
+  }
   for (const check of result.record.checks) {
     if (check.exit !== 0 && check.summary !== '') write(`  ${check.name}: ${check.summary}`);
   }

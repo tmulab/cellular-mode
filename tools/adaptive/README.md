@@ -107,15 +107,18 @@ blank lines are dropped; nothing is reflowed, reordered or summarised. The budge
 **2048 bytes** and over it is an error, never a truncation — half an instruction block still
 looks authoritative.
 
-Measured on 2026-10-03 with `node tools/adaptive/cli.mjs context | wc -c` (bytes, **not**
+Measured on 2026-10-04 with `node tools/adaptive/cli.mjs context | wc -c` (bytes, **not**
 tokens; the trailing newline is excluded). `tools/adaptive/cli-context.test.mjs` asserts that
-this table is what the code produces, so it cannot drift:
+this table is what the code produces, so it cannot drift. The numbers are over the CANONICAL
+policy bytes: the loader normalises CRLF to LF, so one measurement holds on every operating
+system and in every checkout (`tools/adaptive/policy-bytes.test.mjs`). The 2026-10-03 figures
+(1999 / 1963 / 1878) were measured on a CRLF working copy, where every line ending counted twice:
 
 | Active mode | Block bytes | Of the 2048 budget |
 |---|---|---|
-| `tired` | 1999 | 98% |
-| `explore` | 1963 | 96% |
-| `focus` | 1878 | 92% |
+| `tired` | 1971 | 96% |
+| `explore` | 1954 | 95% |
+| `focus` | 1869 | 91% |
 | `ready`, or none, or disabled | 0 | the default needs no instructions |
 
 An expired or unreadable declaration prints only its one-line notice (~75 bytes).
@@ -132,7 +135,7 @@ actually are. The module is optional, so **every number below is zero if you do 
 | The 8 Claude Code skill names + descriptions | 1932 | once per session, if `.claude/skills/` is installed |
 | `skills/mode/SKILL.md` | 4708 | only when a mode is actually declared or asked about |
 | The injected block, per turn, **unchanged mode** | **0** | nothing is reprinted; `hook.test.mjs` asserts the empty output |
-| The injected block, per turn, on a change | 1878–1999 | once, on the turn the mode changes (or at `SessionStart`) |
+| The injected block, per turn, on a change | 1869–1971 | once, on the turn the mode changes (or at `SessionStart`) |
 
 The two recurring costs are the Level-1 lines (+449 bytes) and, with the Claude skills
 installed, the 1932 bytes of names and descriptions the harness lists. Everything else is

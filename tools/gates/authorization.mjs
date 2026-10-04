@@ -4,11 +4,11 @@
 // Article 8 would be a style guide if the only thing enforcing it were an instruction to a
 // model. So the same question is asked by git: `.githooks/pre-commit` (the staged tree),
 // `.githooks/commit-msg` (the trailer that links the commit to the verified state) and
-// `.githooks/pre-push` (every commit that is not yet on the remote). This module is the
-// one place that answers it, so the hooks, the CLI and the release gate cannot disagree.
+// `.githooks/pre-push` (every commit that is not yet on the remote). This module is the one
+// place that answers it, so the hooks, the CLI and the release gate cannot disagree.
 //
-// FAIL CLOSED everywhere: no record, an unreadable record, a record for another state, or
-// git refusing to answer — all of them mean NOT authorized.
+// FAIL CLOSED everywhere: no record, an unreadable record, a record for another state, a
+// record with no byte-equivalence result, or git refusing to answer — all NOT authorized.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { commitRows, commitsToPush, rangeIsReadable, subjectOf, treeOf } from './commit-range.mjs';
@@ -46,11 +46,8 @@ export function authorized(root = process.cwd()) {
   }
   const record = findAuthorization(readRecords(root), fingerprint);
   if (record === null) {
-    return {
-      ok: false,
-      evidence: null,
-      reason: `no passing evidence for the current state (sha256:${fingerprint.slice(0, 12)}…) — ${REMEDY}`,
-    };
+    const where = `the current state (sha256:${fingerprint.slice(0, 12)}…)`;
+    return { ok: false, evidence: null, reason: `no passing evidence for ${where} — ${REMEDY}` };
   }
   return { ok: true, evidence: record, reason: `authorized by the record of ${record.at}` };
 }
@@ -58,9 +55,19 @@ export function authorized(root = process.cwd()) {
 /** Is a given git tree authorized? The hooks can only see trees, never working files.
  * @param {string} root @param {string} tree @returns {Answer} */
 export function treeAuthorized(root, tree) {
-  const record = findTreeAuthorization(readRecords(root), tree);
+  const records = readRecords(root);
+  const record = findTreeAuthorization(records, tree);
   if (record === null) {
-    return { ok: false, evidence: null, reason: `no passing evidence for tree ${tree} — ${REMEDY}` };
+    // COMPATIBILITY, stated out loud: a record written before the byte-equivalence check
+    // existed is still readable, and still authorizes nothing. Saying so beats "no evidence".
+    const older = records.some((r) => r.ok && r.tree === tree && r.equivalent !== true);
+    return {
+      ok: false,
+      evidence: null,
+      reason: older
+        ? `the passing evidence for tree ${tree} has no byte-equivalence result — ${REMEDY}`
+        : `no passing evidence for tree ${tree} — ${REMEDY}`,
+    };
   }
   return { ok: true, evidence: record, reason: `authorized by the record of ${record.at}` };
 }

@@ -73,12 +73,18 @@ export function diffEntries(before, after) {
 
 /** `shell` stays false: git is a real executable and these arguments are never a shell
  * expression. The environment is extended, never replaced, so a user's git configuration
- * still applies.
+ * still applies. `input` is for the batch protocols (`--stdin-paths`), which is how
+ * ./byte-equivalence.mjs asks about hundreds of files in two invocations.
  * @param {string} root @param {ReadonlyArray<string>} args
- * @param {Record<string, string>} [env] @returns {GitResult} */
-function git(root, args, env = {}) {
+ * @param {Record<string, string>} [env] @param {{ input?: string }} [options]
+ * @returns {GitResult} */
+function git(root, args, env = {}, options = {}) {
   const result = spawnSync('git', [...args], {
-    cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, env: { ...process.env, ...env },
+    cwd: root,
+    encoding: 'utf8',
+    maxBuffer: 64 * 1024 * 1024,
+    env: { ...process.env, ...env },
+    ...(options.input === undefined ? {} : { input: options.input }),
   });
   if (result.error) throw new Error(`git could not be run in ${root}: ${result.error.message}`);
   return {

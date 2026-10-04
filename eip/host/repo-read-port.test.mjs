@@ -148,8 +148,18 @@ test('A20 readEvidence opens ONE file, and readHead answers the commit or null',
   try {
     assert.equal(await p.readEvidence.fn(), null, 'no record yet is null, never a fabricated leg');
     await mkdir(join(p.root, '.cellular', 'evidence'), { recursive: true });
-    await writeFile(join(p.root, EVIDENCE_PATH.split('/').join('\\')), '{"schema":1}\n', 'utf8');
+    // The path is BUILT, never spelled with a separator: `EVIDENCE_PATH` is POSIX, and
+    // pre-joining it with `\` produced a file literally named `.cellular\evidence\...` on
+    // Linux — where a backslash is an ordinary filename character — so this test passed on
+    // Windows and failed on CI while the port it tests was correct (CI run 37188606487).
+    await writeFile(join(p.root, ...EVIDENCE_PATH.split('/')), '{"schema":1}\n', 'utf8');
     assert.deepEqual(await p.readEvidence.fn(), { schema: 1 });
+    // And the guard the mistake brushed against: a requested path carrying a literal
+    // backslash is REFUSED rather than silently re-segmented, on every platform. Writing
+    // such a file is only possible on POSIX, so the write is not attempted here — the
+    // refusal is what matters, and it does not depend on the file existing.
+    await assert.rejects(() => p.readRepoFile.fn(EVIDENCE_PATH.split('/').join('\\')),
+      (error) => denied(error, 'a repository path uses forward slashes only'));
     await writeFile(join(p.root, '.cellular', 'evidence', 'trilateral.json'), 'not json\n', 'utf8');
     assert.equal(await p.readEvidence.fn(), null, 'unparsable is UNKNOWN, not half-read');
     // `.git/HEAD` points at a ref with no object in this fixture.
