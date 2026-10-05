@@ -493,3 +493,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Transport-free rule added as gate (strengthening). Real-model evaluation not performed (UNKNOWN in report). Stage 6 commit awaits explicit human authorization.
 **Build:** trilateral green: typecheck 0 errors, 218 modules load, tests 1210/1210; gates --release no blockers; both removal rehearsals VERIFIED
 **Next step:** —
+
+---
+## 2026-10-05 13:04 · Cell: Stage 6 formal closure
+**Status:** ✔
+**Facts:** Stage 6 commit 096243d77879018e3846ff0b07f60f8643bc3865 pushed privately; CI run 37313002906 success on Node 22.23.3 and 24.21.0: typecheck 0 errors, 218 modules, 1210/1210 tests each, gates no findings, release gate no blockers, vault integrity passed, Verified-State trailer MATCH, CI fingerprint equal to approved sha256:44c4a269...68f4f, UPP in-process/node/python/java/rust 11/11, cpp UNEXECUTED. Recorded in PROMPT_BUILDER_REPORT.md section 11 (appended) and RELEASE_CHECKLIST.md items 51-54.
+**Decisions:** Stage 6 CLOSED. Builder implemented and independently verified by CI; no real-model evaluation performed; Cursor/Codex CLI/Gemini CLI adapters proposed only; injection mitigation reduces risk without guaranteeing compliance. Historical sections left unchanged (append only). Stage 7 not begun.
+**Build:** trilateral green: typecheck 0 errors, 218 modules load, tests 1210/1210; release gate no blockers
+**Next step:** —

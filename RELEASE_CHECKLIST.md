@@ -169,6 +169,17 @@ npm run rehearse:adaptive-removal          -> AD29 VERIFIED (suite + gates green
 node tools/gates/ci-trailer.mjs HEAD       -> 12 commit(s): 3 MATCH, 9 PRE_ARTICLE_8
 ```
 
+## Stage 6 — Cellular Prompt Builder (added 2026-10-05)
+
+Optional module; gates no release of the method. Full account: [`PROMPT_BUILDER_REPORT.md`](PROMPT_BUILDER_REPORT.md) §11.
+
+| | Item | Status | What is left |
+|---|---|---|---|
+| 51 | 👤 Stage-6 commit and private push | ✅ DONE 2026-10-05 | `096243d77879018e3846ff0b07f60f8643bc3865`, authorized by the human, hooks active, no `--no-verify` |
+| 52 | CI on the Stage-6 commit | ✅ **VERIFIED 2026-10-05** | run [`37313002906`](https://github.com/tmulab/cellular-mode/actions/runs/37313002906) success: Node v22.23.3 and v24.21.0 each typecheck 0 errors, 218 modules, **1210/1210** tests, gates no findings, release gate no blockers, vault integrity passed, trailer **MATCH**, CI fingerprint = approved `sha256:44c4a269…68f4f`, UPP in-process · node · python · java · rust 11/11; `cpp` UNEXECUTED |
+| 53 | Real-model behavioural evaluation of `/builder` | ⚠️ **NOT PERFORMED** | deterministic tests do not guarantee model behaviour; injection mitigation reduces risk only |
+| 54 | Cursor, Codex CLI, Gemini CLI adapters | 📋 PROPOSED only | registered, refuse to render; inspection and pattern-detector limits as documented |
+
 ## Who must decide what
 
 1. **Security contact** (item 6) — done: role address set on 2026-10-02.

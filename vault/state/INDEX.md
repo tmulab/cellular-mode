@@ -65,3 +65,4 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [prompt-builder-prompts](cells/prompt-builder-prompts.md) | stage-6 | ✔ | 2026-10-04 | — |
 | [prompt-builder-cli-skills](cells/prompt-builder-cli-skills.md) | stage-6 | ✔ | 2026-10-04 | — |
 | [prompt-builder-closure](cells/prompt-builder-closure.md) | stage-6 | ✔ | 2026-10-04 | — |
+| [Stage 6 formal closure](cells/stage-6-formal-closure.md) | stage-6 | ✔ | 2026-10-05 | — |

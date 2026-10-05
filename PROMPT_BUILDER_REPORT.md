@@ -138,3 +138,43 @@ outside the controlled tree and quoted in the hand-over message. Any later write
 - Authorization to create the Stage 6 commit (nothing was committed, pushed or published).
 - Whether to commit `vault/project-contract.json` files in adopting projects stays a per-project
   human decision.
+
+## 11. Formal closure — independent CI verification (added 2026-10-05)
+
+Sections 1–10 are kept as written at hand-over. Section 10 is resolved: the human authorized the
+Stage 6 commit `096243d77879018e3846ff0b07f60f8643bc3865` and its private push to `main`.
+
+**CI run [`37313002906`](https://github.com/tmulab/cellular-mode/actions/runs/37313002906) —
+conclusion success.** Both jobs ran every step to success on `ubuntu-24.04`:
+
+| Check | `verify (node 22)` — v22.23.3 | `verify (node 24)` — v24.21.0 |
+|---|---|---|
+| Typecheck | 0 errors | 0 errors |
+| Build (module-load gate) | 218 modules | 218 modules |
+| Tests | 1210 · 1210 pass · 0 fail · 0 skipped · 0 cancelled · 0 todo | same |
+| Gates (size, secrets, deps, boundaries) | no findings, 0 pending exceptions | same |
+| Release gate | no blockers | no blockers |
+| Vault integrity | passed — 60 done, 61 log entries | same |
+| `Verified-State` trailer | `1 commit(s): 1 MATCH` (names tree `e034a297…`) | same |
+| CI fingerprint | equals the approved `sha256:44c4a269…68f4f` | same |
+| UPP conformance | in-process, node, python 3.12.14, java 21.0.12.1, rust 1.98.1: PASS 11/11 each | same |
+| C++ example | UNEXECUTED by design (unverified everywhere) | same |
+
+### Closure status
+
+- **Implemented:** the Cellular Prompt Builder (sections 1–2).
+- **Independently verified:** every capability marked VERIFIED in section 3 is covered by the
+  mandatory deterministic suite, which CI re-ran and passed on both supported Node.js versions.
+  Removal rehearsals are local evidence (not CI steps).
+- **Deterministic:** discovery, validation, decisions, publication check, first-cell generation,
+  approval boundaries, prompt rendering and the CLI need no language model and run offline.
+- **Model-dependent, not yet evaluated:** how an agent conducts the conversation through
+  `skills/builder/SKILL.md` (section 4). **No real-model behavioural evaluation has been
+  performed.** Deterministic tests do not guarantee model behaviour.
+- **Proposed only:** Cursor, Codex CLI and Gemini CLI adapters (registered, refuse to render).
+- **Security:** prompt-injection mitigation (single hash-delimited DATA block, tool-authored
+  instructions, fixed prohibited operations) reduces risk but does not guarantee model
+  compliance. Existing-project inspection limits (2000 files, 6 levels, four manifest types) and
+  pattern-based secret/path/contact detection remain as documented in section 7 and
+  `prompt-builder/THREAT-MODEL.md`.
+- **Stage 6 is CLOSED.** Branch protection remains a human decision; Stage 7 has not begun.
