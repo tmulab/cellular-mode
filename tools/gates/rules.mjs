@@ -136,4 +136,22 @@ export const RULES = [
     from: /^(tools\/cellmode\/|skills\/|docs\/|adapters\/|templates\/|eip\/(sdk|kernel)\/|eip\/plugins\/(?!adaptive-)[^/]+\/)/,
     denyPrefixes: ['tools/adaptive/'],
   },
+  {
+    id: 'prompt-builder-is-optional-and-isolated',
+    why: 'the Cellular Prompt Builder is an OPTIONAL module: the method, the CLI, the gates, the Observer and the runtime must all keep working with tools/prompt-builder deleted, so NOTHING outside that directory may import it. This rule governs every file in the repository EXCEPT the Builder itself, so the Builder\'s own modules, tests and fixtures are excepted by construction and no name has to be added to an allowlist. In particular tools/cellmode may not import it: the arrow between the method and the Builder points one way only (PB1), because `cellmode` has to keep running in a checkout that never installed the Builder.',
+    from: /^(?!tools\/prompt-builder\/)./,
+    denyPrefixes: ['tools/prompt-builder/'],
+  },
+  {
+    id: 'prompt-builder-depends-on-the-method-only',
+    why: 'the Builder interviews a human and writes a contract; it may use node built-ins and the PURE modules of tools/cellmode, and nothing else. eip/ is denied because the Builder is methodology and must work in a repository with no runtime (the same promise cellular-mode-is-runtime-independent makes for the CLI, restated here so the Builder\'s independence is ONE rule to read). tools/adaptive/ is denied because an optional module that depended on another optional module would make both load-bearing. tools/gates/ is denied because the gates may read the method and never the other way round: a Builder that checked its own gate would be the bypass.',
+    from: /^tools\/prompt-builder\//,
+    denyPrefixes: ['eip/', 'tools/adaptive/', 'tools/gates/'],
+  },
+  {
+    id: 'prompt-builder-is-transport-free',
+    why: 'the Builder asks a human questions and writes two files; it has no business opening a socket or starting a program, and the narrowest privilege is the one it is never granted. node:http/https/http2/net/tls/dgram are denied so a prompt it assembled can never be sent anywhere, and no answer a human typed can leave the machine; node:child_process is denied so a project path, a technology name or a decision text can never reach a command line — the classic way quoted data turns back into instructions. A separate rule from the layering one above, as upp-is-transport-free is separate from upp-imports-sdk-only: "which layers may it see" and "which capabilities does it hold" are two questions a reviewer asks one at a time. Its own CLI tests run the CLI in process, so nothing here is an inconvenience the suite has to work around.',
+    from: /^tools\/prompt-builder\//,
+    denyExact: ['node:http', 'node:https', 'node:http2', 'node:net', 'node:tls', 'node:dgram', 'node:child_process'],
+  },
 ];

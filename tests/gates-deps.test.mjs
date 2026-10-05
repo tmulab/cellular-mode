@@ -5,7 +5,7 @@
 // violation and GREEN on clean input.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
@@ -121,11 +121,15 @@ test('deps · the real repository passes the gate it ships', () => {
   // `prepare`, no `postinstall`, no `--no-verify` wrapper, nothing that runs on install.
   // `typecheck` runs BOTH configurations — the repository's and the browser one in
   // apps/observer — because a second config that nobody runs is a second config that rots.
-  assert.deepEqual(pkg.scripts, {
+  /** @type {Record<string, string>} */
+  const expected = {
     test: 'node --test',
     typecheck: 'tsc -p jsconfig.json && tsc -p apps/observer/jsconfig.json',
     gates: 'node tools/gates/check-all.mjs',
     trilateral: 'node tools/gates/trilateral.mjs',
+    // The optional Cellular Prompt Builder. A convenience name for one entry point and
+    // nothing more: it runs no gate, installs nothing, and the method works without it.
+    builder: 'node tools/prompt-builder/cli.mjs',
     // Article 8 (final verification): the suite that may authorize a completion, the
     // question "is THIS state authorized?", and the two commands that install or remove
     // the git hooks which ask it. `hooks:install` writes ONE local git config key and
@@ -135,15 +139,27 @@ test('deps · the real repository passes the gate it ships', () => {
     authorized: 'node tools/gates/authorization.mjs status',
     'hooks:install': 'git config core.hooksPath .githooks',
     'hooks:uninstall': 'git config --unset core.hooksPath',
-    // Out of `npm test` on purpose: it copies the repository and runs the whole suite there,
-    // which is minutes. `tests/optional-module-imports.test.mjs` is the fast half of AD29.
+    // Out of `npm test` on purpose: each copies the repository and runs the whole suite
+    // there, which is minutes. `tests/optional-module-imports.test.mjs` is the fast half of
+    // both claims — AD29 for the adaptive module, PB3 for the Builder.
     'rehearse:adaptive-removal': 'node tools/gates/removal-rehearsal.mjs',
+    'rehearse:builder-removal': 'node tools/gates/removal-rehearsal.mjs builder',
     // The polyglot conformance replay. It is a script rather than a test-only entry point
     // because an operator adding an implementation in a sixth language needs to run it
     // directly, and because it is the command the interop record in
     // docs/upp/CONFORMANCE.md cites for every row.
     'upp:conformance': 'node eip/upp-host/conformance-cli.mjs',
-  });
+  };
+  // STILL an exact set, with exactly one conditional name. `builder` is a convenience alias
+  // for the OPTIONAL Prompt Builder's entry point, and `npm run rehearse:builder-removal`
+  // deletes `tools/prompt-builder/` in a copy of the repository — so in THAT copy the script
+  // is gone too, and a manifest advertising a deleted entry point would be the finding. The
+  // tolerance is therefore tied to the directory and to nothing else: with the Builder
+  // installed the name is REQUIRED, which is what keeps this from being a free pass.
+  const builderInstalled = existsSync(join(ROOT, 'tools', 'prompt-builder'));
+  if (!builderInstalled) delete expected.builder;
+  else assert.equal(expected.builder, 'node tools/prompt-builder/cli.mjs');
+  assert.deepEqual(pkg.scripts, expected);
   for (const command of Object.values(pkg.scripts)) {
     assert.doesNotMatch(String(command), /--no-verify|npx |curl |\|\||;/, `suspicious script: ${command}`);
   }

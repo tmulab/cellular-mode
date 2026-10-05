@@ -33,7 +33,7 @@ Available in this repository:
 
 | Path | For |
 |---|---|
-| `adapters/claude-code/.claude/skills/` | Claude Code — nineteen skill pointers: the four lifecycle ones (`cell`, `pause`, and the Portuguese-compatibility aliases `celula`, `pausar`), the seven optional engineering skills, and the eight **optional** mode skills of Cellular Adaptive (`tired`, `ready`, `focus`, `explore` + the Portuguese names) |
+| `adapters/claude-code/.claude/skills/` | Claude Code — twenty-one skill pointers: the four lifecycle ones (`cell`, `pause`, and the Portuguese-compatibility aliases `celula`, `pausar`), the seven optional engineering skills, the eight **optional** mode skills of Cellular Adaptive (`tired`, `ready`, `focus`, `explore` + the Portuguese names), and the two for the **optional** Prompt Builder (`builder` + the Portuguese alias `construtor`, `docs/11-prompt-builder.md`) |
 | `adapters/claude-code/settings.adaptive.json` | Claude Code — an **opt-in** hook snippet for Cellular Adaptive. Not installed by cloning: project hooks run commands with no trust prompt |
 | `adapters/cursor/.cursor/rules/cellular-mode.mdc` | Cursor — an always-applied rule pointing at `AGENTS.md` |
 | `.claude/skills/` (repository root) | A copy of the Claude Code adapter, so this repository itself works when opened in Claude Code |

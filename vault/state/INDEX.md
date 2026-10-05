@@ -58,3 +58,10 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [CI failure correction](cells/ci-failure-correction.md) | eip/plugins/observer-advisor/call-model.mjs, .github/workflows/verify.yml, tools/gates (trilateral, test counts), package.json engines | ✔ | 2026-10-04 | — |
 | [Second CI correction and Article 8 integrity](cells/second-ci-correction-and-article-8-integrity.md) | eip/host/repo-read-port.test.mjs, tools/adaptive policy loading, tools/gates verify-final byte equivalence | ✔ | 2026-10-04 | — |
 | [Stage 5 formal closure](cells/stage-5-formal-closure.md) | UPP_REPORT.md, docs/upp/CONFORMANCE.md, tools/gates/CI.md, RELEASE_CHECKLIST.md, cpp conformance message | ✔ | 2026-10-04 | — |
+| [prompt-builder-audit](cells/prompt-builder-audit.md) | stage-6 | ✔ | 2026-10-04 | — |
+| [prompt-builder-discovery](cells/prompt-builder-discovery.md) | stage-6 | ✔ | 2026-10-04 | — |
+| [prompt-builder-contract](cells/prompt-builder-contract.md) | stage-6 | ✔ | 2026-10-04 | — |
+| [prompt-builder-first-cell](cells/prompt-builder-first-cell.md) | stage-6 | ✔ | 2026-10-04 | — |
+| [prompt-builder-prompts](cells/prompt-builder-prompts.md) | stage-6 | ✔ | 2026-10-04 | — |
+| [prompt-builder-cli-skills](cells/prompt-builder-cli-skills.md) | stage-6 | ✔ | 2026-10-04 | — |
+| [prompt-builder-closure](cells/prompt-builder-closure.md) | stage-6 | ✔ | 2026-10-04 | — |

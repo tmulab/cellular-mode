@@ -10,7 +10,7 @@ npm run trilateral   # typecheck, build, tests - three lines, exit 0 only if gre
 npm test             # node --test, which also runs the gates' own tests
 check-all.mjs --release   # also exit 2 on a PENDING exception or open relaxation
 npm run verify:final # Article 8: fingerprint, full suite, fingerprint again, record evidence
-npm run rehearse:adaptive-removal   # delete Cellular Adaptive in a temp copy, run it all there
+npm run rehearse:adaptive-removal   # also rehearse:builder-removal: delete the module in a temp copy, run it all
 ```
 
 ## Shape

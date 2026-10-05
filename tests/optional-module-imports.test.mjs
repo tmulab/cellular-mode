@@ -16,7 +16,7 @@ import assert from 'node:assert/strict';
 import { posix } from 'node:path';
 import { allFiles, read, report } from './helpers.mjs';
 
-/** The files that must keep working with the adaptive module deleted. `eip/host/adaptive-*`
+/** The files that must keep working with EITHER optional module deleted. `eip/host/adaptive-*`
  * is the module's own host half and is excluded: it is deleted along with it. The `tests/`
  * row was added in stage 5, cell 7: the repository-wide suites live there, they SURVIVE the
  * deletion, and one of them (`upp-compat`) had acquired a static import of the optional
@@ -30,12 +30,20 @@ const SCOPE = Object.freeze([
   /^tests\/(?!adaptive-integration\.|gates-adaptive-boundary\.)[^/]+\.mjs$/,
 ]);
 
-/** Repo-relative prefixes that ARE the optional module. A resolved specifier starting with one
- * of these is a dependency on something that may not be in the checkout. */
+/** Repo-relative prefixes that ARE an optional module. A resolved specifier starting with one
+ * of these is a dependency on something that may not be in the checkout.
+ *
+ * Two modules are optional, not one. `tools/prompt-builder/` (the Cellular Prompt Builder,
+ * Stage 6) joined the list for exactly the reason the adaptive entries are here: its slow half
+ * is `npm run rehearse:builder-removal`, and the fast half has to be able to see a static
+ * import before the rehearsal spends minutes finding it. Its own files are NOT in SCOPE below,
+ * so the Builder importing itself is not a finding; the boundary rule
+ * `prompt-builder-is-optional-and-isolated` is the gate that states the same arrow as data. */
 const OPTIONAL = Object.freeze([
   'tools/adaptive/',
   'eip/plugins/adaptive-',
   'eip/host/adaptive-read-port',
+  'tools/prompt-builder/',
 ]);
 
 /** The module allowed to name an optional specifier at all, and only in a dynamic
@@ -144,7 +152,7 @@ test('optional module · nothing that must survive its deletion imports it stati
       if (resolved !== null && isOptional(resolved)) offenders.push(`${rel}:${line}: ${spec}`);
     }
   }
-  assert.deepEqual(offenders, [], report('static imports of the OPTIONAL adaptive module', offenders));
+  assert.deepEqual(offenders, [], report('static imports of an OPTIONAL module', offenders));
 });
 
 test('optional module · only the composition names it, and only in a dynamic import()', () => {

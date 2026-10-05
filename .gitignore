@@ -17,3 +17,7 @@ node_modules/
 # OS and editor noise.
 .DS_Store
 Thumbs.db
+
+# The Prompt Builder's discovery draft (vault/builder/draft.json) is a private working
+# file, not a record: the approved contract and the cells are what get committed.
+vault/builder/

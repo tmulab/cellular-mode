@@ -86,6 +86,16 @@ the way the block describes. Nothing in this repository claims otherwise — see
 > `/mode-ready`, `/mode-focus`, `/mode-explore`. Those names are **documented here and
 > deliberately not shipped**, so adopting them is a directory rename plus one line per file.
 
+## Optional: the Cellular Prompt Builder (`/builder`, `/construtor`)
+
+Two more pointer skills ship in the same directory, for the **optional** Prompt Builder: `builder`
+and its Portuguese alias `construtor`, both pointing at `skills/builder/SKILL.md`. They turn an
+idea into an approved project contract, a planned first cell and an agent-neutral prompt. The
+module is a plain CLI (`npm run -s builder -- help`), so **any** agent — or a human with no agent
+at all — can use it; the two skills only save you typing the trigger phrase. Nothing is installed
+and nothing is assumed: if `tools/prompt-builder/` is absent, the skill says so in one line and
+the normal method continues. Onboarding: [`docs/11-prompt-builder.md`](../docs/11-prompt-builder.md).
+
 ## Writing your own adapter
 
 1. Find where your tool looks for project instructions (its docs, not this file).

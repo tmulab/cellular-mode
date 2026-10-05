@@ -437,3 +437,59 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Stage 5 is closed; only branch protection (item 47) and commit/push of this closure (item 48) remain human decisions
 **Build:** green
 **Next step:** —
+
+---
+## 2026-10-04 10:52 · Cell: prompt-builder-audit
+**Status:** ✔
+**Facts:** Read-only scout audit done: cellmode init exists (vault skeleton) so no reuse of that name; zero runtime deps, hand-written validators (tools/adaptive/schema.mjs style); adaptive reachable only via external port; optionality pattern = own CLI + boundary rule + removal rehearsal + pointer skill. Wrote prompt-builder/CONTRACTS.md (contract v1, entry epistemics, discovery, first-cell lifecycle, 3-layer prompts, adapters, publication check).
+**Decisions:** PB1 separate CLI tools/prompt-builder/cli.mjs; PB2 draft vault/builder/draft.json gitignored + vault/project-contract.json, cells only via cellmode; PB3 strengthen gates (boundary rule + builder removal rehearsal); PB4 skill /builder + /construtor; human add-on: publicationCheck before contract is VCS-eligible, approval never authorizes commit; Builder never activates cells. Human authorized Cells 1-7 completion without per-cell confirmation (2026-10-04).
+**Build:** trilateral green: typecheck 0 errors, 182 modules load, tests 1029/1029
+**Next step:** —
+
+---
+## 2026-10-04 11:19 · Cell: prompt-builder-discovery
+**Status:** ✔
+**Facts:** Discovery modules in tools/prompt-builder (types, errors, contract-shape, fields, draft, questions, sensitive, answers, inspect, store, session) + fixtures (10 scenarios) + 51 tests. .gitignore += vault/builder/. readCellState reuses cellmode parseIndex+statePaths (no second parser). Real mutation check on tired-mode concision went red then restored.
+**Decisions:** Single-Entry recommendations live in draft.proposals; list fields get PROPOSED appended. technologies.approved accepts VERIFIED (existing-repo evidence) — CONTRACTS.md amended. sensitive.mjs builds detectors from fragments so no literal secrets/paths in repo.
+**Build:** trilateral green: typecheck 0 errors, 196 modules load, tests 1080/1080; gates size/secrets/deps/boundaries clean
+**Next step:** —
+
+---
+## 2026-10-04 12:04 · Cell: prompt-builder-contract
+**Status:** ✔
+**Facts:** Contract modules: validate(+parts), readiness, conflicts, decisions, publication, approve; store gains read/writeContract (confined to vault/, revalidates + publicationCheck, fail closed); sensitive gains email/phone detectors; readyContract fixture. +67 tests; two real mutation checks red then restored.
+**Decisions:** Approved decision promotes PROPOSED -> DECLARED with basis decision:<id> (techs move proposed->approved); rejected removes the PROPOSED entry, decision record is history; INFERRED never promotable; readiness counts only DECLARED/VERIFIED; approval never touches git or cells.
+**Build:** trilateral green: typecheck 0 errors, 203 modules load, tests 1147/1147; gates clean
+**Next step:** —
+
+---
+## 2026-10-04 12:27 · Cell: prompt-builder-first-cell
+**Status:** ✔
+**Facts:** First-cell modules: sanitize (inertText), first-cell(+parts), first-cell-preview, accept, store-cells. acceptFirstCell creates a planned cell via cellmode cmdPlan + readCell/writeCell (no log entry, no activation); cmdOpen preserves drafted fields (VERIFIED by test). +13 tests; mutation (planned->active status) went red then restored.
+**Decisions:** Classification order: blocking conflict/objective blocker -> discovery; no approved tech or pending decision -> architecture; scope blocker -> discovery; else implementation. Second disk module store-cells.mjs (writes only one planned cell). CONTRACTS.md amended.
+**Build:** trilateral green: typecheck 0 errors, 208 modules load, tests 1160/1160; gates clean
+**Next step:** —
+
+---
+## 2026-10-04 12:52 · Cell: prompt-builder-prompts
+**Status:** ✔
+**Facts:** Prompt modules: prompt-data (hash-nonce DATA block + marker neutralization), prompt-rules, prompt-layers, prompt (renderPrompt, budget 6000B, fail-closed UNSAFE_EXPORT), adapters (neutral + claude-code implemented; cursor/codex-cli/gemini-cli proposed, throw). Sizes: simple-new 4620/4509B, complex 5324/5213B; method layer 930/819B. +24 tests; mutation on marker neutralization went red then restored.
+**Decisions:** All human/repo text lives only inside one DATA block; instruction sections reference keys, never interpolate, so contract text cannot add permissions. Prohibited operations fixed regardless of contract. Draft prompts allowed only with explicit draft flag and limited to discovery. draft.proposals not exported (only contract-level PROPOSED).
+**Build:** trilateral green: typecheck 0 errors, 212 modules load, tests 1184/1184; gates clean
+**Next step:** —
+
+---
+## 2026-10-04 13:20 · Cell: prompt-builder-cli-skills
+**Status:** ✔
+**Facts:** Builder CLI (cli, main, cli-shared EXIT_FOR table, commands, commands-approve) with start/status/next/answer/skip/decide/approve/cell/prompt/adapters/help; skills/builder/SKILL.md + /builder and /construtor pointers in .claude/skills and adapters/claude-code (byte-identical); npm script builder. +16 CLI tests on temp roots; existing-repo files byte-identical; mutation on approve --confirm guard went red then restored. Claude Code discovered builder/construtor skills live in this session.
+**Decisions:** Exit codes mirror cellmode (1 usage, 2 findings, 3 existing state, 5 confirmation). --mode is pass-through only; CLI never reads Adaptive state. tests/gates-deps.test.mjs expected scripts set extended with builder (exact-match assertion kept).
+**Build:** trilateral green: typecheck 0 errors, 216 modules load, tests 1200/1200; gates clean
+**Next step:** —
+
+---
+## 2026-10-04 13:51 · Cell: prompt-builder-closure
+**Status:** ✔
+**Facts:** Gates strengthened: 3 boundary rules (prompt-builder-is-optional-and-isolated, -depends-on-the-method-only, -is-transport-free) + tests; removal rehearsal generalized (removal-paths.mjs), rehearse:builder-removal PB3 VERIFIED and AD29 unchanged VERIFIED. Harden pass: THREAT-MODEL.md; gap fixed: 1 MiB JSON read cap (store-read.mjs); symlink/junction not followed (test ran). Docs: docs/11-prompt-builder.md, examples/prompt-builder (transcript, contract, neutral prompt), docs/08 + adapters/README + README + tools/gates/README updated. PROMPT_BUILDER_REPORT.md written and promoted into BUILDER_PATHS.
+**Decisions:** Transport-free rule added as gate (strengthening). Real-model evaluation not performed (UNKNOWN in report). Stage 6 commit awaits explicit human authorization.
+**Build:** trilateral green: typecheck 0 errors, 218 modules load, tests 1210/1210; gates --release no blockers; both removal rehearsals VERIFIED
+**Next step:** —

@@ -1,0 +1,103 @@
+{
+  "schema": "cellular-mode/project-contract",
+  "version": 1,
+  "path": "new",
+  "identity": {
+    "name": {
+      "value": "Household Reading List",
+      "status": "DECLARED"
+    },
+    "slug": "household-reading-list"
+  },
+  "objective": {
+    "value": "Keep one shared list of the books our household is reading and which ones are finished.",
+    "status": "DECLARED"
+  },
+  "users": {
+    "value": "The people living in this household, sharing one list.",
+    "status": "DECLARED"
+  },
+  "problem": {
+    "value": "We buy a book twice and nobody remembers who already finished it.",
+    "status": "DECLARED"
+  },
+  "smallestVersion": {
+    "value": "A list you can add a book to and mark as finished.",
+    "status": "DECLARED"
+  },
+  "scope": {
+    "in": [
+      {
+        "value": "add a book",
+        "status": "DECLARED"
+      },
+      {
+        "value": "mark a book finished",
+        "status": "DECLARED"
+      },
+      {
+        "value": "show the list",
+        "status": "DECLARED"
+      }
+    ],
+    "out": []
+  },
+  "requirements": {
+    "functional": [],
+    "nonfunctional": []
+  },
+  "integrations": [],
+  "technologies": {
+    "approved": [
+      {
+        "value": "Decide technology in a first architecture/discovery cell",
+        "status": "DECLARED",
+        "basis": "decision:D1"
+      }
+    ],
+    "proposed": []
+  },
+  "security": {
+    "sensitiveData": {
+      "value": "No money and no health data; only book titles and a household nickname per reader.",
+      "status": "DECLARED"
+    },
+    "constraints": []
+  },
+  "environment": {
+    "value": "The shared laptop at home.",
+    "status": "DECLARED"
+  },
+  "involvement": {
+    "value": "Approve each step before it is built.",
+    "status": "DECLARED"
+  },
+  "deployment": [],
+  "risks": [],
+  "openQuestions": [],
+  "decisions": [
+    {
+      "id": "D1",
+      "question": "Which technology should the first version use?",
+      "proposal": "Decide technology in a first architecture/discovery cell",
+      "status": "approved",
+      "at": "2026-10-04T10:00:00.000Z",
+      "field": "technologies.proposed"
+    }
+  ],
+  "acceptance": [
+    {
+      "value": "adding a book shows it in the list",
+      "status": "DECLARED"
+    },
+    {
+      "value": "marking it finished moves it out of the unread list",
+      "status": "DECLARED"
+    }
+  ],
+  "approval": {
+    "approved": true,
+    "at": "2026-10-04T10:00:00.000Z"
+  },
+  "extensions": {}
+}
