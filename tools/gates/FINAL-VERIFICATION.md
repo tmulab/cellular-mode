@@ -41,9 +41,11 @@ The **fingerprint** is `sha256` over the sorted `path \0 sha256(bytes)` lines, p
 schema string. Content is hashed as bytes (a line-ending change counts), paths are hashed too
 (a rename counts), and a deleted file simply drops out of the list (a deletion counts).
 
-The **tree id** is git's own name for the same working state, computed with a throwaway index
-in the system temporary directory (`GIT_INDEX_FILE`), so the real index, HEAD and working tree
-are untouched; the only side effect is content-addressed objects git garbage-collects.
+The **tree id** is git's own name for the same working state, computed with a throwaway index in
+the system temporary directory (`GIT_INDEX_FILE`) seeded with a **copy of the real index** and then
+refreshed by `git add -A` — content from the working tree, modes from what git already records, so a
+staged mode-only change under `core.filemode=false` is not lost. The real index, HEAD and working
+tree are untouched; the only side effect is content-addressed objects git garbage-collects.
 
 ## Byte equivalence — what was verified is what will be committed
 
@@ -147,10 +149,10 @@ honour `CELLULAR_NODE` to pin the node binary; otherwise `PATH` decides.
 2. **Git is required.** Without a git work tree there is no controlled set to fingerprint and
    no filter to compare against; `fingerprint.mjs` raises an error rather than answering,
    because a gate that cannot run is UNKNOWN, never green.
-3. **The exec bit.** On a POSIX checkout git only runs a hook that is executable; committing
-   from a filesystem without mode bits can store `100644`, and `chmod +x .githooks/*` (or
-   `git update-index --chmod=+x`) fixes it. `npm run hooks:install` only sets the config key —
-   an installer that ran something else would be a `postinstall` in disguise.
+3. **The exec bit.** On a POSIX checkout git only runs a hook that is executable, and committing from
+   a filesystem without mode bits can store `100644`, so the three hooks are recorded `100755` in this
+   repository's index and `tests/githooks-mode.test.mjs` asserts it (`git update-index --chmod=+x` is
+   the fix). `npm run hooks:install` only sets the config key — anything else would be a `postinstall`.
 4. **Evidence is local and per machine.** `.cellular/` is not committed, so a collaborator, a
    reviewer or GitHub cannot inspect it, it dies with the machine or a `clean`, and it is
    self-attested by the machine that made the change: never a third-party attestation.

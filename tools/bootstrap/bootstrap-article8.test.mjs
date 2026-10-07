@@ -12,7 +12,7 @@
 // confined to that one module. The test SKIPS, with a stated reason, when git is unavailable.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { main } from './main.mjs';
 import { run } from './exec.mjs';
@@ -67,6 +67,18 @@ test('article 8 · an adopted project refuses an unverified commit and accepts a
       const integrations = /** @type {Array<{ kind: string, status: string }>} */ (manifest.integrations);
       assert.equal(integrations.find((entry) => entry.kind === 'hooks')?.status, 'applied');
       assert.equal(integrations.find((entry) => entry.kind === 'ci')?.status, 'applied');
+
+      // (1b) The hooks are on disk AND runnable. The mode assertion is POSIX-only because Windows
+      // stores no exec bit and git ignores it there — which is why this defect passed locally and
+      // failed in Linux CI: git silently skips a hook that is not executable, so every assertion
+      // below about a REFUSED commit would have been satisfied by a hook that never ran.
+      for (const hook of ['pre-commit', 'commit-msg', 'pre-push']) {
+        const file = join(target, '.githooks', hook);
+        assert.ok(existsSync(file), `${hook} must be installed`);
+        if (process.platform !== 'win32') {
+          assert.notEqual(statSync(file).mode & 0o111, 0, `${hook} must be executable or git ignores it`);
+        }
+      }
 
       // (2) The contract Bootstrap generated mandates NOTHING, so final verification fails closed.
       const generated = JSON.parse(read(target, 'vault/verification.json'));

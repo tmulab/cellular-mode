@@ -581,3 +581,19 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** No behaviour, test, manifest, gate or architecture change. Report section 1 softened for consistency with the docs/12 correction.
 **Build:** focused: links/leaks/size/language 17/17; check-all no findings
 **Next step:** —
+
+---
+## 2026-10-07 08:53 · Cell: posix-hook-executability
+**Status:** ✔
+**Facts:** Demonstrated: .githooks/* were 100644 in the git index and the bootstrap writer never set a file mode, consistent with CI run 37614832141 (Linux git ignores non-executable hooks; commit returned 0). Fix: narrow documented rule copyMode (writer.mjs) - article-8 copies under .githooks/ written 0o755 (chmod after exclusive create, confinement first); other copies keep default mode; content hashes, status and uninstall unaffected. Repo hooks marked +x in the index (100755). Tests: e2e Article 8 asserts executable hooks on POSIX (sequence unchanged, still runs on Windows), writer unit test for hook vs plain file, tests/githooks-mode.test.mjs asserts 100755. Docs: docs/12, BOOTSTRAP_REPORT (limitation corrected, historical note of the CI discovery), FINAL-VERIFICATION, hook limitation message.
+**Decisions:** Narrow .githooks rule instead of a schema change (no file-metadata mechanism exists). POSIX behaviour INFERRED locally (Windows), to be VERIFIED by Linux CI.
+**Build:** focused: bootstrap 191/191, docs+hooks 15/15; trilateral typecheck 0 errors, 279 modules, tests 1428/1428; gates release no blockers
+**Next step:** —
+
+---
+## 2026-10-07 09:19 · Cell: article8-staged-modes
+**Status:** ✔
+**Facts:** Demonstrated: workingTreeId seeded its throwaway index from HEAD, so with core.filemode=false a staged mode-only change (hooks 100644 to 100755) was lost; verify:final authorized tree 7bcc6bd9 while the staged tree was 51a74c23 and the pre-commit check refused. Fix (human-approved): seed from a copy of the real index (git rev-parse --git-path index), fallback to read-tree HEAD; real index untouched. tests/gates-tree-modes.test.mjs (4 tests; mutation back to read-tree HEAD went red). githooks-mode test skips outside a git work tree (it broke the three rehearsals, whose copies have no .git). FINAL-VERIFICATION.md sentence updated.
+**Decisions:** Article 8 core change approved by the human on 2026-10-07; contents still come from the working tree, only recorded modes are preserved.
+**Build:** trilateral typecheck 0 errors, 279 modules, tests 1432/1432; gates release no blockers; workingTreeId equals stagedTreeId on this repo
+**Next step:** —

@@ -10,7 +10,7 @@
 // never silently dropped.
 import { blockTextFor, generateFor } from './apply-generate.mjs';
 import { blockApprovalFor } from './approvals.mjs';
-import { appendBlock, mkdirIn, readIfPresent, sha256, writeNew } from './writer.mjs';
+import { appendBlock, copyMode, mkdirIn, readIfPresent, sha256, writeNew } from './writer.mjs';
 
 /** @typedef {import('./plan-actions.mjs').Action} Action */
 /** @typedef {import('./install-manifest.mjs').FileRecord} FileRecord */
@@ -52,7 +52,10 @@ export function applyAction(action, ctx) {
   }
   if (action.mode === 'copy') {
     const bytes = ctx.readSource(String(action.source));
-    return { files: [{ ...writeNew(ctx.targetRoot, action.path, bytes), mode: 'copy' }], proposed: null };
+    // `copyMode` is `null` for every copy but an `article-8` git hook, which git would otherwise
+    // ignore for not being executable. The recorded digest is of the CONTENT either way.
+    const record = writeNew(ctx.targetRoot, action.path, bytes, copyMode(action.component, action.path));
+    return { files: [{ ...record, mode: 'copy' }], proposed: null };
   }
   /** @type {FileRecord[]} */
   const files = [];

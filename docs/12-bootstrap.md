@@ -131,7 +131,7 @@ final verification stays red on purpose. (A project with no contract at all gets
 **Hooks** are activated only when five conditions hold at once: `article-8` is installed, no hook machinery exists
 (Husky, Lefthook, pre-commit, native hooks or anything unrecognised), `core.hooksPath` is unset, the target is a git
 work tree, and you gave `--approve hooks` with `--confirm`. The one action is `git config core.hooksPath .githooks`,
-local, never `--global`. Any condition missing and you get the exact command plus a **composition plan** in words —
+local, never `--global`; the copied hooks are written mode `0755`, because POSIX git silently SKIPS a hook that is not executable (on Windows there is no exec bit to write and git ignores the mode). Any condition missing and you get the exact command plus a **composition plan** in words —
 Bootstrap never writes into another tool's hook configuration. **CI**: GitHub Actions, GitLab CI, CircleCI, Azure
 Pipelines, Bitbucket and Jenkins are detected, and no workflow is ever read for merging, edited or replaced. The only
 file Bootstrap may create is `.github/workflows/cellular-verify.yml`, when that exact path is absent, `ci-workflow` is

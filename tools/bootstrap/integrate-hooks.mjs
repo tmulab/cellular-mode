@@ -37,11 +37,13 @@ export const COMPOSITION_PLANS = Object.freeze({
   unknown: `the hook machinery here was not identified, so nothing is assumed. Call \`node tools/gates/authorization.mjs commit\` before a commit, \`node tools/gates/authorization.mjs trailer\` when writing the message, and \`node tools/gates/authorization.mjs push origin\` before a push, from whatever runs your hooks. ${HOOKS_DIR}/ holds the three scripts, three lines each.`,
 });
 
-/** The ONE thing activation cannot do for a POSIX checkout, said rather than discovered later.
- * Git runs a hook only when it is executable, and a filesystem without mode bits (Windows) stores
- * `100644`. Bootstrap does not run `git update-index`: that rewrites the index of a repository it
- * was asked to install INTO, which is a different act from writing files. */
-export const EXEC_BIT_LIMITATION = `on a POSIX checkout git runs a hook only when it is executable, and a Windows filesystem stores no mode bit: if the hooks do not fire, run \`git update-index --chmod=+x ${HOOKS_DIR}/pre-commit ${HOOKS_DIR}/commit-msg ${HOOKS_DIR}/pre-push\` yourself. Bootstrap never rewrites the target's git index.`;
+/** The ONE thing activation cannot do, said rather than discovered later. The writer now creates a
+ * copied hook `0755` (`copyMode` in `writer.mjs`), so a POSIX install fires. What remains is the
+ * INDEX: on Windows there is no exec bit to write, so a repository first committed from there
+ * records `100644` and a POSIX collaborator's clone skips the hooks. Bootstrap does not run
+ * `git update-index`: that rewrites the index of a repository it was asked to install INTO, which
+ * is a different act from writing files. */
+export const EXEC_BIT_LIMITATION = `the copied hooks are written executable, but git runs a hook only when it is executable and a Windows filesystem stores no mode bit: if a clone of this repository does not fire them, run \`git update-index --chmod=+x ${HOOKS_DIR}/pre-commit ${HOOKS_DIR}/commit-msg ${HOOKS_DIR}/pre-push\` yourself. Bootstrap never rewrites the target's git index.`;
 
 /** PURE. The composition plan for one machinery, or the generic one. @param {string} machinery
  * @returns {string} */

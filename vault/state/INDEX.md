@@ -75,3 +75,5 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [bootstrap-hardening](cells/bootstrap-hardening.md) | stage-7 | ✔ | 2026-10-06 | — |
 | [bootstrap-closure](cells/bootstrap-closure.md) | stage-7 | ✔ | 2026-10-06 | — |
 | [stage-7-doc-corrections](cells/stage-7-doc-corrections.md) | stage-7 | ✔ | 2026-10-07 | — |
+| [posix-hook-executability](cells/posix-hook-executability.md) | stage-7 | ✔ | 2026-10-07 | — |
+| [article8-staged-modes](cells/article8-staged-modes.md) | stage-7 | ✔ | 2026-10-07 | — |

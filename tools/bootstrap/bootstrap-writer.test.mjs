@@ -2,11 +2,11 @@
 // replaced. Every test below is one way that promise could be broken.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  appendBlock, assertNoOverlap, blockFor, commentStyleFor, confine, isInside, mkdirIn,
+  appendBlock, assertNoOverlap, blockFor, commentStyleFor, confine, copyMode, isInside, mkdirIn,
   readIfPresent, sha256, writeNew,
 } from './writer.mjs';
 import { installedLines, safeValue, substitute } from './templates.mjs';
@@ -74,6 +74,30 @@ test('writer · writeNew creates parents, hashes what it wrote, and never overwr
     refuses(() => writeNew(dir, 'deep/er/file.md', 'other\n'), 'CONFLICT', 2);
     assert.equal(readFileSync(join(dir, 'deep', 'er', 'file.md'), 'utf8'), 'hello\n', 'the refusal changed nothing');
     assert.equal(mkdirIn(dir, 'vault/bootstrap/'), join(dir, 'vault', 'bootstrap'));
+  } finally {
+    cleanup(dir);
+  }
+});
+
+test('writer · only an article-8 git hook is copied executable; every other copy keeps the default', () => {
+  assert.equal(copyMode('article-8', '.githooks/pre-commit'), 0o755);
+  assert.equal(copyMode('article-8', '.githooks/'), null, 'the directory entry itself asks for nothing');
+  assert.equal(copyMode('article-8', 'tools/gates/verify-final.mjs'), null, 'a gate module is not a hook');
+  assert.equal(copyMode('method-core', '.githooks/pre-commit'), null, 'no other component may claim the hooks');
+  const dir = makeTarget('mode');
+  try {
+    const hook = writeNew(dir, '.githooks/pre-commit', '#!/bin/sh\nexit 0\n', copyMode('article-8', '.githooks/pre-commit'));
+    const plain = writeNew(dir, 'docs/plain.md', '# plain\n', copyMode('article-8', 'docs/plain.md'));
+    // The record is a digest of the CONTENT; the mode is not part of it, on any platform.
+    assert.equal(hook.sha256After, sha256('#!/bin/sh\nexit 0\n'));
+    assert.equal(plain.sha256After, sha256('# plain\n'));
+    assert.equal(existsSync(join(dir, '.githooks', 'pre-commit')), true);
+    assert.equal(existsSync(join(dir, 'docs', 'plain.md')), true);
+    // POSIX only: Windows stores no exec bit, so the assertion would be meaningless there.
+    if (process.platform !== 'win32') {
+      assert.notEqual(statSync(join(dir, '.githooks', 'pre-commit')).mode & 0o111, 0, 'a hook must be executable');
+      assert.equal(statSync(join(dir, 'docs', 'plain.md')).mode & 0o111, 0, 'an ordinary copy must not be');
+    }
   } finally {
     cleanup(dir);
   }

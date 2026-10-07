@@ -13,7 +13,7 @@
 // `appendBlock` can make to a file somebody else wrote is one delimited block at the end, and a
 // second block for the same component is REFUSED — which is what makes a re-run idempotent
 // instead of cumulative. The deletions mirror them: see `writer-remove.mjs`.
-import { existsSync, mkdirSync, realpathSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, realpathSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { CODES, refuse } from './errors.mjs';
 import {
@@ -67,17 +67,44 @@ export function mkdirIn(targetRoot, rel) {
   return absolute;
 }
 
+/** The component that owns the git hooks, the directory they live in, and the mode they need. */
+export const HOOK_COMPONENT = 'article-8';
+export const HOOKS_PREFIX = '.githooks/';
+export const HOOK_MODE = 0o755;
+
+/**
+ * PURE. The explicit mode a COPIED file must be created with, or `null` for the filesystem
+ * default — which is what every ordinary copy gets.
+ *
+ * ONE narrow, documented exception: git silently IGNORES a hook that is not executable, so a
+ * POSIX target adopting `article-8` used to install three hooks that never ran (the defect
+ * independent Linux CI found on commit 2e8e84a). The rule is deliberately not a manifest field:
+ * `FILE_KEYS` in `component-parts.mjs` is a closed contract, and a `chmod` key there would let any
+ * component ask for any mode on any path. So the exception is named here instead, by component AND
+ * by directory, where a reader of the writer can see it. On Windows `chmod` carries no exec bit and
+ * git ignores the mode anyway, which is exactly why the defect could not reproduce there.
+ * @param {string} component @param {string} rel @returns {number | null}
+ */
+export function copyMode(component, rel) {
+  if (component !== HOOK_COMPONENT) return null;
+  if (!rel.startsWith(HOOKS_PREFIX) || rel.endsWith('/')) return null;
+  return HOOK_MODE;
+}
+
 /**
  * Writes a file that must not already exist. The exclusive flag does the checking, so there is
- * no window between a test and the write.
+ * no window between a test and the write. `mode`, when given, is applied by the create AND once
+ * more afterwards, because the process umask masks the create's mode; the second call targets the
+ * path `confine` approved and the exclusive create proved we had just made ourselves.
  * @param {string} targetRoot @param {string} rel @param {string | Uint8Array} bytes
+ * @param {number | null} [mode]
  * @returns {WriteRecord}
  */
-export function writeNew(targetRoot, rel, bytes) {
+export function writeNew(targetRoot, rel, bytes, mode = null) {
   const absolute = confine(targetRoot, rel);
   mkdirSync(dirname(absolute), { recursive: true });
   try {
-    writeFileSync(absolute, bytes, { flag: 'wx' });
+    writeFileSync(absolute, bytes, mode === null ? { flag: 'wx' } : { flag: 'wx', mode });
   } catch (error) {
     const code = /** @type {{ code?: string }} */ (error).code;
     if (code === 'EEXIST') {
@@ -85,6 +112,7 @@ export function writeNew(targetRoot, rel, bytes) {
     }
     throw error;
   }
+  if (mode !== null) chmodSync(absolute, mode);
   return { path: rel, created: true, sha256Before: null, sha256After: sha256(bytes), block: null };
 }
 

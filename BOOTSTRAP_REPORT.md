@@ -87,8 +87,8 @@ rule, skipping the pre-unlink re-hash) made the relevant test fail and was then 
 - **No updater, no repair, no upgrade automation.** `status` classifies and names the next action; performing it is a
   human's call, and a re-run never reinstalls (exit 3, zero writes). **No GUI and no interactive prompt** either.
 - **Windows:** a `.cmd` command (such as `npm`) cannot be started by `spawn` without a shell, and a shell is refused —
-  an approved check that resolves to a `.cmd` is recorded as `not-runnable` with the reason, never as a pass. The
-  executable bit on copied `.githooks/` files is not set automatically.
+  an approved check that resolves to a `.cmd` is recorded as `not-runnable` with the reason, never as a pass. A copied
+  `.githooks/` file carries no exec bit on Windows and git ignores the mode there; on POSIX the install writes it `0755`.
 - **The Observer's audit plugin is not installed in targets** (it imports this repository's own gates); its view says so.
 - **Forced deletion record.** When nothing is kept, the manifest is removed, so a `--force-modified` deletion survives
   only in the command output. Documented in `bootstrap/CONTRACTS.md` and the threat model.
@@ -182,7 +182,7 @@ VERIFIED**: BS1 (`rehearse:bootstrap-removal`), AD29 (`rehearse:adaptive-removal
   work; the paused cell recorded that the working tree might hold a partial fix, UNKNOWN until checked. Work resumed
   only after the human re-evaluated the stage.
 - **Scope freeze (human, 2026-10-06).** Stage 7 closes with what is in §1–§3; the frozen list is in §5. Cells 7 and 8
-  were closed without a per-cell `verify:final`: the human asked for exactly **one** run after all Stage 7 writes.
+  were closed without a per-cell `verify:final`: the human asked for exactly **one** run after all Stage 7 writes. **A defect only Linux could show (2026-10-07).** After Stage 7 was pushed, independent Linux CI run 37614832141 on commit 2e8e84a failed the adopted-project Article 8 end-to-end test: the hooks were installed non-executable, so POSIX git skipped them silently and an unverified commit succeeded. Windows had hidden it, since git ignores the mode there. A corrective cell made the writer create an `article-8` `.githooks/` copy `0755`, marked this repository's own hooks `100755` in the index, and added the three regression tests that would have caught it.
 
 ## 12. Stage 7 release-checklist items (referenced from `RELEASE_CHECKLIST.md`)
 
