@@ -5,7 +5,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { dirname, join, normalize, relative, sep } from 'node:path';
-import { BUILDER_PATHS, BUILDER_PENDING } from '../tools/gates/removal-paths.mjs';
+import {
+  BOOTSTRAP_PATHS, BOOTSTRAP_PENDING, BUILDER_PATHS, BUILDER_PENDING,
+} from '../tools/gates/removal-paths.mjs';
 import { ROOT, allFiles, read, report } from './helpers.mjs';
 
 const LINK = /\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
@@ -78,6 +80,13 @@ const OPTIONAL_MODULES = Object.freeze([
     covers: underAny([...BUILDER_PATHS, ...BUILDER_PENDING]),
     live: BUILDER_PATHS.map((path) => ({ label: path, test: underAny([path]) })),
     sample: 'tools/prompt-builder/store.mjs',
+  },
+  {
+    name: 'Cellular Bootstrap',
+    marker: 'tools/bootstrap',
+    covers: underAny([...BOOTSTRAP_PATHS, ...BOOTSTRAP_PENDING]),
+    live: BOOTSTRAP_PATHS.map((path) => ({ label: path, test: underAny([path]) })),
+    sample: 'bootstrap/CONTRACTS.md',
   },
 ]);
 

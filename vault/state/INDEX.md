@@ -66,3 +66,12 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [prompt-builder-cli-skills](cells/prompt-builder-cli-skills.md) | stage-6 | ✔ | 2026-10-04 | — |
 | [prompt-builder-closure](cells/prompt-builder-closure.md) | stage-6 | ✔ | 2026-10-04 | — |
 | [Stage 6 formal closure](cells/stage-6-formal-closure.md) | stage-6 | ✔ | 2026-10-05 | — |
+| [bootstrap-audit](cells/bootstrap-audit.md) | stage-7 | ✔ | 2026-10-06 | — |
+| [bootstrap-planning](cells/bootstrap-planning.md) | stage-7 | ✔ | 2026-10-06 | — |
+| [bootstrap-new-project](cells/bootstrap-new-project.md) | stage-7 | ✔ | 2026-10-06 | — |
+| [bootstrap-existing-audit](cells/bootstrap-existing-audit.md) | stage-7 | ✔ | 2026-10-06 | — |
+| [bootstrap-integrations](cells/bootstrap-integrations.md) | stage-7 | ✔ | 2026-10-06 | — |
+| [bootstrap-uninstall](cells/bootstrap-uninstall.md) | stage-7 | ✔ | 2026-10-06 | — |
+| [bootstrap-hardening](cells/bootstrap-hardening.md) | stage-7 | ✔ | 2026-10-06 | — |
+| [bootstrap-closure](cells/bootstrap-closure.md) | stage-7 | ✔ | 2026-10-06 | — |
+| [stage-7-doc-corrections](cells/stage-7-doc-corrections.md) | stage-7 | ✔ | 2026-10-07 | — |

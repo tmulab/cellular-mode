@@ -77,6 +77,43 @@ export const BUILDER_PATHS = Object.freeze([
 export const BUILDER_PENDING = Object.freeze([]);
 
 /**
+ * THE DOCUMENTED CELLULAR BOOTSTRAP FILE SET — what "Bootstrap" means (BS1).
+ *
+ * `tools/bootstrap` is the code (with its colocated `bootstrap-*.test.mjs` and `fixtures/`), and
+ * `bootstrap` is its data half: the component manifests, the GENERATE templates, the contracts and
+ * the threat model. Two repository-level tests are on the list for the reason
+ * `tests/gates-builder-boundary.test.mjs` is on the Builder's: they assert things about the real
+ * Bootstrap tree, so they are part of the module rather than part of the repository that must
+ * survive without it. `tests/verification-contract.test.mjs` is the second one — it round-trips the
+ * BS3 verification contract across its GENERATOR (Bootstrap) and its READER (the gates), so it
+ * cannot run with the generator deleted.
+ *
+ * WHAT IS NOT HERE, deliberately: `tools/gates/verification-contract.mjs`,
+ * `verification-argv.mjs` and `verification-suite.mjs`. BS3 generalized ONE Article 8
+ * implementation; those three modules are the final-verification core and must still work, with
+ * the built-in suite unchanged, in a checkout that never had Bootstrap. Their own tests
+ * (`tests/gates-verification-contract.test.mjs`, `tests/gates-verification-suite.test.mjs`) import
+ * no Bootstrap module and stay behind to prove it.
+ * @type {ReadonlyArray<string>}
+ */
+export const BOOTSTRAP_PATHS = Object.freeze([
+  'tools/bootstrap',
+  'bootstrap',
+  'docs/12-bootstrap.md',
+  'BOOTSTRAP_REPORT.md',
+  'tests/gates-bootstrap-boundary.test.mjs',
+  'tests/verification-contract.test.mjs',
+]);
+
+/** Bootstrap's documented paths owned by a CONCURRENT cell of the same stage. EMPTY now: the
+ * onboarding chapter and the stage report started here and were promoted into `BOOTSTRAP_PATHS`
+ * the moment the documentation cell landed, which is the whole lifecycle of an entry on this
+ * list (same mechanism as `BUILDER_PENDING` above — deleted when present, reported as PENDING
+ * when absent, promoted once written).
+ * @type {ReadonlyArray<string>} */
+export const BOOTSTRAP_PENDING = Object.freeze([]);
+
+/**
  * The modules a rehearsal can be asked to remove. `dropScripts` names the `package.json`
  * scripts that go away WITH the module — a convenience name pointing at a deleted entry point
  * is not a dependency, but leaving it there would make the copy describe a command it cannot
@@ -99,6 +136,14 @@ export const MODULES = Object.freeze({
     paths: BUILDER_PATHS,
     pending: BUILDER_PENDING,
     dropScripts: Object.freeze(['builder']),
+  }),
+  bootstrap: Object.freeze({
+    name: 'bootstrap',
+    label: 'Cellular Bootstrap',
+    claim: 'BS1',
+    paths: BOOTSTRAP_PATHS,
+    pending: BOOTSTRAP_PENDING,
+    dropScripts: Object.freeze(['bootstrap']),
   }),
 });
 

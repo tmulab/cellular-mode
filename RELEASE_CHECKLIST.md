@@ -180,11 +180,12 @@ Optional module; gates no release of the method. Full account: [`PROMPT_BUILDER_
 | 53 | Real-model behavioural evaluation of `/builder` | ⚠️ **NOT PERFORMED** | deterministic tests do not guarantee model behaviour; injection mitigation reduces risk only |
 | 54 | Cursor, Codex CLI, Gemini CLI adapters | 📋 PROPOSED only | registered, refuse to render; inspection and pattern-detector limits as documented |
 
+**Stage 7 — Cellular Bootstrap (added 2026-10-06).** Optional module; gates no release. This file is at its 200-line limit, so its four checklist items (55–58: the Stage-7 commit and push, CI on that commit, real-model evaluation, adoption of a large real repository) live in [`BOOTSTRAP_REPORT.md`](BOOTSTRAP_REPORT.md) §12.
+
 ## Who must decide what
 
 1. **Security contact** (item 6) — done: role address set on 2026-10-02.
-2. **Push and publish** (items 28–29) — two separate authorizations (init and the first
-   local commit were authorized and done on 2026-10-02).
+2. **Push and publish** (items 28–29) — two separate authorizations (init and the first local commit were authorized and done on 2026-10-02).
 3. **ADR 0003** (item 31) and the **stage-3 commit** (item 33) — both done on 2026-10-03.
 4. **ADR 0004** (item 36) and the **pause-trigger decision** (item 40) — both decided by the
    author on 2026-10-03. The **stage-4 commit** (item 39) is still open and human-only, and

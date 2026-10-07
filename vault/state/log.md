@@ -501,3 +501,83 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Stage 6 CLOSED. Builder implemented and independently verified by CI; no real-model evaluation performed; Cursor/Codex CLI/Gemini CLI adapters proposed only; injection mitigation reduces risk without guaranteeing compliance. Historical sections left unchanged (append only). Stage 7 not begun.
 **Build:** trilateral green: typecheck 0 errors, 218 modules load, tests 1210/1210; release gate no blockers
 **Next step:** —
+
+---
+## 2026-10-06 09:07 · Cell: bootstrap-audit
+**Status:** ✔
+**Facts:** Read-only audit done. bootstrap/CONTRACTS.md written (BS1-BS3, component manifest v1, profiles, plan, copy/generate/reference, managed blocks, hooks/CI/verification contract, analysis-first adoption, baseline, install manifest, drift/uninstall, security, exits). 11 component manifests in bootstrap/components; tools/bootstrap component-schema, component-parts, catalog, profiles, source-read, import-scan; 19 tests: validation, ownership, exclusion, per-profile import closure (minimal 43, standard 108, full 224 files). Mutation (drop git-head from observer) went red then restored.
+**Decisions:** BS1 separate CLI; BS2 vault/install-manifest.json committed, drafts in ignored vault/bootstrap/; BS3 verify-final reads optional vault/verification.json (argv arrays, only VERIFIED/approved mandatory). Adaptive EIP halves owned by observer; observer-audit not installed in targets; article-8 command gap (check-all) closed in Cell 5.
+**Build:** trilateral green: typecheck 0 errors, 224 modules load, tests 1229/1229; gates clean
+**Next step:** —
+
+---
+## 2026-10-06 09:31 · Cell: bootstrap-planning
+**Status:** ✔
+**Facts:** Pure planning modules: errors (CODES + EXIT_FOR), display (sanitize), target-facts (validated facts), resolve(+parts) (profiles, conditional article-8, transitive deps reported, conflicts refuse, host checks), plan(+actions,+constants) (create/modify-block/propose-patch/skip-existing/reference, integrations, approvals, verification), render-plan (dry-run text, mode changes wording only). +32 tests; mutation on AGENTS.md classification went red then restored. Minimal on empty git dir = 49 files to create.
+**Decisions:** Existing AGENTS.md/CLAUDE.md/.gitignore get managed blocks with approval; other existing generate targets propose-patch; existing copy target = conflict. With foreign hook machinery .githooks scripts are copied but never activated (propose-only). CI always propose-only. Existing install refuses (exit 3).
+**Build:** trilateral green: typecheck 0 errors, 233 modules load, tests 1261/1261; gates clean
+**Next step:** —
+
+---
+## 2026-10-06 11:59 · Cell: bootstrap-new-project
+**Status:** ✔
+**Facts:** New-project flow: writer (confined, exclusive create, managed blocks), templates (agents-md, agents-block, claude-pointer, verification-contract, gitignore-block), install-manifest v1 (validated, publication-checked, basename target), apply (confirm + per-action approval ids agents-block/gitignore-block/hooks/first-cell/ci-workflow; manifest written last; state refreshed after first cell), compose-builder (Builder CLI subprocess, exit codes only), new-flow + CLI (npm run bootstrap; dry-run zero writes proven by tree hash). Hooks activation and CI file still recorded as proposed (Cell 5). +95 tests; mutation on approval gate went red then restored.
+**Decisions:** BS4: no gate relaxation; Bootstrap reaches the Prompt Builder only via its CLI subprocess (exit codes); tools/gates unchanged. New target may hold AGENTS.md/CLAUDE.md (block with approval). cellmode cmdPlan writes the planned cell (reuse, documented).
+**Build:** trilateral green: typecheck 0 errors, 249 modules load, tests 1301/1301; gates clean
+**Next step:** —
+
+---
+## 2026-10-06 12:37 · Cell: bootstrap-existing-audit
+**Status:** ✔
+**Facts:** Existing-project adoption: detect-manifests/tooling/project + detect orchestrator (node, python, rust, go, java, make/cmake/csproj/composer; 6 CI providers with sanitized run lines; hooks incl. core.hooksPath; instructions, docs, security, release), commands (argv discovery, INFERRED only, shell-shaped CI lines stay text), report (+render, Adoption Compatibility Report), baseline (+schema; checks only with baseline-checks approval; Windows .cmd = not-runnable, no shell), existing-flow (analyze mode writes nothing incl. .git; install preserves every pre-existing file except approved blocks). 13 fixture projects; +47 tests; two mutations red then restored.
+**Decisions:** Analyze mode prints only; save-report only on the install path into ignored vault/bootstrap. Profile suggestion: JS/TS standard else minimal, never applied without an explicit profile. GIT_OPTIONAL_LOCKS guard kept as defence in depth (mutation survived on small fixtures; necessity UNKNOWN).
+**Build:** trilateral green: typecheck 0 errors, 261 modules load, tests 1348/1348; gates clean
+**Next step:** —
+
+---
+## 2026-10-06 13:26 · Cell: bootstrap-integrations
+**Status:** ✔
+**Facts:** BS3 implemented: tools/gates/verification-contract (single validator, argv-only, shell wrappers refused, mandatory needs VERIFIED or human approval), verification-argv, verification-suite (MANDATORY_SUITE moved verbatim; selectSuite returns it by identity when vault/verification.json is absent; present: mandatory checks + cell-state; invalid/zero mandatory: fail closed). Bootstrap: verification generator, integrate-hooks (core.hooksPath only under six conditions, else composition plan), integrate-ci (new SHA-pinned contents:read workflow only with approval), apply-integrations, ci-github template. End-to-end Article 8 in a target VERIFIED by test (commit refused, verify-final passes, commit accepted with trailer, later write revokes). +27 tests; no-shell proof; mutation on mandatory rule red then restored.
+**Decisions:** One validator in tools/gates; bootstrap only builds data, round trip tested in tests/. CI-parsed commands become notes, not checks. Human approval may promote INFERRED to mandatory (per BS3). Evidence record unchanged (suite source printed only). rules.mjs and policy untouched.
+**Build:** trilateral green: typecheck 0 errors, 268 modules load, tests 1375/1375; gates release no blockers
+**Next step:** —
+
+---
+## 2026-10-06 14:56 · Cell: bootstrap-uninstall
+**Status:** ✔
+**Facts:** Status and uninstall: writer family (writer-base, writer-remove: removeOwned re-hashes right before unlink, removeBlock exact intact block, removeEmptyDir), status(+read,+render: healthy/drift/partial; none/repair/upgrade/repair-or-upgrade; zero writes), uninstall(+plan,+render: dry-run, confirm, force-modified per path, hooks unset only if still .githooks, vault/state kept whole if user history added, manifest removed last or kept untouched with uninstall-report), manage-flow; install manifest block = {component, sha256}. +19 tests: round-trip byte identity after uninstall, hostile manifests refused; mutation on re-hash went red then restored.
+**Decisions:** Manifest never rewritten; kept when anything remains. Block digests recorded; legacy bare form = integrity UNKNOWN. Forced deletion durable record only while something is kept (documented limitation).
+**Build:** trilateral green: typecheck 0 errors, 277 modules load, tests 1394/1394; gates release no blockers
+**Next step:** —
+
+---
+## 2026-10-06 17:48 · Cell: bootstrap-hardening
+**Status:** ⏸
+**Facts:** Cell 7 work done by agent: 4 bootstrap boundary rules + tests, BOOTSTRAP removal rehearsal (BS1 VERIFIED), THREAT-MODEL.md, harden/idempotence tests (1420/1420 at last report). Regression found: AD29 and PB3 rehearsals FAIL because bootstrap tests crash (raw ENOENT in expandFiles) when a component source dir is absent. Fix (COMPONENT_UNAVAILABLE fail-closed + tests for both worlds) was IN PROGRESS when the human stopped everything; working tree may hold a partial fix — UNKNOWN until checked.
+**Decisions:** Human requested full stop and a status report (2026-10-06).
+**Build:** —
+**Next step:** Human re-evaluating Stage 7. Before resuming: inspect git diff in tools/bootstrap for the partial fix, run trilateral and the three rehearsals.
+
+---
+## 2026-10-06 18:13 · Cell: bootstrap-hardening
+**Status:** ✔
+**Facts:** Hardening done: 4 bootstrap boundary rules (isolated, method-only, transport-free, child_process only in exec.mjs) + tests; bootstrap/THREAT-MODEL.md; harden and idempotence matrix tests; BOOTSTRAP removal rehearsal entry. Optionality regression: (1) expandFiles raised raw ENOENT for an absent component source -> now COMPONENT_UNAVAILABLE (exit 2) naming component and relative path, profile refused whole, unselected absent components produce no finding, status/uninstall need no sources; (2) bootstrap-compose tests used the repo itself as Builder-present source -> stub source fixture, exit-code branches now run in both worlds. Rehearsals: BS1, AD29, PB3 all VERIFIED.
+**Decisions:** Scope freeze (human, 2026-10-06). Both-worlds test branching instead of listing bootstrap tests in other modules' removal paths. Cell closed without a per-cell verify:final: the human requested exactly one final verification after all Stage 7 writes.
+**Build:** trilateral green: typecheck 0 errors, 279 modules load, tests 1426/1426; gates release no blockers; three rehearsals VERIFIED
+**Next step:** —
+
+---
+## 2026-10-06 18:39 · Cell: bootstrap-closure
+**Status:** ✔
+**Facts:** Documentation and closure: docs/12-bootstrap.md (beginner paths, profiles, dry-run, report/baseline, manifest, configurable Article 8, hooks, CI, drift, uninstall, optional components, never-does list, exit codes), BOOTSTRAP_REPORT.md (implemented vs VERIFIED, limitations, deferred, regression account, checklist items 55-58), README + RELEASE_CHECKLIST pointers (net-zero sizes), adapters/README section; docs and report promoted into BOOTSTRAP_PATHS. Stale counts in CONTRACTS.md (46/111/227 after BS3) and a wrong test reference in THREAT-MODEL.md corrected. Focused validation: 27/27 doc tests, gates clean.
+**Decisions:** Scope freeze honoured: no code behaviour changed in Cell 8. Final verification run exactly once after this record: three removal rehearsals, then verify:final.
+**Build:** focused: links/leaks/deps/size/language tests 27/27; check-all no findings
+**Next step:** —
+
+---
+## 2026-10-07 07:22 · Cell: stage-7-doc-corrections
+**Status:** ✔
+**Facts:** Four human-requested wording corrections: docs/12 intro (does not intentionally modify application or runtime behaviour during adoption; ordinary Node.js program, no external runtime dependencies, git where required), docs/12 VERIFIED section (language-neutral design; fixtures cover Node/JS/TS, Python, Rust, Java, Go, polyglot; other languages not claimed), BOOTSTRAP_REPORT section 1 (same language and behaviour wording) and section 13 (actual closing run 2026-10-06: 1426/1426, 830/0, fp ac81fbe4, tree 8be8e0d2, rehearsals BS1/AD29/PB3; earlier failed run kept in section 11 and evidence). Edited paragraphs rewrapped wider to stay within 200 lines.
+**Decisions:** No behaviour, test, manifest, gate or architecture change. Report section 1 softened for consistency with the docs/12 correction.
+**Build:** focused: links/leaks/size/language 17/17; check-all no findings
+**Next step:** —

@@ -72,6 +72,18 @@ Data, in `verify-final.mjs`:
 Adding a check adds it to the rule. **Removing one is a relaxation** and needs the explicit,
 justified, documented, human-approved exception the constitution describes.
 
+### A project-local suite — `vault/verification.json`
+
+Absent in THIS repository, and absent means exactly the four checks above (asserted by
+`tests/gates-verification-suite.test.mjs`). An adopting project supplies its own instead
+(`cellular-mode/verification` v1, decision BS3): `checks: [{ id, argv, status, basis, mandatory,
+approval, timeoutSeconds? }]`. `argv` is an argument ARRAY run with `shell: false` — a `;` in it
+is text — and a shell WRAPPER (`sh -c`, `cmd /c`, `powershell -Command`) is refused by name.
+`mandatory: true` needs status VERIFIED or `approval: { by: "human", at }`: nothing merely
+INFERRED may block a commit. `cell-state` is added by the gate and cannot be approved away. FAIL
+CLOSED three ways — unreadable, invalid, or nothing mandatory — each producing an EMPTY suite, a
+printed reason and a non-zero exit, never a pass.
+
 ## The verdict
 
 PASS requires **three** things: the working bytes are the bytes git would commit, every check
@@ -172,6 +184,9 @@ honour `CELLULAR_NODE` to pin the node binary; otherwise `PATH` decides.
 | `sanitize.mjs` | a record never carries a machine-local path (pure) |
 | `commit-range.mjs` | which commits a hook is being asked about |
 | `verify-final.mjs` | the ordered procedure and the `npm run verify:final` CLI |
+| `verification-contract.mjs` | the project-local suite as data: schema, validator, mandatory rule (pure) |
+| `verification-argv.mjs` | an argument array, or a shell string wearing one? the wrapper refusal (pure) |
+| `verification-suite.mjs` | which suite runs — built-in or contract — and the one spawner |
 | `authorization.mjs` | "is this state authorized?", for the hooks, the CLI and the release gate |
 | `test-counts.mjs` | how many tests ran, parsed from what `node --test` printed; the six counts must ADD UP, and a CANCELLED test is a failure (pure) |
 | `ci-trailer.mjs` | does a commit's trailer name the tree it records? (pure core + git shell) |

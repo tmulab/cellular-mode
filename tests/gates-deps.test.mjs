@@ -130,6 +130,9 @@ test('deps · the real repository passes the gate it ships', () => {
     // The optional Cellular Prompt Builder. A convenience name for one entry point and
     // nothing more: it runs no gate, installs nothing, and the method works without it.
     builder: 'node tools/prompt-builder/cli.mjs',
+    // Cellular Bootstrap. Also a convenience name for one entry point: it installs into ANOTHER
+    // directory, never into this one, and it runs nothing here.
+    bootstrap: 'node tools/bootstrap/cli.mjs',
     // Article 8 (final verification): the suite that may authorize a completion, the
     // question "is THIS state authorized?", and the two commands that install or remove
     // the git hooks which ask it. `hooks:install` writes ONE local git config key and
@@ -141,24 +144,29 @@ test('deps · the real repository passes the gate it ships', () => {
     'hooks:uninstall': 'git config --unset core.hooksPath',
     // Out of `npm test` on purpose: each copies the repository and runs the whole suite
     // there, which is minutes. `tests/optional-module-imports.test.mjs` is the fast half of
-    // both claims — AD29 for the adaptive module, PB3 for the Builder.
+    // all three claims — AD29 for the adaptive module, PB3 for the Builder, BS1 for Bootstrap.
     'rehearse:adaptive-removal': 'node tools/gates/removal-rehearsal.mjs',
     'rehearse:builder-removal': 'node tools/gates/removal-rehearsal.mjs builder',
+    'rehearse:bootstrap-removal': 'node tools/gates/removal-rehearsal.mjs bootstrap',
     // The polyglot conformance replay. It is a script rather than a test-only entry point
     // because an operator adding an implementation in a sixth language needs to run it
     // directly, and because it is the command the interop record in
     // docs/upp/CONFORMANCE.md cites for every row.
     'upp:conformance': 'node eip/upp-host/conformance-cli.mjs',
   };
-  // STILL an exact set, with exactly one conditional name. `builder` is a convenience alias
-  // for the OPTIONAL Prompt Builder's entry point, and `npm run rehearse:builder-removal`
-  // deletes `tools/prompt-builder/` in a copy of the repository — so in THAT copy the script
-  // is gone too, and a manifest advertising a deleted entry point would be the finding. The
-  // tolerance is therefore tied to the directory and to nothing else: with the Builder
-  // installed the name is REQUIRED, which is what keeps this from being a free pass.
+  // STILL an exact set, with exactly TWO conditional names, each tied to its own directory and
+  // to nothing else. `builder` is a convenience alias for the OPTIONAL Prompt Builder's entry
+  // point, and `npm run rehearse:builder-removal` deletes `tools/prompt-builder/` in a copy of
+  // the repository — so in THAT copy the script is gone too, and a manifest advertising a
+  // deleted entry point would be the finding. `bootstrap` is the same arrangement for Cellular
+  // Bootstrap. With the directory present the name is REQUIRED, which is what keeps either
+  // tolerance from being a free pass.
   const builderInstalled = existsSync(join(ROOT, 'tools', 'prompt-builder'));
   if (!builderInstalled) delete expected.builder;
   else assert.equal(expected.builder, 'node tools/prompt-builder/cli.mjs');
+  const bootstrapInstalled = existsSync(join(ROOT, 'tools', 'bootstrap'));
+  if (!bootstrapInstalled) delete expected.bootstrap;
+  else assert.equal(expected.bootstrap, 'node tools/bootstrap/cli.mjs');
   assert.deepEqual(pkg.scripts, expected);
   for (const command of Object.values(pkg.scripts)) {
     assert.doesNotMatch(String(command), /--no-verify|npx |curl |\|\||;/, `suspicious script: ${command}`);

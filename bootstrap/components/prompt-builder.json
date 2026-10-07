@@ -1,0 +1,21 @@
+{
+  "schema": "cellular-mode/component-manifest",
+  "version": 1,
+  "id": "prompt-builder",
+  "componentVersion": "1.0.0",
+  "description": "Cellular Prompt Builder: the non-test modules, the builder skill and its two Claude Code pointers. The contract and threat-model documents and the fixtures tree are not runtime.",
+  "files": [
+    { "source": "tools/prompt-builder/", "target": "tools/prompt-builder/", "mode": "copy" },
+    { "source": "skills/builder/", "target": "skills/builder/", "mode": "copy" },
+    { "source": "adapters/claude-code/.claude/skills/builder/SKILL.md", "target": ".claude/skills/builder/SKILL.md", "mode": "copy" },
+    { "source": "adapters/claude-code/.claude/skills/construtor/SKILL.md", "target": ".claude/skills/construtor/SKILL.md", "mode": "copy" }
+  ],
+  "exclude": [".test.mjs", "fixtures/"],
+  "dependsOn": ["cellmode-cli"],
+  "optionalDependsOn": [],
+  "conflicts": [],
+  "host": { "requires": [] },
+  "config": [],
+  "verify": [],
+  "uninstall": "remove-owned"
+}

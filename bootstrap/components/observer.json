@@ -1,0 +1,30 @@
+{
+  "schema": "cellular-mode/component-manifest",
+  "version": 1,
+  "id": "observer",
+  "componentVersion": "1.0.0",
+  "description": "Cellular Observer: the local read-only server, the pure view layer, the browser bundle with its vendored three.js, the EIP host composition subset, the observer-state and observer-advisor plugins, and the two adaptive host halves the composition loads dynamically. It also carries the four pure tools/gates modules the repository read port imports. The observer-audit plugin is NOT installed: it statically imports this repository's own gate rules (boundaries, deps, secrets, size), so the audit view degrades to unavailable in a target. The host dev CLI and test harness stay behind.",
+  "files": [
+    { "source": "apps/observer/", "target": "apps/observer/", "mode": "copy" },
+    { "source": "eip/host/", "target": "eip/host/", "mode": "copy" },
+    { "source": "eip/plugins/observer-state/", "target": "eip/plugins/observer-state/", "mode": "copy" },
+    { "source": "eip/plugins/observer-advisor/", "target": "eip/plugins/observer-advisor/", "mode": "copy" },
+    { "source": "eip/plugins/adaptive-preferences/", "target": "eip/plugins/adaptive-preferences/", "mode": "copy" },
+    { "source": "tools/gates/evidence.mjs", "target": "tools/gates/evidence.mjs", "mode": "copy" },
+    { "source": "tools/gates/exclusions.mjs", "target": "tools/gates/exclusions.mjs", "mode": "copy" },
+    { "source": "tools/gates/git-head.mjs", "target": "tools/gates/git-head.mjs", "mode": "copy" },
+    { "source": "tools/gates/types.mjs", "target": "tools/gates/types.mjs", "mode": "copy" }
+  ],
+  "exclude": [
+    ".test.mjs", "tests/", "fixtures/", "README.md", "ACCEPTANCE.md",
+    "apps/observer/MANUAL-CHECKS.md", "apps/observer/jsconfig.json",
+    "eip/host/cli.mjs", "eip/host/fixture.mjs"
+  ],
+  "dependsOn": ["upp", "cellmode-cli"],
+  "optionalDependsOn": ["adaptive"],
+  "conflicts": [],
+  "host": { "requires": [] },
+  "config": [],
+  "verify": [],
+  "uninstall": "remove-owned"
+}

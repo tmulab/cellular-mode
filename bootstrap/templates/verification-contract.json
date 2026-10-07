@@ -1,0 +1,13 @@
+{
+  "schema": "cellular-mode/verification",
+  "version": 1,
+  "project": "{{projectName}}",
+  "checks": [],
+  "notes": [
+    "A check is { id, argv: string[], status, basis, mandatory, approval }.",
+    "argv is an argument array, never a shell string: it runs with shell: false.",
+    "status is one of VERIFIED, INFERRED, PROPOSED, UNKNOWN.",
+    "mandatory: true is valid only for a VERIFIED check, or one carrying a human approval.",
+    "Bootstrap wrote this file empty on purpose: it ran nothing, so it established nothing."
+  ]
+}

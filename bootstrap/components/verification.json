@@ -1,0 +1,18 @@
+{
+  "schema": "cellular-mode/component-manifest",
+  "version": 1,
+  "id": "verification",
+  "componentVersion": "1.0.0",
+  "description": "The project-local verification contract vault/verification.json, generated from the target's own discovered commands.",
+  "files": [
+    { "target": "vault/verification.json", "mode": "generate", "template": "verification-contract" }
+  ],
+  "exclude": [],
+  "dependsOn": ["method-core"],
+  "optionalDependsOn": [],
+  "conflicts": [],
+  "host": { "requires": [] },
+  "config": ["vault/verification.json"],
+  "verify": [],
+  "uninstall": "keep"
+}

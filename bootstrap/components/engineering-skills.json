@@ -1,0 +1,24 @@
+{
+  "schema": "cellular-mode/component-manifest",
+  "version": 1,
+  "id": "engineering-skills",
+  "componentVersion": "1.0.0",
+  "description": "The seven engineering skills loaded on demand: verify, protect, harden, sanity, coverage, port, decisions.",
+  "files": [
+    { "source": "skills/verify/", "target": "skills/verify/", "mode": "copy" },
+    { "source": "skills/protect/", "target": "skills/protect/", "mode": "copy" },
+    { "source": "skills/harden/", "target": "skills/harden/", "mode": "copy" },
+    { "source": "skills/sanity/", "target": "skills/sanity/", "mode": "copy" },
+    { "source": "skills/coverage/", "target": "skills/coverage/", "mode": "copy" },
+    { "source": "skills/port/", "target": "skills/port/", "mode": "copy" },
+    { "source": "skills/decisions/", "target": "skills/decisions/", "mode": "copy" }
+  ],
+  "exclude": [],
+  "dependsOn": ["method-core"],
+  "optionalDependsOn": [],
+  "conflicts": [],
+  "host": { "requires": [] },
+  "config": [],
+  "verify": [],
+  "uninstall": "remove-owned"
+}

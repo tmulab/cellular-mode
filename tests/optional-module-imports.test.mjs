@@ -21,29 +21,34 @@ import { allFiles, read, report } from './helpers.mjs';
  * row was added in stage 5, cell 7: the repository-wide suites live there, they SURVIVE the
  * deletion, and one of them (`upp-compat`) had acquired a static import of the optional
  * plugin that only the slow rehearsal could see. A guard that cannot see the files the
- * rehearsal runs is not the fast half of anything. */
+ * rehearsal runs is not the fast half of anything. `verification-contract.` joined the exclusion
+ * in stage 7 cell 7 for the same reason as the adaptive names: it round-trips the BS3 contract
+ * across its GENERATOR (Bootstrap) and its READER (the gates), so `removal-paths.mjs` counts it as
+ * part of the BOOTSTRAP set and `rehearse:bootstrap-removal` deletes it. Excluding a file the
+ * rehearsal deletes is not a hole; excluding a surviving one would be. */
 const SCOPE = Object.freeze([
   /^eip\/host\/(?!adaptive-)[^/]+\.mjs$/,
   /^apps\/observer\/(?!vendor\/).+\.mjs$/,
   /^tools\/cellmode\/.+\.mjs$/,
   /^eip\/plugins\/observer-[^/]+\/.+\.mjs$/,
-  /^tests\/(?!adaptive-integration\.|gates-adaptive-boundary\.)[^/]+\.mjs$/,
+  /^tests\/(?!adaptive-integration\.|gates-adaptive-boundary\.|verification-contract\.)[^/]+\.mjs$/,
 ]);
 
 /** Repo-relative prefixes that ARE an optional module. A resolved specifier starting with one
  * of these is a dependency on something that may not be in the checkout.
  *
- * Two modules are optional, not one. `tools/prompt-builder/` (the Cellular Prompt Builder,
- * Stage 6) joined the list for exactly the reason the adaptive entries are here: its slow half
- * is `npm run rehearse:builder-removal`, and the fast half has to be able to see a static
- * import before the rehearsal spends minutes finding it. Its own files are NOT in SCOPE below,
- * so the Builder importing itself is not a finding; the boundary rule
- * `prompt-builder-is-optional-and-isolated` is the gate that states the same arrow as data. */
+ * THREE modules are optional, not one. `tools/prompt-builder/` (Stage 6) and `tools/bootstrap/`
+ * (Stage 7) joined for exactly the reason the adaptive entries are here: their slow halves are
+ * `rehearse:builder-removal` and `rehearse:bootstrap-removal`, and the fast half has to see a
+ * static import before a rehearsal spends minutes finding it. Their own files are NOT in SCOPE,
+ * so a module importing itself is not a finding; `prompt-builder-is-optional-and-isolated` and
+ * `bootstrap-is-optional-and-isolated` state the same arrows as gate data. */
 const OPTIONAL = Object.freeze([
   'tools/adaptive/',
   'eip/plugins/adaptive-',
   'eip/host/adaptive-read-port',
   'tools/prompt-builder/',
+  'tools/bootstrap/',
 ]);
 
 /** The module allowed to name an optional specifier at all, and only in a dynamic

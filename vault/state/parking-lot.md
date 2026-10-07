@@ -8,3 +8,4 @@ Promoted to a cell → append `✔ → cell <name>` to its line.
 - [2026-10-02] cellmode args: option values that start with -- are rejected (e.g. a done criterion mentioning a flag); consider supporting --opt=value (context: no active cell)
 - [2026-10-02] cellmode open has no option to record the first next step, so every newly opened cell starts with NEXT STEP: — (the Observer auditor flags it as AUD-CELL-CONTRACT WARNING); consider a next option on open (context: cell Observer auditor) ✔ → cell Stage 3 final validation
 - [2026-10-03] Add a Trojan Source gate: fail on literal invisible or bidi-control characters (U+200B-200F, U+202A-202E, U+2066-2069, U+FEFF) in source; escapes only (context: cell Observer advisor)
+- [2026-10-06] Pre-existing flaky test: eip/upp-host/process.test.mjs 'a plugin that ignores shutdown is terminated anyway' failed once under parallel load (2026-10-06, Stage 7 Cell 1); passes in isolation and reruns (context: cell bootstrap-audit)

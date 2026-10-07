@@ -1,0 +1,31 @@
+{
+  "schema": "cellular-mode/component-manifest",
+  "version": 1,
+  "id": "article-8",
+  "componentVersion": "1.0.0",
+  "description": "Final verification (Article 8): the import-closed thirteen-module subset of tools/gates reached from verify-final, authorization, fingerprint, final-evidence, byte-equivalence and ci-trailer, plus the three git hooks. The gate documentation and every repository-specific gate (rules, allowlists, boundaries, check-all) are deliberately absent.",
+  "files": [
+    { "source": "tools/gates/verify-final.mjs", "target": "tools/gates/verify-final.mjs", "mode": "copy" },
+    { "source": "tools/gates/verification-suite.mjs", "target": "tools/gates/verification-suite.mjs", "mode": "copy" },
+    { "source": "tools/gates/verification-contract.mjs", "target": "tools/gates/verification-contract.mjs", "mode": "copy" },
+    { "source": "tools/gates/verification-argv.mjs", "target": "tools/gates/verification-argv.mjs", "mode": "copy" },
+    { "source": "tools/gates/authorization.mjs", "target": "tools/gates/authorization.mjs", "mode": "copy" },
+    { "source": "tools/gates/fingerprint.mjs", "target": "tools/gates/fingerprint.mjs", "mode": "copy" },
+    { "source": "tools/gates/final-evidence.mjs", "target": "tools/gates/final-evidence.mjs", "mode": "copy" },
+    { "source": "tools/gates/byte-equivalence.mjs", "target": "tools/gates/byte-equivalence.mjs", "mode": "copy" },
+    { "source": "tools/gates/ci-trailer.mjs", "target": "tools/gates/ci-trailer.mjs", "mode": "copy" },
+    { "source": "tools/gates/ci-summary.mjs", "target": "tools/gates/ci-summary.mjs", "mode": "copy" },
+    { "source": "tools/gates/commit-range.mjs", "target": "tools/gates/commit-range.mjs", "mode": "copy" },
+    { "source": "tools/gates/sanitize.mjs", "target": "tools/gates/sanitize.mjs", "mode": "copy" },
+    { "source": "tools/gates/test-counts.mjs", "target": "tools/gates/test-counts.mjs", "mode": "copy" },
+    { "source": ".githooks/", "target": ".githooks/", "mode": "copy" }
+  ],
+  "exclude": [],
+  "dependsOn": ["cellmode-cli", "verification"],
+  "optionalDependsOn": [],
+  "conflicts": [],
+  "host": { "requires": ["git"] },
+  "config": ["vault/verification.json"],
+  "verify": [],
+  "uninstall": "remove-owned"
+}

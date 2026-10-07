@@ -1,0 +1,31 @@
+{
+  "schema": "cellular-mode/component-manifest",
+  "version": 1,
+  "id": "adaptive",
+  "componentVersion": "1.0.0",
+  "description": "Cellular Adaptive: the five declared-mode policies, the pure mode CLI and hook, the mode skill, the eight Claude Code mode pointers and the adaptive hook settings. Its EIP host halves (the read port and the preferences plugin) belong to the observer component, which is the only thing that loads them. Reports, validation records and colocated tests are not runtime.",
+  "files": [
+    { "source": "adaptive/", "target": "adaptive/", "mode": "copy" },
+    { "source": "tools/adaptive/", "target": "tools/adaptive/", "mode": "copy" },
+    { "source": "skills/mode/", "target": "skills/mode/", "mode": "copy" },
+    { "source": "adapters/claude-code/settings.adaptive.json", "target": ".claude/settings.adaptive.json", "mode": "copy" },
+    { "source": "adapters/claude-code/.claude/skills/tired/SKILL.md", "target": ".claude/skills/tired/SKILL.md", "mode": "copy" },
+    { "source": "adapters/claude-code/.claude/skills/ready/SKILL.md", "target": ".claude/skills/ready/SKILL.md", "mode": "copy" },
+    { "source": "adapters/claude-code/.claude/skills/focus/SKILL.md", "target": ".claude/skills/focus/SKILL.md", "mode": "copy" },
+    { "source": "adapters/claude-code/.claude/skills/explore/SKILL.md", "target": ".claude/skills/explore/SKILL.md", "mode": "copy" },
+    { "source": "adapters/claude-code/.claude/skills/modocansado/SKILL.md", "target": ".claude/skills/modocansado/SKILL.md", "mode": "copy" },
+    { "source": "adapters/claude-code/.claude/skills/modoestoubem/SKILL.md", "target": ".claude/skills/modoestoubem/SKILL.md", "mode": "copy" },
+    { "source": "adapters/claude-code/.claude/skills/modofoco/SKILL.md", "target": ".claude/skills/modofoco/SKILL.md", "mode": "copy" },
+    { "source": "adapters/claude-code/.claude/skills/modoexplorar/SKILL.md", "target": ".claude/skills/modoexplorar/SKILL.md", "mode": "copy" }
+  ],
+  "exclude": [".test.mjs", "-fixture.mjs", "README.md", "ACCEPTANCE.md", "ACCEPTANCE-INTEGRATION.md", "MANUAL-VALIDATION.md", "VALIDATION-RESULTS-2026-10-03.md"],
+  "dependsOn": ["cellmode-cli"],
+  "optionalDependsOn": [],
+  "conflicts": [],
+  "host": { "requires": [] },
+  "config": [],
+  "verify": [
+    { "id": "adaptive-state", "argv": ["node", "tools/adaptive/cli.mjs", "status"] }
+  ],
+  "uninstall": "remove-owned"
+}

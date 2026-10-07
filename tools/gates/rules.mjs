@@ -154,4 +154,28 @@ export const RULES = [
     from: /^tools\/prompt-builder\//,
     denyExact: ['node:http', 'node:https', 'node:http2', 'node:net', 'node:tls', 'node:dgram', 'node:child_process'],
   },
+  {
+    id: 'bootstrap-is-optional-and-isolated',
+    why: 'Cellular Bootstrap is an OPTIONAL module (BS1): the method, the CLI, the gates, the Builder, the Observer and the runtime must all keep working with tools/bootstrap deleted, so NOTHING outside that directory may import it. In particular tools/cellmode may not — `cellmode init` is untouched by Bootstrap and has to keep running in a checkout that never installed it — and neither may tools/gates, because the gates read the method and never the other way round. Bootstrap\'s own directory is excepted by the `from` pattern, not by an allowlist, so its modules, tests and fixtures need no name anywhere. ONE other name is excepted, and it is a file the removal rehearsal DELETES WITH THE MODULE: tests/verification-contract.test.mjs round-trips the BS3 verification contract across its generator (Bootstrap) and its reader (the gates), which makes it part of the bootstrap file set in ./removal-paths.mjs rather than part of the repository that must survive without it. Excepting a surviving file here would be a relaxation; excepting one that goes away with the module states the same arrow once.',
+    from: /^(?!tools\/bootstrap\/|tests\/verification-contract\.test\.mjs$)./,
+    denyPrefixes: ['tools/bootstrap/'],
+  },
+  {
+    id: 'bootstrap-depends-on-the-method-only',
+    why: 'Bootstrap installs the METHOD into another directory; it may use node built-ins and the pure modules of tools/cellmode, and nothing else. eip/ is denied because the method must be installable into a repository with no runtime. tools/adaptive/ and tools/prompt-builder/ are denied because an optional module that imported another optional module would make both load-bearing — the Builder is reached as a SUBPROCESS through exec.mjs and judged on its exit codes (BS4), so there is no import edge of either kind and the PB3 gate needed no exception. tools/gates/ is denied because a gate file is COPIED as data by the article-8 component and never executed or imported here: an installer that imported the gate it installs could not be run in a checkout where that gate was deleted, and an installer that checked its own gate would be the bypass.',
+    from: /^tools\/bootstrap\//,
+    denyPrefixes: ['eip/', 'tools/adaptive/', 'tools/gates/', 'tools/prompt-builder/'],
+  },
+  {
+    id: 'bootstrap-is-transport-free',
+    why: 'Bootstrap reads an untrusted target tree and writes files into it. It must never be able to send any of that anywhere: node:http/https/http2/net/tls/dgram are denied by name in EVERY file of the module, so a target path, a detected command, a repository name or a line of somebody else\'s source can never leave the machine, and no part of an install can ever be fetched from a network instead of from this checkout. A separate rule from the layering one above, as upp-is-transport-free is separate from upp-imports-sdk-only: "which layers may it see" and "which capabilities does it hold" are two questions a reviewer asks one at a time.',
+    from: /^tools\/bootstrap\//,
+    denyExact: ['node:http', 'node:https', 'node:http2', 'node:net', 'node:tls', 'node:dgram'],
+  },
+  {
+    id: 'bootstrap-starts-a-process-in-exec-only',
+    why: 'Bootstrap does start programs — git probes, human-approved project checks, the optional Builder\'s CLI — so unlike the Builder it cannot deny node:child_process outright. It denies it EVERYWHERE BUT ONE FILE instead: the `from` pattern governs every module of tools/bootstrap except exactly exec.mjs, which is the single place that holds the capability and the single place a reviewer has to read to know that shell: false, an argv array, a timeout and an output cap are always applied. A second spawner would be a second set of those four decisions. The exception is in the pattern rather than in an allowlist, so it is one name that cannot go stale: delete exec.mjs and the rule simply governs the whole directory.',
+    from: /^tools\/bootstrap\/(?!exec\.mjs$)/,
+    denyExact: ['node:child_process'],
+  },
 ];

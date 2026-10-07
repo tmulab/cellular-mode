@@ -1,0 +1,29 @@
+{
+  "schema": "cellular-mode/component-manifest",
+  "version": 1,
+  "id": "upp",
+  "componentVersion": "1.0.0",
+  "description": "The Universal Plugin Protocol: SDK, kernel, wire protocol, host and the two JSON schemas. The conformance harness, the polyglot toolchain probe, the in-process endpoint demonstration, the kernel test doubles and assertions, fixtures, tests and READMEs stay behind: they exist to verify this repository, not to run in a target.",
+  "files": [
+    { "source": "eip/sdk/", "target": "eip/sdk/", "mode": "copy" },
+    { "source": "eip/kernel/", "target": "eip/kernel/", "mode": "copy" },
+    { "source": "eip/upp/", "target": "eip/upp/", "mode": "copy" },
+    { "source": "eip/upp-host/", "target": "eip/upp-host/", "mode": "copy" },
+    { "source": "upp/schemas/", "target": "upp/schemas/", "mode": "copy" }
+  ],
+  "exclude": [
+    ".test.mjs", "fixtures/", "README.md", "ACCEPTANCE.md",
+    "eip/kernel/assertions.mjs", "eip/kernel/doubles.mjs",
+    "eip/upp-host/conformance.mjs", "eip/upp-host/conformance-cli.mjs",
+    "eip/upp-host/conformance-impl.mjs", "eip/upp-host/conformance-required.mjs",
+    "eip/upp-host/conformance-run.mjs", "eip/upp-host/in-process-endpoint.mjs",
+    "eip/upp-host/toolchains.mjs"
+  ],
+  "dependsOn": [],
+  "optionalDependsOn": [],
+  "conflicts": [],
+  "host": { "requires": [] },
+  "config": [],
+  "verify": [],
+  "uninstall": "remove-owned"
+}

@@ -8,6 +8,7 @@
     "test": "node --test",
     "typecheck": "tsc -p jsconfig.json && tsc -p apps/observer/jsconfig.json",
     "builder": "node tools/prompt-builder/cli.mjs",
+    "bootstrap": "node tools/bootstrap/cli.mjs",
     "gates": "node tools/gates/check-all.mjs",
     "trilateral": "node tools/gates/trilateral.mjs",
     "verify:final": "node tools/gates/verify-final.mjs",
@@ -16,6 +17,7 @@
     "hooks:uninstall": "git config --unset core.hooksPath",
     "rehearse:adaptive-removal": "node tools/gates/removal-rehearsal.mjs",
     "rehearse:builder-removal": "node tools/gates/removal-rehearsal.mjs builder",
+    "rehearse:bootstrap-removal": "node tools/gates/removal-rehearsal.mjs bootstrap",
     "upp:conformance": "node eip/upp-host/conformance-cli.mjs"
   },
   "engines": {

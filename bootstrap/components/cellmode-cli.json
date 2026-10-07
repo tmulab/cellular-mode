@@ -1,0 +1,20 @@
+{
+  "schema": "cellular-mode/component-manifest",
+  "version": 1,
+  "id": "cellmode-cli",
+  "componentVersion": "1.0.0",
+  "description": "The deterministic cell-state CLI. Excludes colocated tests and the contributor README, which are not runtime.",
+  "files": [
+    { "source": "tools/cellmode/", "target": "tools/cellmode/", "mode": "copy" }
+  ],
+  "exclude": [".test.mjs", "README.md", "helpers.mjs"],
+  "dependsOn": ["method-core"],
+  "optionalDependsOn": [],
+  "conflicts": [],
+  "host": { "requires": [] },
+  "config": [],
+  "verify": [
+    { "id": "cell-state", "argv": ["node", "tools/cellmode/cli.mjs", "check"] }
+  ],
+  "uninstall": "remove-owned"
+}

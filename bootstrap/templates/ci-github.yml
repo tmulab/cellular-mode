@@ -1,0 +1,44 @@
+# cellular-verify — independent verification of this project's Article 8 mandatory suite.
+# Project: {{projectName}}
+#
+# Written by Cellular Bootstrap as a NEW file. No existing workflow was edited, replaced or
+# even needed: this one is additive, and deleting it changes nothing else.
+#
+# LEAST PRIVILEGE, deliberately: `contents: read` and nothing else, no secret, no persisted
+# credential, no workflow expression of any kind (so nothing a fork controls is ever interpolated),
+# only the plain pull_request trigger (never the privileged target variant, which would run fork
+# code with write access), and every action pinned to a full commit SHA with its tag in a comment.
+#
+# The steps are the MANDATORY checks of `vault/verification.json` AT INSTALL TIME, each one an
+# argument array quoted argument by argument. That file is the source of truth: when you change
+# it, change this workflow too — Bootstrap will not edit a file it already wrote.
+#
+# WHAT THIS DOES NOT DO: it does not re-run the local evidence of `.cellular/`, which is never
+# committed, and it is not a branch protection rule. Server-side ENFORCEMENT is a repository
+# setting a human makes; this workflow only produces the answer.
+name: cellular-verify
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: cellular-verify
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Deep: the Article 8 trailer check asks git whether a commit is an ancestor of a
+          # boundary, and a shallow clone cannot answer.
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+      - name: cell state
+        run: "'node' 'tools/cellmode/cli.mjs' 'check'"
+{{checkSteps}}{{trailerStep}}

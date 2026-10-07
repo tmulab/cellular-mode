@@ -1,0 +1,21 @@
+{
+  "schema": "cellular-mode/component-manifest",
+  "version": 1,
+  "id": "method-core",
+  "componentVersion": "1.0.0",
+  "description": "The method itself: a generated AGENTS.md, the cell and pause skills, and an empty vault/state skeleton.",
+  "files": [
+    { "target": "AGENTS.md", "mode": "generate", "template": "agents-md" },
+    { "source": "skills/cell/", "target": "skills/cell/", "mode": "copy" },
+    { "source": "skills/pause/", "target": "skills/pause/", "mode": "copy" },
+    { "target": "vault/state/", "mode": "generate", "template": "vault-skeleton" }
+  ],
+  "exclude": [],
+  "dependsOn": [],
+  "optionalDependsOn": [],
+  "conflicts": [],
+  "host": { "requires": [] },
+  "config": [],
+  "verify": [],
+  "uninstall": "remove-owned"
+}

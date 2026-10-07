@@ -7,17 +7,20 @@
 // exactly what produced commit 523cb44 (policy/relaxations.md R-4), so "the state did not
 // change" is a CHECK here, not an assumption.
 //
-// The suite is DATA (`MANDATORY_SUITE`) and injectable, which is how the tests exercise
-// the ordering — including a stub that modifies a file mid-run — without spending minutes
-// per case. The checks themselves are this repository's existing gates; nothing is
-// weakened, and `check-all --release` is run in full.
+// The suite is DATA and injectable, which is how the tests exercise the ordering —
+// including a stub that modifies a file mid-run — without spending minutes per case. WHERE
+// the data comes from is ./verification-suite.mjs: this repository's own four checks when
+// there is no `vault/verification.json`, and the MANDATORY checks of that contract when
+// there is one (decision BS3). Absent file ⇒ `MANDATORY_SUITE`, unchanged; a contract that
+// cannot be read, does not validate, or makes nothing mandatory ⇒ an EMPTY suite and a
+// reason, which is never a pass.
 //
 // The evidence is appended OUTSIDE the verified state (see ./final-evidence.mjs) and the
 // run REFUSES to proceed if that is ever untrue.
-import { spawnSync } from 'node:child_process';
 import { appendFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { diffEntries, fingerprintRepo, repoState } from './fingerprint.mjs';
+import { BUILT_IN, MANDATORY_SUITE, selectSuite } from './verification-suite.mjs';
 import {
   CORRECTIVE_ACTION, MAX_RECORDED, checkByteEquivalence, equivalenceReason,
 } from './byte-equivalence.mjs';
@@ -29,42 +32,12 @@ import { countsSummary, parseTestCounts, skipLines } from './test-counts.mjs';
 
 /** @typedef {import('./final-evidence.mjs').FinalRecord} FinalRecord */
 /** @typedef {import('./final-evidence.mjs').CheckRecord} CheckRecord */
-/** @typedef {{ exit: number, output: string }} CheckOutcome */
-/** @typedef {{ name: string, run: (root: string) => CheckOutcome }} Check */
+/** @typedef {import('./verification-suite.mjs').CheckOutcome} CheckOutcome */
+/** @typedef {import('./verification-suite.mjs').Check} Check */
 
-/** `shell` is true ONLY for `npm`, which on Windows is a .cmd shim that spawnSync cannot
- * execute directly. The node binary is always spawned without a shell: its path contains
- * spaces and a shell would split it. Same reasoning as tools/gates/trilateral.mjs.
- * @param {string} root @param {string} cmd @param {ReadonlyArray<string>} args
- * @param {boolean} [shell] @returns {CheckOutcome} */
-function spawnCheck(root, cmd, args, shell = false) {
-  // With `shell`, the command travels as ONE string and the argument list stays empty:
-  // node deprecates passing args beside `shell: true` because they are concatenated
-  // unescaped. Every string here is a literal in this file, never input.
-  const command = shell ? [cmd, ...args].join(' ') : cmd;
-  const result = spawnSync(command, shell ? [] : [...args], {
-    cwd: root, encoding: 'utf8', shell, maxBuffer: 64 * 1024 * 1024,
-  });
-  if (result.error) return { exit: 1, output: `could not run ${cmd}: ${result.error.message}` };
-  const output = `${result.stdout ?? ''}${result.stderr ?? ''}`;
-  return { exit: typeof result.status === 'number' ? result.status : 1, output };
-}
-
-/** @type {(root: string, args: ReadonlyArray<string>) => CheckOutcome} */
-const node = (root, args) => spawnCheck(root, process.execPath, args);
-
-/**
- * THE COMPLETE MANDATORY SUITE, as data. Four checks, in the order a reader would run
- * them: types, tests, the static gates in release mode, and the method's own state
- * integrity. Adding a check here adds it to the rule; removing one is a relaxation and
- * needs the clause in docs/00-constitution.md to say so.
- * @type {ReadonlyArray<Check>} */
-export const MANDATORY_SUITE = Object.freeze([
-  { name: 'typecheck', run: (root) => spawnCheck(root, 'npm', ['run', 'typecheck'], true) },
-  { name: 'tests', run: (root) => node(root, ['--test']) },
-  { name: 'gates-release', run: (root) => node(root, ['tools/gates/check-all.mjs', '--release']) },
-  { name: 'cell-state', run: (root) => node(root, ['tools/cellmode/cli.mjs', 'check']) },
-]);
+// Re-exported, not redefined: the built-in suite is one constant in this repository, and the
+// tests and the documentation both name it here, where `npm run verify:final` starts.
+export { MANDATORY_SUITE } from './verification-suite.mjs';
 
 /** The record file must never be part of what it certifies, or writing it would change the
  * fingerprint it claims. Asserted on every run rather than trusted to .gitignore.
@@ -97,7 +70,15 @@ export function appendEvidence(root, record) {
  *   diff: ReturnType<typeof diffEntries>, evidencePath: string }} */
 export function runFinalVerification(options = {}) {
   const root = options.root ?? process.cwd();
-  const suite = options.suite ?? MANDATORY_SUITE;
+  // An injected suite is the tests' own; otherwise the contract decides (./verification-suite.mjs).
+  const selected = options.suite === undefined
+    ? selectSuite(root)
+    : { suite: options.suite, source: BUILT_IN, error: null };
+  const suite = selected.suite;
+  if (selected.source !== BUILT_IN) {
+    options.onProgress?.(`${selected.error === null ? '✅' : '❌'} suite from ${selected.source} — `
+      + `${selected.error === null ? `${suite.length} mandatory check(s)` : selected.error}`);
+  }
   const now = options.now ?? (() => new Date().toISOString());
   const before = repoState(root);
   assertEvidenceOutside(before.entries);
@@ -110,7 +91,7 @@ export function runFinalVerification(options = {}) {
   /** @type {CheckRecord[]} */
   const checks = [];
   // An empty suite is never a pass (`verdict`), so a refusal here cannot be mistaken for one.
-  for (const check of equivalence.equivalent ? suite : []) {
+  for (const check of equivalence.equivalent && selected.error === null ? suite : []) {
     const outcome = check.run(root);
     // A check that printed `node --test` counts is recorded WITH them: "exit 0" alone is a
     // claim nobody can audit (./test-counts.mjs). Checks with no counts are unchanged, and
@@ -131,9 +112,13 @@ export function runFinalVerification(options = {}) {
   }
   const after = equivalence.equivalent ? fingerprintRepo(root) : before;
   const diff = diffEntries(before.entries, after.entries);
-  const result = equivalence.equivalent
-    ? verdict({ checks, before: before.fingerprint, after: after.fingerprint })
-    : { ok: false, reason: equivalenceReason(equivalence) };
+  // FAIL CLOSED, in this order: an unreadable or empty contract refuses before anything else,
+  // because "the suite could not be established" is UNKNOWN and UNKNOWN is never green.
+  const result = selected.error !== null
+    ? { ok: false, reason: selected.error }
+    : equivalence.equivalent
+      ? verdict({ checks, before: before.fingerprint, after: after.fingerprint })
+      : { ok: false, reason: equivalenceReason(equivalence) };
   const record = finalRecord({
     at: now(),
     fingerprint: before.fingerprint,

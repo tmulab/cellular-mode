@@ -96,6 +96,15 @@ at all — can use it; the two skills only save you typing the trigger phrase. N
 and nothing is assumed: if `tools/prompt-builder/` is absent, the skill says so in one line and
 the normal method continues. Onboarding: [`docs/11-prompt-builder.md`](../docs/11-prompt-builder.md).
 
+## Optional: Cellular Bootstrap (installing into another project)
+
+The adapters above describe *this* repository. To put the method into a project of your own, the optional
+`bootstrap` CLI installs a selected subset into it and generates the matching pointers: `.claude/skills/`
+entries for the skills it actually installed (`claude-code-adapter`) and the Cursor rule
+(`cursor-adapter`). Both are offered only when the target already uses that tool, or when you ask for
+them, and nothing is written without `--confirm`. Onboarding:
+[`docs/12-bootstrap.md`](../docs/12-bootstrap.md).
+
 ## Writing your own adapter
 
 1. Find where your tool looks for project instructions (its docs, not this file).

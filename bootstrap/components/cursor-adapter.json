@@ -1,0 +1,18 @@
+{
+  "schema": "cellular-mode/component-manifest",
+  "version": 1,
+  "id": "cursor-adapter",
+  "componentVersion": "1.0.0",
+  "description": "The Cursor rule file, copied byte-identical from the adapters tree.",
+  "files": [
+    { "source": "adapters/cursor/.cursor/rules/cellular-mode.mdc", "target": ".cursor/rules/cellular-mode.mdc", "mode": "copy" }
+  ],
+  "exclude": [],
+  "dependsOn": ["method-core"],
+  "optionalDependsOn": [],
+  "conflicts": [],
+  "host": { "requires": [] },
+  "config": [],
+  "verify": [],
+  "uninstall": "remove-owned"
+}
