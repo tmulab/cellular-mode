@@ -1,13 +1,13 @@
 # Release checklist — public release
 
-**Current verdict (2026-10-08): Cellular Mode v1.0.0 is released and Stage 8 is complete.** Final
-commit `45c69dd`; final CI run [`37771618776`](https://github.com/tmulab/cellular-mode/actions/runs/37771618776)
-green on Node 22 and Node 24; the repository is **public**, so publication is done (item 29).
-Article-8 final evidence is valid for that committed tree: 865 files byte-equivalent, 1478/1478
-locally on win32, removal rehearsals BS1 · AD29 · PB3 VERIFIED. **npm is NOT published and is not
-required for v1** — `private: true` is kept deliberately. **No git tag and no GitHub Release exist
-yet** (0 tags, 0 releases) and **branch protection on `main` is NOT enabled** — GitHub API answers
-"Branch not protected" — so item 47 stays a recommendation, not a technical blocker. R-1 was
+**Current verdict (2026-10-08): Cellular Mode v1.0.0 is released and Stage 8 is complete.** Release commit
+`1070dcd`; final release CI [`37777098948`](https://github.com/tmulab/cellular-mode/actions/runs/37777098948)
+green on Node 22 and Node 24; the repository is **public**, so publication is done (item 29). Stage 8 implementation
+commit: `45c69dd` (CI `37771618776`). Article-8 final evidence was valid for each committed tree (`45c69dd`: 865 files,
+`1070dcd`: 867 files byte-equivalent), removal rehearsals BS1 · AD29 · PB3 VERIFIED for both. **npm is NOT published and is not required for v1** —
+`private: true` is deliberate. **Tag `v1.0.0` and GitHub Release `v1.0.0` were published 2026-10-08 on release commit
+`1070dcd`**; post-release docs (`CITATION.cff`, the published DOIs) live on `main`. **Branch protection on `main` is
+NOT enabled** — GitHub API answers "Branch not protected" — so item 47 stays a recommendation, not a blocker. R-1 was
 resolved on 2026-10-02 (item 15) and `check-all.mjs --release` exits 0; the security contact (6)
 was set and the first commit and push (26–28) authorized on 2026-10-02. **Nothing below is
 rewritten:** every row keeps its evidence, including the failed CI runs and every UNKNOWN. Labels:

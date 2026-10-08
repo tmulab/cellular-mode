@@ -701,3 +701,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Metadata as provided by the human, already validated externally; commit field kept.
 **Build:** cffconvert validate exit 0; gates release clean; docs/leaks tests 17/17
 **Next step:** —
+
+---
+## 2026-10-08 16:15 · Cell: published-artifacts-docs
+**Status:** ✔
+**Facts:** Documentation-only post-release update: README status now cites the final release evidence (release commit 1070dcd, CI 37777098948; 1477 passed, 0 failed, 1 Windows-only skip; tag v1.0.0 stays on 1070dcd, main carries later documentation commits), new Published artifacts table (software, two preprints, two user guides as DOI links), documentation links, Citation subsection; CHANGELOG post-release documentation section and historical note replacing the false no-tag/no-release clause; RELEASE_CHECKLIST header current state corrected (tag and Release published, release commit vs Stage 8 commit evidence separated); new docs/PUBLISHED-ARTIFACTS.md (version and concept DOIs, relations, map). CITATION.cff unchanged and valid (cffconvert, schema 1.2.0). Historical sections and reports preserved.
+**Decisions:** Stage 8 commit 45c69dd and CI 37771618776 kept only as labelled history; policy/relaxations.md 'not release-ready' preserved (gate semantics).
+**Build:** docs tests 25/25; check-all release clean; cffconvert valid
+**Next step:** —

@@ -2,11 +2,23 @@
 
 All notable changes to this repository.
 
+## Post-release documentation — 2026-10-08
+
+- `CITATION.cff` added on `main`.
+- English technical preprint — DOI [10.5281/zenodo.23240653](https://doi.org/10.5281/zenodo.23240653).
+- Portuguese translation of the technical preprint — DOI [10.5281/zenodo.23244321](https://doi.org/10.5281/zenodo.23244321).
+- English User Guide — DOI [10.5281/zenodo.23246099](https://doi.org/10.5281/zenodo.23246099).
+- Portuguese User Guide — DOI [10.5281/zenodo.23246221](https://doi.org/10.5281/zenodo.23246221).
+
+These publications do not change the v1.0.0 software artifact or move the v1.0.0 tag.
+Canonical map, with concept DOIs and relations: [`docs/PUBLISHED-ARTIFACTS.md`](docs/PUBLISHED-ARTIFACTS.md).
+
 ## 1.0.0 — 2026-10-08
 
-First released version. The method, its state protocol, the engineering layer and the optional modules are complete and verified at their final state: commit `45c69dd`, GitHub Actions run [`37771618776`](https://github.com/tmulab/cellular-mode/actions/runs/37771618776) green on Node 22 and Node 24 — typecheck 0 errors, 287 modules, **1478 tests discovered · 1477 passed · 0 failed · 1 skipped** (a Windows-only runtime test, skipped on Linux by design), gates no findings, release gate no blockers, vault integrity 82 completed cells · 85 log entries, Article-8 `Verified-State` trailer MATCH, CI fingerprint MATCH.
+First released version. The method, its state protocol, the engineering layer and the optional modules are complete and verified at their final state: release commit `1070dcd`, GitHub Actions run [`37777098948`](https://github.com/tmulab/cellular-mode/actions/runs/37777098948) green on Node 22 (v22.23.3) and Node 24 (v24.21.0) — typecheck 0 errors, 287 modules, **1478 tests discovered · 1477 passed · 0 failed · 1 skipped** (a Windows-only runtime test, skipped on Linux by design), gates no findings, release gate no blockers, vault integrity 82 completed cells · 85 log entries, Article-8 `Verified-State` trailer MATCH, CI fingerprint MATCH.
 UPP conformance PASS 11/11 in-process, Node, Python, Java and Rust; the C++ example ships
-as source and is **UNEXECUTED**. Status summary: [`README.md`](README.md) · decision
+as source and is **UNEXECUTED**. The Stage 8 implementation commit was `45c69dd`, with its own
+CI run `37771618776`. Status summary: [`README.md`](README.md) · decision
 history: [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md).
 
 ### Stable in v1.0.0
@@ -50,7 +62,10 @@ usability, reduced cognitive load, productivity gains or statistical validation.
 
 ### Known limitations
 
-Not published to npm (`private: true` is deliberate) · no git tag and no GitHub Release ·
-branch protection on `main` is not enabled · "one active cell" is a convention checked
+Not published to npm (`private: true` is deliberate) · branch protection on `main` is not enabled · "one active cell" is a convention checked
 after the fact, not a lock · the Trojan Source gate is not built · mutation verdicts are
 hand-applied, not re-run automatically.
+
+Historical note on the tag: this entry was written with the release-alignment commit, which
+preceded creation of the public `v1.0.0` tag and GitHub Release. Both now exist and point to
+release commit `1070dcdb3d64442593a3f7540cd5ed86d8092e54`.
