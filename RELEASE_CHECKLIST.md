@@ -1,17 +1,18 @@
 # Release checklist — public release
 
-**Current verdict: no technical blocker left for stages 1-2; stage 3 is closed; stage 4 adds
-five items (36-41); stage 5 adds seven (44-50). Both ADRs are approved and item 46 — a green
-remote CI run — is now VERIFIED (run `37194084612`, both Node jobs). Two items stay OPEN and
-both are human-only: the stage-5 commit and push (48), and branch protection (47), which is a
-recommendation and not a technical blocker.**
-R-1 was resolved on 2026-10-02 (item 15):
-the typecheck leg is real and reports 0 errors, and `check-all.mjs --release` exits 0. What
-remains is human-only authorization: publication (29). Security contact (6) set and push (28)
-authorized on 2026-10-02 to a PRIVATE repository.
-The local repository and its first commit were authorized and made on 2026-10-02 (26–27). Labels: ✅ VERIFIED (a command was run, or a file
-was read end to end) · ⚠️ partial / caveated · ❌ not satisfied · UNKNOWN (not established —
-and UNKNOWN is never green).
+**Current verdict (2026-10-08): Cellular Mode v1.0.0 is released and Stage 8 is complete.** Final
+commit `45c69dd`; final CI run [`37771618776`](https://github.com/tmulab/cellular-mode/actions/runs/37771618776)
+green on Node 22 and Node 24; the repository is **public**, so publication is done (item 29).
+Article-8 final evidence is valid for that committed tree: 865 files byte-equivalent, 1478/1478
+locally on win32, removal rehearsals BS1 · AD29 · PB3 VERIFIED. **npm is NOT published and is not
+required for v1** — `private: true` is kept deliberately. **No git tag and no GitHub Release exist
+yet** (0 tags, 0 releases) and **branch protection on `main` is NOT enabled** — GitHub API answers
+"Branch not protected" — so item 47 stays a recommendation, not a technical blocker. R-1 was
+resolved on 2026-10-02 (item 15) and `check-all.mjs --release` exits 0; the security contact (6)
+was set and the first commit and push (26–28) authorized on 2026-10-02. **Nothing below is
+rewritten:** every row keeps its evidence, including the failed CI runs and every UNKNOWN. Labels:
+✅ VERIFIED (a command was run, or a file was read end to end) · ⚠️ partial / caveated · ❌ not
+satisfied · UNKNOWN (not established — and UNKNOWN is never green).
 
 👤 marks an item only a human can close. An agent may prepare it and must then wait.
 
@@ -70,13 +71,12 @@ and UNKNOWN is never green).
 | 26 | Git repository initialized | ✅ VERIFIED | authorized 2026-10-02; branch `main`, no remote; `.gitignore` (node_modules) and `.gitattributes` (LF, keeps the LICENSE hash stable) |
 | 27 | First commit made | ✅ VERIFIED | authorized 2026-10-02, made after every mandatory gate and the release gate passed; staged set reviewed for secrets, personal and private data, dependencies, artifacts (private names redacted per R-3) |
 | 28 | Remote added, branch pushed | ✅ VERIFIED | authorized 2026-10-02: PRIVATE repository https://github.com/tmulab/cellular-mode (owner `tmulab` is a GitHub user account, confirmed by the author); `main` pushed; visibility and remote commit verified before and after the push |
-| 29 | Published (npm, GitHub release, announcement) | ❌ not done | **no publish without authorization.** Items 15, 17 and 6 must be green first |
-| 30 | Version and pre-1.0 scope stated at the top of the README | ✅ VERIFIED | `README.md` status line points here |
+| 29 | Published | ✅ **DONE in part, 2026-10-08** | **Repository visibility: PUBLIC** — the publication authorized for v1.0.0. **npm: NOT published**, deliberately: `private: true` stays in `package.json` and npm is not required for v1. **git tag: none** (0 tags) and **GitHub Release: none** (0 releases) — both remain a human decision, and neither is a technical blocker |
+| 30 | Version and release scope stated at the top of the README | ✅ VERIFIED 2026-10-08 | `package.json` is `1.0.0`; the `README.md` status line states v1.0.0 with the final CI evidence, and the release boundary — what v1.0.0 includes and what it does **not** imply — is in [`CHANGELOG.md`](CHANGELOG.md) |
 
 ## The run behind the ✅ gate rows
 
-Quoted from the end of this cell; re-run before any release decision, because a checklist
-is a projection and the commands are the truth.
+Quoted from the end of that cell; re-run before any release decision — a checklist is a projection, the commands are the truth.
 
 ```
 npm test        -> 263 pass, 0 fail
@@ -90,8 +90,7 @@ node tools/gates/check-all.mjs --release   -> exit 0
 
 ## Stage 3 — the Cellular Observer (added 2026-10-03)
 
-The observer is **optional** and does not gate a release of the method; these items gate any
-claim that stage 3 is finished. Full account: [`OBSERVER_REPORT.md`](OBSERVER_REPORT.md).
+Optional; gates no release of the method. These items gate any claim that stage 3 is finished. Full account: [`OBSERVER_REPORT.md`](OBSERVER_REPORT.md).
 
 | | Item | Status | What is left |
 |---|---|---|---|
@@ -115,9 +114,7 @@ node examples/observer-demo/reproduce.mjs  -> 9 files identical, exit 0
 
 ## Stage 4 — Cellular Adaptive (added 2026-10-03)
 
-The adaptive module is **optional and experimental** and does not gate a release of the method;
-these items gate any claim that stage 4 is finished. Full account:
-[`ADAPTIVE_REPORT.md`](ADAPTIVE_REPORT.md) · design: [`docs/10-adaptive.md`](docs/10-adaptive.md).
+**Optional and experimental**; gates no release. Full account: [`ADAPTIVE_REPORT.md`](ADAPTIVE_REPORT.md) · design: [`docs/10-adaptive.md`](docs/10-adaptive.md).
 
 | | Item | Status | What is left |
 |---|---|---|---|
@@ -142,17 +139,15 @@ node examples/observer-demo/reproduce.mjs  -> 9 files identical, exit 0
 
 ## Stage 5 — UPP and independent CI (added 2026-10-03)
 
-UPP and the CI workflow do **not** gate a release of the method; these items gate any claim
-that stage 5 is finished. Full account: [`UPP_REPORT.md`](UPP_REPORT.md) · security:
-[`docs/upp/SECURITY-REVIEW.md`](docs/upp/SECURITY-REVIEW.md).
+UPP and the CI workflow gate no release of the method. Full account: [`UPP_REPORT.md`](UPP_REPORT.md) · security: [`docs/upp/SECURITY-REVIEW.md`](docs/upp/SECURITY-REVIEW.md).
 
 | | Item | Status | What is left |
 |---|---|---|---|
 | 44 | 👤 [ADR 0005](docs/adr/0005-universal-plugin-protocol.md) confirmed by the responsible human | ✅ APPROVED | approved by Hudson A. R. Bonomo, 2026-10-04 — UPP 1.0: JSON-RPC 2.0 over NDJSON, adapted into the existing kernel, no second runtime |
 | 45 | 👤 [ADR 0001](docs/adr/0001-frontend-exception.md) **amendment** (application plugins) confirmed | ✅ APPROVED | approved by Hudson A. R. Bonomo, 2026-10-04 — an independent frontend may be REGISTERED as `type: "application"`; registration is not in-process execution ([`docs/upp/APPLICATIONS.md`](docs/upp/APPLICATIONS.md)) |
 | 46 | CI has actually run on GitHub | ✅ **VERIFIED 2026-10-04** | run [`37194084612`](https://github.com/tmulab/cellular-mode/actions/runs/37194084612), conclusion **success**, commit `5c18401182529afa1771a74ba24a23bb93acf436`, `ubuntu-24.04`. **Both** jobs — `verify (node 22)` Node v22.23.3 and `verify (node 24)` Node v24.21.0 — ran every step to success: install from the lockfile, typecheck **0 errors**, module load **182 modules**, **1028 tests · 1028 pass · 0 fail · 0 skipped · 0 cancelled · 0 todo**, gates, release gate, cell state, conformance `--require python,java,rust` (in-process · node · python `3.12.14` · java `openjdk 21.0.12.1` via `JAVA_HOME` · rust `rustc 1.98.1` — PASS 11/11 each; `cpp` UNEXECUTED), trailer `1 commit(s): 1 MATCH` with the CI fingerprint equal to the trailer's (`sha256:f60827e7…adae805b`, tree `328beae4…c8fe567f`). The two earlier runs stay on the record: run `37185128292` (Node 22) FAILED `989 passed, 2 failed, 993 total` from the `build` step with no test name — an `unref`’d advisor deadline timer, a count parser blind to `cancelled`, one step running three legs; run `37188606487` (Node 22 **and** 24) then failed the SAME two tests on both jobs — a test that spelled `\` into a path and a documented byte count measured on a CRLF working copy of files committed as LF, which also meant `verify:final` had been verifying bytes no commit would contain ([`tools/gates/BYTE-EQUIVALENCE.md`](tools/gates/BYTE-EQUIVALENCE.md)). All five findings are corrected and run 3 is the Linux evidence that the corrections hold — [`tools/gates/CI.md`](tools/gates/CI.md) |
-| 47 | Branch protection on `main` | ⚠️ **RECOMMENDATION only** | documented in [`tools/gates/CI.md`](tools/gates/CI.md); **no repository setting was changed** by this work. Without it, a push can land without a passing run. Enabling it is a human decision on a private repository |
-| 48 | 👤 Stage-5 work committed and pushed | ❌ **not done — needs authorization** | every stage-5 change is uncommitted in the working tree. Nothing was committed, pushed, tagged or published, and `--no-verify` was never used. The authorization is per action, as in items 33 and 39 |
+| 47 | Branch protection on `main` | ⚠️ **RECOMMENDATION only — NOT enabled** | documented in [`tools/gates/CI.md`](tools/gates/CI.md); **no repository setting was changed** by this work. Re-checked 2026-10-08 on the now-public repository: the GitHub API answers "Branch not protected". Without it, a push can land without a passing run. Enabling it is a human decision |
+| 48 | 👤 Stage-5 work committed and pushed | ✅ **DONE 2026-10-04** | authorized by the human and pushed as `237e86a`; hooks active, `--no-verify` never used. The authorization was per action, as in items 33 and 39. Later stages followed the same rule — Stage 6 `096243d` with its closure `6e739f2`, Stage 7 `2e8e84a` with the corrective `56f811c`, Stage 8 `45c69dd` |
 | 49 | Stage-5 gates and tests green | ✅ VERIFIED 2026-10-04 | the run quoted below, re-executed in full in the second CI-correction cell; `npm run rehearse:adaptive-removal` is green again after the regression recorded in `docs/upp/SECURITY-REVIEW.md` §4 |
 | 50 | No regression in the earlier stages | ✅ VERIFIED 2026-10-03 | `git diff --stat b92c7c8 -- tools/cellmode eip/kernel eip/sdk eip/plugins tools/adaptive adaptive apps/observer skills` = 4 files, all additive or test-only: `SEMVER_PATTERN` exported from the SDK (one definition, not two), its README line, and a load-sensitivity fix in the observer proxy test. `tools/cellmode` and `tools/adaptive`: **no change**, and the boundary gate denies them `eip/upp*` by name |
 
@@ -182,19 +177,24 @@ Optional module; gates no release of the method. Full account: [`PROMPT_BUILDER_
 
 **Stage 7 — Cellular Bootstrap (added 2026-10-06).** Optional module; gates no release. This file is at its 200-line limit, so its four checklist items (55–58: the Stage-7 commit and push, CI on that commit, real-model evaluation, adoption of a large real repository) live in [`BOOTSTRAP_REPORT.md`](BOOTSTRAP_REPORT.md) §12.
 
+**Stage 8 — v1.0.0 (added 2026-10-08).** Stage 8 is complete. Final commit `45c69dd`, final CI run
+`37771618776` green on Node 22 and Node 24 (1477 passed · 0 failed · 1 skipped by design, 287 modules,
+trailer and fingerprint MATCH), repository public, Article-8 evidence valid for that tree. The first
+closing run of `verify:final` reported 1477/1478 and stays **UNKNOWN — not reproduced under bounded
+investigation**; the deterministic `PB3` test defect found later was a separate fault and does not explain
+the isolated Stage 7 `PB3` failure, which also stays **UNKNOWN**. Adoption trials were agent walkthroughs,
+never a human user study. Release boundary: [`CHANGELOG.md`](CHANGELOG.md).
+
 ## Who must decide what
 
-1. **Security contact** (item 6) — done: role address set on 2026-10-02.
-2. **Push and publish** (items 28–29) — two separate authorizations (init and the first local commit were authorized and done on 2026-10-02).
-3. **ADR 0003** (item 31) and the **stage-3 commit** (item 33) — both done on 2026-10-03.
-4. **ADR 0004** (item 36) and the **pause-trigger decision** (item 40) — both decided by the
-   author on 2026-10-03. The **stage-4 commit** (item 39) is still open and human-only, and
-   item 37 (behavioural validation) stays deliberately **NOT PERFORMED** rather than guessed.
-
-5. **ADR 0005** (item 44) and the **ADR 0001 amendment** (item 45) were approved on 2026-10-04.
-   Item 46 is **closed by evidence**: after two failed runs, the twice-corrected workflow ran
-   green on both Node jobs (run `37194084612`). The **stage-5 commit and push** (item 48) and
-   **branch protection** (item 47) remain open and human-only.
+1. **Security contact** (item 6) — done 2026-10-02. **ADR 0003** (31) and the **stage-3 commit** (33) — done 2026-10-03.
+2. **ADR 0004** (36) and the **pause-trigger decision** (40) — decided by the author on 2026-10-03; the
+   **stage-4 commit** (39) was authorized and done the same day. Item 37 (behavioural validation) stays
+   deliberately **NOT PERFORMED** rather than guessed, as does item 53 for the Builder.
+3. **ADR 0005** (44) and the **ADR 0001 amendment** (45) were approved on 2026-10-04. Item 46 is **closed by
+   evidence**: after two failed runs, the twice-corrected workflow ran green on both Node jobs.
+4. Every stage commit and push (items 33, 39, 48, 51 and Stage 7–8) was authorized per action by the human.
+5. **Still human-only and open:** a git tag and a GitHub Release (item 29), **branch protection** (47), and an npm publication if one is ever wanted. None is a technical blocker for v1.0.0.
 
 R-1 (item 15) was decided on 2026-10-02 and is closed. Nothing on this list may be marked
 green by an agent on its own initiative.

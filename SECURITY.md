@@ -2,10 +2,17 @@
 
 ## Supported scope
 
-Pre-1.0. This repository is supported for **local development use only**. There is no
-supported deployment, no security-release cadence and no API freeze. The methodology
-(`skills/`, `tools/cellmode/`) writes Markdown files and runs no server; the security
-surface discussed here is the **Everything Is a Plugin** runtime under `eip/`.
+**Cellular Mode v1.0.0 is released.** The release does not widen this scope: the
+**experimental runtime surfaces** — the `eip/` runtime and its HTTP host, the UPP host
+adapters, and the optional Adaptive module — stay **experimental** and keep exactly the
+security scope documented below. This repository is supported for **local development use
+only**. There is no supported deployment, no security-release cadence and **no API freeze
+for the experimental EIP/UPP surfaces**. UPP 1.0 is a *versioned protocol specification* —
+MAJOR mismatch rejects, MINOR is additive-only ([`docs/upp/SPEC.md`](docs/upp/SPEC.md) §5):
+that is a compatibility rule for the wire contract, not a freeze of the Node modules that
+implement it. The methodology (`skills/`, `tools/cellmode/`) writes Markdown files and runs
+no server; the security surface discussed here is the **Everything Is a Plugin** runtime
+under `eip/`.
 
 Versions in scope: the current `main` state. No backports.
 
@@ -137,6 +144,6 @@ Report privately, not through a public issue: e-mail **security@tmulab.org**
 not a personal one.
 
 Please include what you ran, what you expected and what happened. There is no bounty, and
-no commitment to a response window pre-1.0. Findings about the documented gaps above are
+**no fixed response-time commitment is currently offered**. Findings about the documented gaps above are
 not vulnerabilities — they are the known scope; a way to break a control that §9 claims
 *is* enforced, is.

@@ -5,7 +5,7 @@ explicit contract — and keep their state recorded, so that stopping is cheap a
 almost instant, whether the next session is tomorrow, in three weeks, or with another agent.
 
 Plain Markdown. Zero runtime dependencies. No runtime required. Node 22 or 24 (the two lines CI verifies; `engines.node` is `^22 || ^24`). Apache-2.0.
-**Not yet release-ready — see [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md)** · security scope: [`SECURITY.md`](SECURITY.md).
+**Cellular Mode v1.0.0 — released and complete.** Public repository, Apache-2.0, verified on Node 22 and Node 24. The final state is independently verified by GitHub Actions run [`37771618776`](https://github.com/tmulab/cellular-mode/actions/runs/37771618776) on commit `45c69dd`: typecheck **0 errors**, **287 modules**, **1477 passed · 0 failed · 1 skipped** — the skip is one Windows-only runtime test, skipped on Linux by design — gates **no findings**, release gate **no blockers**, vault integrity 82 completed cells · 85 log entries, Article-8 `Verified-State` trailer **MATCH** and the CI fingerprint **MATCH**. What v1.0.0 includes and what it does **not** imply — the release boundary: [`CHANGELOG.md`](CHANGELOG.md) · history of the decisions: [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) · security scope: [`SECURITY.md`](SECURITY.md).
 
 ## The problem
 
@@ -37,7 +37,7 @@ Accessibility is structural: variable energy, non-linear focus and unannounced i
 
 A **cell** is a unit of work; a **plugin** is a unit of capability; an **agent** is a caller with an allow-list
 and no authority to consent. None of the three is a core, and the independence is enforced by an import gate:
-Cellular Mode must keep working with no `eip/`.
+Cellular Mode must keep working with no `eip/` — **EIP is not required to use Cellular Mode**, and neither is B.
 
 ## Adopt it in your project
 
@@ -118,7 +118,7 @@ disabled-by-default advisor. `node apps/observer/cli.mjs --root <project>`, loop
 network: [`apps/observer/README.md`](apps/observer/README.md) · [`OBSERVER_REPORT.md`](OBSERVER_REPORT.md) · [ADR 0003](docs/adr/0003-observer-frontend.md).
 
 **Optional: UPP — a plugin written in another language.** UPP 1.0 is the host↔plugin contract: JSON-RPC 2.0 over NDJSON on stdio, over HTTP POST, or in-process — one protocol, three transports, registered into the *same* kernel through an adapter, so manifest validation, the approval gate, deadlines, cancellation and events all stay exactly where they were. Node, Python 3, Java 21 and Rust pass the same conformance corpus (`npm run upp:conformance`, 11 cases each); the C++ example ships as source and is **UNEXECUTED**. A separate process is **failure isolation, not a sandbox** — the scope is still trusted local plugins: [`docs/upp/SPEC.md`](docs/upp/SPEC.md) · [`SECURITY-REVIEW.md`](docs/upp/SECURITY-REVIEW.md) · [`UPP_REPORT.md`](UPP_REPORT.md) · [ADR 0005](docs/adr/0005-universal-plugin-protocol.md).
-**Independent CI — VERIFIED on GitHub, 2026-10-04** (run [`37194084612`](https://github.com/tmulab/cellular-mode/actions/runs/37194084612), conclusion `success`, commit `5c18401`, `ubuntu-24.04`, **both** jobs green: `verify (node 22)` Node v22.23.3 and `verify (node 24)` Node v24.21.0, **1028 tests · 1028 pass · 0 fail · 0 skipped · 0 cancelled · 0 todo** each, conformance PASS 11/11 in five implementations, trailer `1 MATCH`). [`.github/workflows/verify.yml`](.github/workflows/verify.yml) re-runs typecheck, module load, the suite, the gates, the release gate, the cell-state check and the polyglot conformance on a clean checkout, then compares each commit's Article-8 `Verified-State` trailer with the tree it records. `contents: read` only, no secret, every action pinned by commit SHA: [`tools/gates/CI.md`](tools/gates/CI.md).
+**Independent CI — VERIFIED on GitHub, 2026-10-08** (run [`37771618776`](https://github.com/tmulab/cellular-mode/actions/runs/37771618776), conclusion `success`, commit `45c69dd`, `ubuntu-24.04`, **both** jobs green: `verify (node 22)` Node v22.23.3 and `verify (node 24)` Node v24.21.0 — typecheck 0 errors, 287 modules, **1478 tests discovered · 1477 pass · 0 fail · 1 skipped** each (the skipped one is the Windows-only runtime test that runs a real `npm --version` through `runCheck` with no shell; it is skipped on Linux by design), gates no findings, release gate no blockers, vault integrity 82 completed cells · 85 log entries, conformance PASS 11/11 in-process · node · python · java · rust with `cpp` **UNEXECUTED**, trailer `1 MATCH` and the CI fingerprint equal to the trailer's — `sha256:4217831879b5…`, tree `87ed9ad5…`). [`.github/workflows/verify.yml`](.github/workflows/verify.yml) re-runs typecheck, module load, the suite, the gates, the release gate, the cell-state check and the polyglot conformance on a clean checkout, then compares each commit's Article-8 `Verified-State` trailer with the tree it records. `contents: read` only, no secret, every action pinned by commit SHA: [`tools/gates/CI.md`](tools/gates/CI.md).
 
 ## Cellular Adaptive (optional, experimental)
 
@@ -153,7 +153,7 @@ Agent-neutral: a tool needs only to read `AGENTS.md` and write under `vault/stat
 | [`docs/adr/`](docs/adr/) · [`docs/upp/`](docs/upp/SPEC.md) · [`SECURITY.md`](SECURITY.md) | five architecture decision records (all approved) · the language-neutral host↔plugin protocol, UPP 1.0, implemented and **experimental** · supported scope, threat model, what is and is not enforced |
 
 Templates: [`templates/`](templates/) — user profile, cell contract (with the full worked form: question → pre-committed decisions → declared scope → mechanical criteria with red-proof → verdict), handoff package, project policy. **Example:** [`examples/text-stats/`](examples/text-stats/) — a small project built through three cells, with its vault, code, tests and a reproduce script. [`vault/state/`](vault/state/) here is *this* repository's own development record, written by the real CLI; adopters run `init` in their own project.
-Reports: [`CONTEXT_AUDIT.md`](CONTEXT_AUDIT.md) · [`MIGRATION_REPORT.md`](MIGRATION_REPORT.md) · [`ARCHITECTURE_REPORT.md`](ARCHITECTURE_REPORT.md) · [`ADAPTIVE_REPORT.md`](ADAPTIVE_REPORT.md) · [`BOOTSTRAP_REPORT.md`](BOOTSTRAP_REPORT.md) · [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md).
+Release: [`CHANGELOG.md`](CHANGELOG.md) — the v1.0.0 entry and the release boundary. Reports: [`CONTEXT_AUDIT.md`](CONTEXT_AUDIT.md) · [`MIGRATION_REPORT.md`](MIGRATION_REPORT.md) · [`ARCHITECTURE_REPORT.md`](ARCHITECTURE_REPORT.md) · [`ADAPTIVE_REPORT.md`](ADAPTIVE_REPORT.md) · [`BOOTSTRAP_REPORT.md`](BOOTSTRAP_REPORT.md) · [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md).
 
 ## Tests and gates
 

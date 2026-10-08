@@ -685,3 +685,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Correction authorized by the human on 2026-10-08; test expectations only.
 **Build:** bootstrap-draft 6/6; typecheck 0 errors; size/leaks/links pass
 **Next step:** —
+
+---
+## 2026-10-08 09:05 · Cell: v1-release-alignment
+**Status:** ✔
+**Facts:** Release identity Cellular Mode v1.0.0: package.json and package-lock.json version 1.0.0 (private true kept, no npm publication). README status rewritten with final CI 37771618776 on 45c69dd (1477 passed, 0 failed, 1 skipped Windows-only H7 test on Linux; 287 modules; gates and release gate clean; trailer and fingerprint MATCH; UPP 11/11 in-process, node, python, java, rust; C++ UNEXECUTED); EIP stated as not required; three domains kept. SECURITY: v1.0.0 released, experimental runtime surfaces keep their documented scope, no API freeze for experimental EIP/UPP, no fixed response-time commitment. RELEASE_CHECKLIST reconciled (public, no tag, no release, branch protection not enabled, stage commits done; historical failed CI and UNKNOWNs kept). CHANGELOG.md added (minimal 1.0.0 entry with release boundary, adoption-evidence limitation, historical UNKNOWNs). No test needed updating.
+**Decisions:** Minimal CHANGELOG added; lockfile version edited in place (two fields) rather than via npm install.
+**Build:** docs tests 17/17, pause-triggers 8/8, gates-deps 10/10; check-all release clean; trilateral 1478/1478
+**Next step:** —
