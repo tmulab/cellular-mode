@@ -29,8 +29,12 @@ function section(items, cap) {
 
 /**
  * PURE. The report as text. `cap` is display only: conflicts, unknowns and approvals are NEVER
- * capped, because those are the lines a human decides on.
- * @param {AdoptionReport} report @param {{ cap?: number | undefined }} [options] @returns {string}
+ * capped, because those are the lines a human decides on. `approvals: false` omits the approval
+ * list, and is used on the INSTALL path only, where the plan carries the one complete list (H5):
+ * two lists in one dry run was trial finding B-04, and the fix is one list, not a shorter second.
+ * @param {AdoptionReport} report
+ * @param {{ cap?: number | undefined, approvals?: boolean | undefined }} [options]
+ * @returns {string}
  */
 export function renderReport(report, options = {}) {
   const cap = options.cap ?? SECTION_CAP;
@@ -56,8 +60,10 @@ export function renderReport(report, options = {}) {
     : report.conflicts.map((entry) => `  - [${entry.kind}] ${entry.detail}`)));
   out.push('', `Unknowns — UNKNOWN (${report.unknowns.length}):`);
   out.push(...report.unknowns.map((text) => `  - ${text}`));
-  out.push('', `Approvals required (${report.approvals.length}):`);
-  out.push(...report.approvals.map((entry) => `  - ${entry.id}: ${entry.what}`));
+  if (options.approvals !== false) {
+    out.push('', `Approvals required (${report.approvals.length}):`);
+    out.push(...report.approvals.map((entry) => `  - ${entry.id}: ${entry.what}`));
+  }
   out.push('', `Suggested profile: ${report.profileSuggestion}`);
   out.push(`Next: existing <target> --profile ${report.profileSuggestion} --dry-run`);
   return out.join('\n');

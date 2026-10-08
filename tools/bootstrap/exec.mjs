@@ -13,15 +13,19 @@
 //   TOTAL — it never throws. A failure is `{ ok: false }` with the status, which is what lets
 //     every caller treat "could not establish it" as UNKNOWN instead of as a crash.
 //
-// In this cell the ONLY argv arrays passed in are `git rev-parse HEAD` and
-// `git rev-parse --is-inside-work-tree`. Human-approved verification commands come later.
+// H7 lives one import away, in `./exec-shim.mjs`: `runCheck` is the ONE boundary that resolves a
+// Windows package-manager shim to its Node script, and it still never uses a shell.
 import { spawnSync } from 'node:child_process';
+import { resolveShimArgv } from './exec-shim.mjs';
+
+export { SHIMS, SHIM_ALTERNATIVE, resolveShimArgv, shimReason } from './exec-shim.mjs';
 
 /** @typedef {{ ok: boolean, status: number | null, stdout: string, stderr: string,
  *   truncated: boolean, errorCode?: string | null }} ExecResult */
 /** @typedef {'passed'|'failed'|'timeout'|'not-runnable'} CheckStatus */
 /** @typedef {{ argv: ReadonlyArray<string>, exitCode: number | null, durationMs: number,
- *   status: CheckStatus, reason: string | null }} CheckResult */
+ *   status: CheckStatus, reason: string | null,
+ *   resolvedArgv?: ReadonlyArray<string> | null }} CheckResult */
 
 /** How long a probe may take. A git call that has not answered in five seconds is a fact we do
  * not have, and UNKNOWN is a usable answer where a hang is not. */
@@ -143,7 +147,11 @@ export const CHECK_TIMEOUT_MS = 300000;
  *
  * `not-runnable` is a first-class outcome, not an error. On Windows `npm` is `npm.cmd`, which
  * `spawn` without a shell cannot start — and a shell is exactly what this module refuses to use,
- * because a discovered command is untrusted text. So the honest record is "we could not start it".
+ * because a discovered command is untrusted text. H7 narrows that: an EXACT `npm` or `npx` is
+ * resolved to the Node script it wraps (`./exec-shim.mjs`), and only an unresolvable one is
+ * `not-runnable`, with the non-shell alternative named. `resolvedArgv` reports what actually ran;
+ * `argv` stays the argv that was ASKED for, because `process.execPath` is a machine path and the
+ * baseline record it would land in is meant to be committed.
  * @param {ReadonlyArray<string>} argv @param {{ cwd?: string | undefined,
  *   timeoutMs?: number | undefined, maxOutput?: number | undefined,
  *   env?: NodeJS.ProcessEnv | undefined,
@@ -152,25 +160,32 @@ export const CHECK_TIMEOUT_MS = 300000;
  */
 export function runCheck(argv, options = {}) {
   const started = Date.now();
-  const result = (options.run ?? run)(argv, {
+  const frozen = Object.freeze([...argv].map(String));
+  const shim = resolveShimArgv(frozen);
+  const resolvedArgv = shim.resolved ? shim.argv : null;
+  if (shim.reason !== null) {
+    return { argv: frozen, exitCode: null, durationMs: 0, status: 'not-runnable',
+      reason: shim.reason, resolvedArgv: null };
+  }
+  const result = (options.run ?? run)(shim.argv, {
     cwd: options.cwd,
     env: options.env,
     timeoutMs: options.timeoutMs ?? CHECK_TIMEOUT_MS,
     maxOutput: options.maxOutput ?? MAX_OUTPUT,
   });
   const durationMs = Math.max(0, Date.now() - started);
-  const frozen = Object.freeze([...argv].map(String));
   const code = result.errorCode ?? null;
   if (code === 'ETIMEDOUT') {
-    return { argv: frozen, exitCode: null, durationMs, status: 'timeout', reason: 'the command did not finish inside the timeout' };
+    return { argv: frozen, exitCode: null, durationMs, status: 'timeout', resolvedArgv,
+      reason: 'the command did not finish inside the timeout' };
   }
   if (code !== null) {
-    return { argv: frozen, exitCode: null, durationMs, status: 'not-runnable',
+    return { argv: frozen, exitCode: null, durationMs, status: 'not-runnable', resolvedArgv,
       reason: `the command could not be started (${code}); no shell is ever used, so a .cmd or shell builtin is not runnable here` };
   }
   if (typeof result.status !== 'number') {
-    return { argv: frozen, exitCode: null, durationMs, status: 'not-runnable', reason: 'no exit code was available' };
+    return { argv: frozen, exitCode: null, durationMs, status: 'not-runnable', resolvedArgv, reason: 'no exit code was available' };
   }
-  return { argv: frozen, exitCode: result.status, durationMs,
+  return { argv: frozen, exitCode: result.status, durationMs, resolvedArgv,
     status: result.status === 0 ? 'passed' : 'failed', reason: null };
 }

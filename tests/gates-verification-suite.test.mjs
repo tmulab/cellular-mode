@@ -13,7 +13,9 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { FINAL_EVIDENCE_PATH, parseRecords } from '../tools/gates/final-evidence.mjs';
 import { NO_MANDATORY_REASON, VERIFICATION_REL } from '../tools/gates/verification-contract.mjs';
-import { BUILT_IN, MANDATORY_SUITE, selectSuite } from '../tools/gates/verification-suite.mjs';
+import {
+  BUILT_IN, MANDATORY_SUITE, SHIMS, SHIM_ALTERNATIVE, resolveShimArgv, selectSuite,
+} from '../tools/gates/verification-suite.mjs';
 import { runFinalVerification } from '../tools/gates/verify-final.mjs';
 import { cleanup, git, hasGit, makeRepo, write } from './git-fixture.mjs';
 
@@ -154,4 +156,36 @@ test('suite · a failing contract check fails the run and authorizes nothing', {
     assert.match(result.reason, /red \(exit 2\)/);
     assert.equal(records(root)[0]?.ok, false);
   });
+});
+
+// H7, THE HALF THAT MUST SURVIVE A BOOTSTRAP REMOVAL. `tests/verification-shim.test.mjs` holds
+// this resolver and Bootstrap's to identical answers, but it is deleted WITH Bootstrap
+// (tools/gates/removal-paths.mjs), so the gate-side rule is asserted here as well — in a file
+// that imports no Bootstrap module and stays behind.
+//
+// EVERY PATH HERE IS BUILT WITH `node:path`, never spelled with a separator: the resolver joins
+// with the HOST's path module, so a literal Windows path would make this test pass on Windows and
+// fail on Linux — the defect class CI run 37188606487 already caught once.
+test('suite · H7 resolves an exact npm/npx shim on win32 and nothing else, ever', () => {
+  assert.deepEqual(Object.keys(SHIMS), ['npm', 'npx'], 'the list is closed');
+  const node = join('/nodes', 'bin', 'node');
+  const cliFor = (/** @type {string} */ name) => join('/nodes', 'bin', 'node_modules', 'npm', 'bin', name);
+  const win = { platform: 'win32', execPath: node, exists: () => true };
+  assert.deepEqual([...resolveShimArgv(['npm', 'test'], win).argv], [node, cliFor('npm-cli.js'), 'test']);
+  assert.deepEqual([...resolveShimArgv(['npx', 'tsc'], win).argv], [node, cliFor('npx-cli.js'), 'tsc']);
+  // Everything else is returned untouched, which is how `cmd /c` stays a matter for the argv rule.
+  for (const argv of [['node', '--test'], ['npm.cmd', 'test'], ['./npm', 'test'], ['cmd', '/c', 'dir']]) {
+    const answer = resolveShimArgv(argv, win);
+    assert.deepEqual([...answer.argv], argv, `${argv[0]} must not be rewritten`);
+    assert.equal(answer.reason, null);
+  }
+  const posix = resolveShimArgv(['npm', 'test'], { platform: 'linux', execPath: node, exists: () => true });
+  assert.deepEqual([...posix.argv], ['npm', 'test'], 'off Windows there is no shim to resolve');
+  assert.equal(posix.resolved, false);
+  // No cli file ⇒ not-runnable with the NON-SHELL alternative named. A shell is never the answer.
+  const missing = resolveShimArgv(['npm', 'test'], { platform: 'win32', execPath: node, exists: () => false });
+  assert.equal(missing.resolved, false);
+  assert.match(String(missing.reason), /no shell is ever used/);
+  assert.ok(String(missing.reason).includes(SHIM_ALTERNATIVE));
+  assert.ok(String(missing.reason).includes(cliFor('npm-cli.js')), 'the path looked for is named');
 });

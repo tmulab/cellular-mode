@@ -22,6 +22,7 @@ import { runNew } from './new-flow.mjs';
 import { runExisting } from './existing-flow.mjs';
 import { runStatus, runUninstall } from './manage-flow.mjs';
 import { instantOf } from './clock.mjs';
+import { runVerification } from './verification-cli.mjs';
 import { USAGE, profileLines } from './usage.mjs';
 
 export { USAGE, profileLines };
@@ -35,7 +36,7 @@ export const FLAGS = Object.freeze(['confirm', 'dry-run', 'verbose', 'analyze', 
 
 /** The commands this CLI implements. `status` and `uninstall` act on an install that is already
  * there; neither ever reinstalls anything. */
-export const COMMANDS = Object.freeze(['new', 'existing', 'status', 'uninstall']);
+export const COMMANDS = Object.freeze(['new', 'existing', 'status', 'uninstall', 'verification']);
 
 /** @param {string[]} argv @returns {import('../cellmode/types.mjs').ParsedArgs} */
 export function parseBootstrapArgs(argv) {
@@ -69,6 +70,11 @@ function listOf(value) {
  * @returns {{ lines: string[], code: number, root: string, stdout?: boolean }} */
 function dispatch(args, env) {
   const command = String(args[0]);
+  // `verification` is parsed by its OWN tokeniser and never by the option parser, because the
+  // argv of a check is literal: `add node-tests -- node --test` must deliver `--test` as an
+  // argument, and any parser that sees it would read it as an option. So it is intercepted here,
+  // before `parseBootstrapArgs` is reached.
+  if (command === 'verification') return runVerification(args.slice(1), { now: instantOf(env), env });
   const parsed = parseBootstrapArgs(args.slice(1));
   const targetArg = parsed.positional[0];
   // `--mandatory` makes a check able to BLOCK a commit in the target. Two locks, like every
@@ -84,12 +90,14 @@ function dispatch(args, env) {
   }
   const root = resolve(targetArg);
   if (command === 'status') {
-    return { ...runStatus({ sourceRoot: SOURCE_ROOT, targetArg, env }), root };
+    return { ...runStatus({ sourceRoot: SOURCE_ROOT, targetArg, env,
+      verbose: flag(parsed.options, 'verbose') }), root };
   }
   if (command === 'uninstall') {
     return { ...runUninstall({ sourceRoot: SOURCE_ROOT, targetArg,
       dryRun: flag(parsed.options, 'dry-run'), confirm: flag(parsed.options, 'confirm'),
-      forceModified: listOf(parsed.options['force-modified']), now: instantOf(env), env }), root };
+      forceModified: listOf(parsed.options['force-modified']), verbose: flag(parsed.options, 'verbose'),
+      now: instantOf(env), env }), root };
   }
   const mode = parsed.options.mode === undefined ? undefined : String(parsed.options.mode);
   if (command === 'existing') {
@@ -124,6 +132,7 @@ function dispatch(args, env) {
     approvals: parseApprovals(parsed.options.approve),
     dryRun: flag(parsed.options, 'dry-run'),
     confirm: flag(parsed.options, 'confirm'),
+    json: flag(parsed.options, 'json'),
     mode: /** @type {import('./render-plan.mjs').RenderMode | undefined} */ (mode),
     verbose: flag(parsed.options, 'verbose'),
     now: instantOf(env),

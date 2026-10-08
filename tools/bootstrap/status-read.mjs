@@ -15,6 +15,7 @@ import { gitHooksPath } from './exec.mjs';
 import { assertInstallManifest } from './install-manifest.mjs';
 import { HOOKS_DIR, INSTALL_MANIFEST, SCRATCH_DIR } from './plan-constants.mjs';
 import { diskSource, sourceIdentity } from './source-read.mjs';
+import { readResidue } from './status-residue.mjs';
 import { classify, createdDirsOf, entriesOf } from './status.mjs';
 import { NOT_WALKED } from './target-scan.mjs';
 import { BEGIN, blockSpan, bytesIfPresent, confine, readIfPresent, sha256 } from './writer.mjs';
@@ -119,8 +120,9 @@ export function extrasIn(targetRoot, createdDirs, owned) {
 export function readStatusFacts(input) {
   const { targetRoot } = input;
   const manifest = readManifest(targetRoot);
-  const empty = { installed: false, source: null, sourceNow: null, profile: '', components: [],
-    files: [], extras: [], integrations: [], hooksPath: null, hooksDir: HOOKS_DIR };
+  const empty = { installed: false, source: null, sourceNow: null, profile: '', installedAt: '',
+    components: [], files: [], extras: [], residue: null, integrations: [], hooksPath: null,
+    hooksDir: HOOKS_DIR };
   if (manifest === null) {
     return { facts: /** @type {StatusFacts} */ (empty), manifest: null, entries: [], createdDirs: [], truncated: false };
   }
@@ -138,9 +140,13 @@ export function readStatusFacts(input) {
     source,
     sourceNow,
     profile: String(manifest.profile),
+    installedAt: String(manifest.installedAt),
     components: /** @type {ReadonlyArray<{ id: string }>} */ (manifest.components ?? []).map((entry) => String(entry.id)),
     files: entries.map((entry) => fileFactOf(targetRoot, entry)),
     extras,
+    // The uninstall's own report, when there is one: the signal that separates a finished removal
+    // from a damaged install, read rather than written (contract H3).
+    residue: readResidue(targetRoot),
     integrations: /** @type {ReadonlyArray<{ kind: string, status: string, detail: string }>} */ (manifest.integrations ?? []),
     hooksPath: gitHooksPath(targetRoot, input.env),
     hooksDir: HOOKS_DIR,

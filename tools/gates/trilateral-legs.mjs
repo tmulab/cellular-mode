@@ -11,7 +11,7 @@
 // `989 passed, 2 failed, 993 total` from a step called `build`, with no test name anywhere in
 // the log. Hence `--legs`, so CI can run the legs as separate steps, and hence a tests leg
 // that refuses a summary whose parts do not reach its total (tools/gates/CI.md).
-import { countsProblem, parseCountsValue } from './test-counts.mjs';
+import { countsProblem, parseCountsValue } from './count-tests.mjs';
 
 /** @typedef {import('./types.mjs').LegResult} LegResult */
 

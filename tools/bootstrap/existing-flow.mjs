@@ -3,33 +3,31 @@
 //
 // TWO MODES, AND THE FIRST ONE IS A PROMISE. `--analyze` reads, reports and STOPS. It writes
 // nothing at all — not a report, not a cache, not a scratch file, and (because every git probe runs
-// with `GIT_OPTIONAL_LOCKS=0`) not even `.git/index`. The test for it hashes the whole target tree
-// INCLUDING `.git` before and after.
+// with `GIT_OPTIONAL_LOCKS=0`) not even `.git/index`; the test hashes the whole tree with `.git`.
 //
 // THAT PROMISE IS WHY `--save-report` IS REFUSED HERE (decision, this cell). The contract allows the
 // report to be saved into git-ignored `vault/bootstrap/`, and saving it would still be a write, so
 // "analysis writes nothing" would become "analysis writes nothing except when it does" — a sentence
 // no reviewer can check. So: with `--analyze`, `--save-report` is a usage error and `--json` prints
-// the same document for the human to redirect wherever they like. On the INSTALL path, where writing
-// is the point, `--save-report` writes `vault/bootstrap/adoption-report.json`; it is deliberately
-// NOT in the install manifest, because `vault/bootstrap/` is git-ignored scratch and the manifest
-// records controlled history.
+// the same document. On the INSTALL path `--save-report` writes `vault/bootstrap/adoption-report.json`,
+// deliberately NOT in the install manifest: `vault/bootstrap/` is git-ignored scratch, and the
+// manifest records controlled history.
 //
 // BEHAVIOUR PRESERVATION. Installing into a live codebase may create files and may append an
-// approved managed block to `AGENTS.md`, `CLAUDE.md` or `.gitignore`. Nothing else that already
-// exists is touched: `plan-actions.classify` turns every other collision into a conflict or a
-// proposed patch, and `applyPlan` refuses a plan that has conflicts at all.
+// approved managed block to `AGENTS.md`, `CLAUDE.md` or `.gitignore` — whose exact text the plan
+// now prints (H5). Nothing else that already exists is touched: `plan-actions.classify` turns every
+// other collision into a conflict or a patch, and `applyPlan` refuses a plan with any conflict.
 import { basename } from 'node:path';
 import { BASELINE_APPROVAL, BASELINE_REL, assertBaseline, buildBaseline, executionLimitations, runBaselineChecks } from './baseline.mjs';
 import { discoverCommands } from './commands.mjs';
 import { detectTarget } from './detect.mjs';
-import { plural, sanitize } from './display.mjs';
+import { MAX_ACTIONABLE, plural, sanitize } from './display.mjs';
 import { CODES, refuse } from './errors.mjs';
 import { preparePlan, requireExistingDirectory, sourceIdentity } from './new-flow.mjs';
 import { INSTALL_MANIFEST, SCRATCH_DIR, VERIFICATION_FILE } from './plan-constants.mjs';
 import { contractFor, contractLines } from './verification.mjs';
 import { applyPlan } from './apply.mjs';
-import { renderPlan } from './render-plan.mjs';
+import { consentRender, warningLines } from './plan-consent.mjs';
 import { existingInstallRefusal } from './status-read.mjs';
 import { buildReport } from './report.mjs';
 import { renderReport, reportJson } from './render-report.mjs';
@@ -81,7 +79,8 @@ function summaryLines(result, name, extra) {
   for (const entry of result.integrations) out.push(`  - ${entry.kind} [${entry.status}] ${sanitize(entry.detail, 200)}`);
   if (result.limitations.length > 0) {
     out.push('', `Not applied (${result.limitations.length}) — recorded in the install manifest:`);
-    for (const line of result.limitations) out.push(`  - ${sanitize(line, 200)}`);
+    // IN FULL: a limitation names a command to run, and a truncated command is not actionable (A-13).
+    for (const line of result.limitations) out.push(`  - ${sanitize(line, MAX_ACTIONABLE)}`);
   }
   out.push('', `First cell: ${sanitize(result.cell.detail, 200)}`);
   out.push('', 'No pre-existing file was replaced. Not activated.');
@@ -123,17 +122,19 @@ export function runExisting(input) {
     profile: input.profile ?? 'custom',
     components: input.components,
   });
-  const head = [renderReport(report), '', '— Installation plan —', ''];
-  const rendered = renderPlan(plan, {
-    ...(input.mode === undefined ? {} : { mode: input.mode }), verbose: input.verbose === true,
-  });
+  // ONE approval list (B-04): the report's own list is suppressed here and the plan carries the
+  // union, `baseline-checks` included, so a dry run prints exactly one consent document.
+  const head = input.json === true ? [] : [renderReport(report, { approvals: false }), '', '— Installation plan —', ''];
+  const rendered = consentRender({ plan, read: (rel) => source.read(rel), projectName: name,
+    json: input.json === true, ...(input.mode === undefined ? {} : { mode: input.mode }),
+    verbose: input.verbose === true, extraApprovals: [BASELINE_APPROVAL] });
   if (input.dryRun === true) {
-    return { lines: [...head, rendered.trimEnd(), '', 'Dry run: nothing was written.'], code: 0 };
+    return { lines: [...head, ...rendered, ...(input.json === true ? [] : ['', 'Dry run: nothing was written.'])], code: 0 };
   }
   if (input.confirm !== true) {
     return {
-      lines: [...head, rendered.trimEnd(), '',
-        `Nothing was written. Re-run with --confirm to adopt, --approve <ids> for the steps above, and --approve ${BASELINE_APPROVAL} to record what your checks do today.`],
+      lines: [...head, ...rendered, ...(input.json === true ? [] : ['',
+        `Nothing was written. Re-run with --confirm to adopt, --approve <ids> for the steps above, and --approve ${BASELINE_APPROVAL} to record what your checks do today.`])],
       code: 5,
     };
   }
@@ -189,8 +190,8 @@ function install(input) {
       ? ['the target scan hit its file or depth cap: paths beyond it were not seen']
       : [],
   });
-  /** @type {string[]} */
-  const extra = [...baselineLines(checks), ...contractLines(contract, VERIFICATION_FILE)];
+  const extra = [...baselineLines(checks), ...contractLines(contract, VERIFICATION_FILE),
+    ...warningLines(plan, input.approvals)];
   if (input.saveReport === true) {
     writeNew(targetRoot, REPORT_REL, reportJson(input.report));
     extra.push(`Report saved: ${REPORT_REL} (git-ignored scratch, so it is NOT in the install manifest)`);

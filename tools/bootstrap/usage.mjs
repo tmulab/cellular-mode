@@ -30,12 +30,26 @@ Commands:
       --save-report       on the install path only, save the report to git-ignored scratch
       --dry-run --confirm --approve --mode --verbose   as for new
   status <target-dir>     installed version, components, drift and the next action. Writes NOTHING.
+      --verbose           list every path instead of a capped sample (evolved paths included)
                           Exit 0 healthy · 2 drift or a partial install · no record here: 0
   uninstall <target-dir>  remove what Bootstrap created, and only that
       --dry-run           print the plan and remove nothing at all
       --confirm           perform the plan; without it the plan is shown and the exit is 5
       --force-modified a,b  delete these recorded files DESPITE local changes (needs --confirm).
                           Without it a modified file is kept and reported, never deleted.
+  verification <target-dir> <sub>   read and edit the target's vault/verification.json — the suite
+                          \`node tools/gates/verify-final.mjs\` runs. No hand-edited JSON.
+      list                every check with its label, basis, approval and, when it cannot block a
+                          commit yet, WHY and the exact next command. --json for the same data.
+      add <id> -- <argv…> record a check you authored, as PROPOSED. argv is an argument array;
+                          a shell wrapper (sh -c, cmd /c, …) is refused, as in the contract.
+      run <id>            run that one check ONCE, no shell; it becomes VERIFIED only if it passes
+      approve <id>        record your explicit approval; it never changes the label
+      mandatory <id>      make it mandatory for final verification (approving it if it is not
+                          VERIFIED). It never writes VERIFIED: an approval is not evidence.
+      revoke <id>         withdraw approval and mandatory; the label and basis stay
+                          Every subcommand but \`list\` needs --confirm; without it the exact
+                          change is printed and the exit is 5.
   help                    this text
 
 Approval ids for --approve:

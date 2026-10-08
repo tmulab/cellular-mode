@@ -87,6 +87,8 @@ test('unsafeForStdin · a path git cannot be asked about line by line is refused
 
 test('the corrective action names a command a human can actually run', () => {
   assert.match(CORRECTIVE_ACTION, /git checkout -- /);
+  // The node form FIRST, because it is the one an adopting project has (H6).
+  assert.match(CORRECTIVE_ACTION, /node tools\/gates\/verify-final\.mjs/);
   assert.match(CORRECTIVE_ACTION, /verify:final/);
 });
 

@@ -30,7 +30,7 @@ name**. Three separate defects, one symptom:
    `node --test --test-reporter=spec 2>&1 | tee "$RUNNER_TEMP/tests.log"`, naming every failure.
 2. **The counts did not add up, and nothing said so.** 989 + 2 is 991, not 993: two results
    were neither passed nor failed. They were **CANCELLED** tests, and the parser did not read
-   `cancelled`, `skipped` or `todo` at all. **Corrected:** [`test-counts.mjs`](test-counts.mjs)
+   `cancelled`, `skipped` or `todo` at all. **Corrected:** [`count-tests.mjs`](count-tests.mjs)
    reads all six numbers, `countsProblem` FAILS the leg when the parts do not reach the total
    and when `cancelled > 0` — a cancelled test did not run, so it is never a pass.
 3. **The defect itself.** `eip/plugins/observer-advisor/call-model.mjs` called `unref()` on its
@@ -125,7 +125,7 @@ a bonus and not the check. Each run appends one block ([`ci-summary.mjs`](ci-sum
 - **CI fingerprint** / **CI working tree** — what this checkout hashed to; `UNKNOWN` means the
   state could not be read, which is never a pass.
 - **tests re-run here** — `N tests · N pass · N fail · N skipped · N cancelled · N todo`,
-  parsed from `node --test`'s own summary ([`test-counts.mjs`](test-counts.mjs)). The six
+  parsed from `node --test`'s own summary ([`count-tests.mjs`](count-tests.mjs)). The six
   numbers must ADD UP or the report is refused. **Skips are visible, not failures**: a row skips
   legitimately without a toolchain and `cpp` stays UNEXECUTED everywhere, because this suite
   never builds it. A **cancelled** row IS a failure: it did not run, so it established nothing.

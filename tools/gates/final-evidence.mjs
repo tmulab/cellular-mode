@@ -13,13 +13,13 @@
 // FAIL CLOSED: `parseFinalRecord` answers `null` for anything it does not fully recognise.
 // The `counts`/`skips` fields on a check are OPTIONAL: a check that cannot report numbers
 // (typecheck, the static gates) omits them, and an older record stays readable.
-import { withMeasurements } from './test-counts.mjs';
+import { withMeasurements } from './count-tests.mjs';
 
 // `sanitizeSummary` lives in ./sanitize.mjs: keeping a record honest about machine-local paths
 // is a different responsibility from the record's shape, and this file is at its size limit.
 export { sanitizeSummary } from './sanitize.mjs';
 
-/** @typedef {import('./test-counts.mjs').TestCounts} TestCounts */
+/** @typedef {import('./count-tests.mjs').TestCounts} TestCounts */
 /** @typedef {{ name: string, exit: number, summary: string, counts?: TestCounts,
  *   skips?: string[] }} CheckRecord */
 /** @typedef {{ schema: string, at: string, fingerprint: string, tree: string,

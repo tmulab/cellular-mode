@@ -19,7 +19,7 @@ export const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
  * rather than imported by path, because a hook script resolves them from ITS own root. */
 export const PORTABLE_GATES = Object.freeze([
   'fingerprint.mjs', 'final-evidence.mjs', 'verify-final.mjs', 'authorization.mjs',
-  'commit-range.mjs', 'test-counts.mjs', 'byte-equivalence.mjs', 'sanitize.mjs',
+  'commit-range.mjs', 'count-tests.mjs', 'byte-equivalence.mjs', 'sanitize.mjs',
   'verification-suite.mjs', 'verification-contract.mjs', 'verification-argv.mjs',
 ]);
 

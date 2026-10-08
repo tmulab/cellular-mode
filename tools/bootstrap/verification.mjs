@@ -45,7 +45,7 @@ export const CONTRACT_NOTES = Object.freeze([
   'This is the mandatory suite of `node tools/gates/verify-final.mjs` (Article 8). An EMPTY checks list means final verification FAILS CLOSED until a human approves at least one check.',
   'A check is { id, argv, status, basis, mandatory, approval }. argv is an argument array, never a shell string: it runs with shell: false, so a `;` or a `&&` in it is text and nothing interprets it.',
   'status is VERIFIED (it ran here and passed) | INFERRED (a manifest says so; nobody ran it) | PROPOSED | UNKNOWN.',
-  'mandatory: true is valid only for a VERIFIED check, or one carrying an explicit human approval. Add approvals with --mandatory <ids> --confirm, or edit this file yourself.',
+  'mandatory: true is valid only for a VERIFIED check, or one carrying an explicit human approval. Use the CLI rather than editing this file: `node tools/bootstrap/cli.mjs verification <target> list` explains every check, then add / run / mandatory / revoke (each needs --confirm).',
   '`cell-state` (node tools/cellmode/cli.mjs check) is added by verify-final itself and is not listed here: a project cannot approve its way out of the method\'s own integrity.',
 ]);
 
@@ -172,8 +172,11 @@ export function contractLines(contract, rel) {
   }
   if (mandatory.length === 0) {
     out.push('  NEXT STEP, and nothing works without it: `node tools/gates/verify-final.mjs` FAILS CLOSED');
-    out.push(`  while no check is mandatory. Run a check yourself, then approve it — re-run with`);
-    out.push('  --mandatory <id> --confirm, or edit the file. Bootstrap will not invent a command for you.');
+    out.push('  while no check is mandatory. One route, and it works on an installed target:');
+    out.push('  node tools/bootstrap/cli.mjs verification <dir> list — it names, per check, why it');
+    out.push('  cannot block yet and the exact next command: add <id> --confirm -- <argv…>, then');
+    out.push('  run <id> --confirm, then mandatory <id> --confirm. You never hand-edit this file (H6),');
+    out.push('  and Bootstrap will not invent a command for you.');
   }
   return Object.freeze(out);
 }

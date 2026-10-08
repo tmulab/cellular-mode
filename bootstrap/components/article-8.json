@@ -17,7 +17,7 @@
     { "source": "tools/gates/ci-summary.mjs", "target": "tools/gates/ci-summary.mjs", "mode": "copy" },
     { "source": "tools/gates/commit-range.mjs", "target": "tools/gates/commit-range.mjs", "mode": "copy" },
     { "source": "tools/gates/sanitize.mjs", "target": "tools/gates/sanitize.mjs", "mode": "copy" },
-    { "source": "tools/gates/test-counts.mjs", "target": "tools/gates/test-counts.mjs", "mode": "copy" },
+    { "source": "tools/gates/count-tests.mjs", "target": "tools/gates/count-tests.mjs", "mode": "copy" },
     { "source": ".githooks/", "target": ".githooks/", "mode": "copy" }
   ],
   "exclude": [],

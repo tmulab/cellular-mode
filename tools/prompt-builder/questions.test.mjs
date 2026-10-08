@@ -2,7 +2,9 @@
 // and may not change about it.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { QUESTIONS, nextQuestion, questionById } from './questions.mjs';
+import {
+  DEFERRAL_QUESTION, QUESTIONS, TECHNOLOGY_DEFERRAL, nextQuestion, questionById,
+} from './questions.mjs';
 import { emptyDraft } from './draft.mjs';
 import { entry } from './contract-shape.mjs';
 import { setField } from './fields.mjs';
@@ -24,14 +26,18 @@ function askingOrder(start, mode) {
 }
 
 test('questions · the new-project order is the approved one', () => {
-  assert.deepEqual(askingOrder(emptyDraft('new')), [
-    'objective', 'users', 'problem', 'smallest-version', 'scope-in',
+  const order = askingOrder(emptyDraft('new'));
+  assert.deepEqual(order, [
+    'objective', 'users', 'problem', 'smallest-version', 'scope-in', 'scope-out',
     'sensitive-data', 'technologies', 'involvement', 'environment', 'acceptance',
   ]);
+  // What is OUT is asked immediately after what is in, while the human is still thinking
+  // about the boundary of the first version (A-08).
+  assert.equal(order.indexOf('scope-out'), order.indexOf('scope-in') + 1);
 });
 
 test('questions · resuming asks only what resuming needs', () => {
-  assert.deepEqual(askingOrder(emptyDraft('resume')), ['objective', 'scope-in', 'involvement', 'acceptance']);
+  assert.deepEqual(askingOrder(emptyDraft('resume')), ['objective', 'scope-in', 'scope-out', 'involvement', 'acceptance']);
 });
 
 test('questions · every question is plain, short and one sentence', () => {
@@ -42,6 +48,16 @@ test('questions · every question is plain, short and one sentence', () => {
     assert.ok(question.paths.length > 0, `${question.id}: asked on no path`);
     assert.ok(!/\bcell\b|epistemic|trilateral/i.test(question.prompt), `${question.id}: method jargon`);
   }
+});
+
+test('questions · acceptance asks for a check a program can decide, not a manual try (A2-05)', () => {
+  const acceptance = QUESTIONS.find((question) => question.id === 'acceptance');
+  assert.ok(acceptance, 'the acceptance question exists');
+  const both = `${acceptance.prompt} ${acceptance.help}`;
+  assert.match(acceptance.prompt, /a program can run/);
+  assert.match(acceptance.help, /a command or a test decides/);
+  // It must not coach the opposite of docs/12 "write a done criterion your tests can prove".
+  assert.doesNotMatch(both, /try yourself|see pass or fail|by hand|in the browser/i);
 });
 
 test('questions · tired drops the help line and nothing else', () => {
@@ -87,6 +103,21 @@ test('questions · the bank is addressable by id, and unknown ids are null', () 
   assert.equal(new Set(ids).size, ids.length, 'question ids must be unique');
   const priorities = QUESTIONS.map((q) => q.priority);
   assert.equal(new Set(priorities).size, priorities.length, 'priorities must be unique');
+});
+
+test('questions · the technology DEFERRAL is a shared constant, not a sentence to match', () => {
+  // first-cell-parts.mjs recognises an approved deferral through this constant, so the bank
+  // and the classifier cannot drift into disagreeing about what a deferral says.
+  assert.equal(questionById(DEFERRAL_QUESTION)?.unknownRecommendation?.value, TECHNOLOGY_DEFERRAL);
+  assert.equal(TECHNOLOGY_DEFERRAL.trim(), TECHNOLOGY_DEFERRAL);
+  assert.notEqual(TECHNOLOGY_DEFERRAL, '');
+});
+
+test('questions · only the exclusions question accepts "none" as an answer', () => {
+  assert.deepEqual(QUESTIONS.filter((q) => q.acceptsNone === true).map((q) => q.id), ['scope-out']);
+  assert.equal(questionById('scope-out')?.field, 'scope.out');
+  assert.equal(questionById('scope-out')?.unknownRecommendation, undefined,
+    'nothing may be recommended about what somebody wants left out');
 });
 
 test('questions · a recommendation, where there is one, says what it assumes and what it costs', () => {

@@ -23,7 +23,8 @@ import { controlledFiles, gitRun } from './fingerprint.mjs';
 
 /** The one sentence a refusal must leave behind: what to do, as a command. */
 export const CORRECTIVE_ACTION = 'restore the working copy from the index — `git add -A` then '
-  + '`git checkout -- <files>` — or set the editor to LF, then re-run `npm run verify:final`';
+  + '`git checkout -- <files>` — or set the editor to LF, then re-run '
+  + '`node tools/gates/verify-final.mjs` (or `npm run verify:final` where that script exists)';
 
 /** At most this many paths are copied into the evidence record. A longer list belongs in the
  * terminal: a record is not a report. */

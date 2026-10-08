@@ -10,14 +10,13 @@
 // When the target already has hook machinery (Husky, Lefthook, pre-commit, native hooks, an
 // existing core.hooksPath, or something unrecognised), Bootstrap STILL COPIES the `.githooks/`
 // scripts and does NOT activate them. The scripts are inert data until something points a hook
-// path at them; copying them lets the human compose them into their own machinery by hand — the
-// "composition plan" the contract asks for — while activation, the one step that changes how the
-// target's git behaves, stays out of the plan and out of the approvals.
+// path at them; copying them lets the human compose them into their own machinery by hand, while
+// activation, the one step that changes how the target's git behaves, stays out of the approvals.
 import { blockApprovalFor } from './approvals.mjs';
 import { CODES, refuse } from './errors.mjs';
 import { assertFacts, existingSet } from './target-facts.mjs';
 import { ADAPTER_FOR } from './resolve.mjs';
-import { componentActions, conflictsOf, sortActions } from './plan-actions.mjs';
+import { componentActions, conflictsOf, sortActions, warningsOf } from './plan-actions.mjs';
 import {
   CORE_COMPONENT, GITIGNORE, HOOKS_COMPONENT, HOOKS_DIR, INSTALL_MANIFEST, PLANNER, PLAN_SCHEMA,
   PLAN_VERSION, SCRATCH_DIR, UNTOUCHED_CAP, VERIFICATION_COMPONENT,
@@ -36,8 +35,8 @@ import {
  *   actions: ReadonlyArray<Action>, conflicts: ReadonlyArray<{ path: string, reason: string }>,
  *   integrations: ReadonlyArray<Integration>, approvals: ReadonlyArray<Approval>,
  *   commandsProposed: ReadonlyArray<{ argv: ReadonlyArray<string>, status: 'PROPOSED' }>,
- *   verification: ReadonlyArray<Check>, untouched: ReadonlyArray<string>,
- *   untouchedCount: number }} Plan */
+ *   verification: ReadonlyArray<Check>, warnings: ReadonlyArray<string>,
+ *   untouched: ReadonlyArray<string>, untouchedCount: number }} Plan */
 
 /** The three artefacts the planner itself contributes, independent of any component: the install
  * record, the git-ignored scratch directory, and the ignore rule that keeps it out of history. */
@@ -195,6 +194,7 @@ export function buildPlan(input) {
       ? [Object.freeze({ argv: Object.freeze(['git', 'config', 'core.hooksPath', HOOKS_DIR]), status: /** @type {'PROPOSED'} */ ('PROPOSED') })]
       : []),
     verification: verificationOf(selection.components, byId),
+    warnings: warningsOf(facts, ordered),
     ...untouchedOf(facts, ordered),
   });
 }

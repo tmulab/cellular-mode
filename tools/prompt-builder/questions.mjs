@@ -26,6 +26,16 @@ const BUILDING = Object.freeze(/** @type {import('./types.mjs').ProjectPath[]} *
  * @type {ReadonlyArray<string>} */
 export const MODES = Object.freeze(['ready', 'tired', 'focus', 'explore']);
 
+/** The id of the one question whose recommendation DEFERS instead of deciding. */
+export const DEFERRAL_QUESTION = 'technologies';
+
+/** That recommendation's exact text, exported as a CONSTANT rather than matched as prose.
+ * A deferral a human later approves by decision is still a deferral: the entry then reads
+ * DECLARED with `basis: "decision:<id>"`, and first-cell classification has to recognise it
+ * as an undecided stack (`first-cell-parts.mjs` `isDeferral`). Comparing against this
+ * constant is exact; guessing from the wording would second-guess a real stack. */
+export const TECHNOLOGY_DEFERRAL = 'Decide technology in a first architecture/discovery cell';
+
 /** @type {ReadonlyArray<Question>} */
 export const QUESTIONS = Object.freeze([
   {
@@ -79,6 +89,15 @@ export const QUESTIONS = Object.freeze([
     },
   },
   {
+    id: 'scope-out',
+    field: 'scope.out',
+    prompt: 'Is there anything you explicitly do NOT want in the first version?',
+    help: 'Say "none" if there is nothing. One item per line otherwise.',
+    paths: ALL,
+    priority: 55,
+    acceptsNone: true,
+  },
+  {
     id: 'sensitive-data',
     field: 'security.sensitiveData',
     prompt: 'Will it hold information about people, money or health?',
@@ -94,7 +113,7 @@ export const QUESTIONS = Object.freeze([
     paths: BUILDING,
     priority: 70,
     unknownRecommendation: {
-      value: 'Decide technology in a first architecture/discovery cell',
+      value: TECHNOLOGY_DEFERRAL,
       assumptions: 'no existing system forces a choice and nothing is in production yet',
       tradeoffs: 'the first cell produces a decision rather than a running feature',
     },
@@ -128,8 +147,8 @@ export const QUESTIONS = Object.freeze([
   {
     id: 'acceptance',
     field: 'acceptance',
-    prompt: 'How will you know it works? List one check per line.',
-    help: 'Something you could try yourself and see pass or fail.',
+    prompt: 'How will you know it works? List one check per line that a program can run.',
+    help: 'Each check should be something a command or a test decides for you: it passes, or it fails.',
     paths: ALL,
     priority: 100,
     unknownRecommendation: {

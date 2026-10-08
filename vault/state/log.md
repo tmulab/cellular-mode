@@ -597,3 +597,91 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Article 8 core change approved by the human on 2026-10-07; contents still come from the working tree, only recorded modes are preserved.
 **Build:** trilateral typecheck 0 errors, 279 modules, tests 1432/1432; gates release no blockers; workingTreeId equals stagedTreeId on this repo
 **Next step:** —
+
+---
+## 2026-10-07 16:22 · Cell: hardening-triage
+**Status:** ✔
+**Facts:** Triage of the 25 trial findings recorded in ADOPTION_HARDENING_REPORT.md section 1: FIX 16, DOC 6, DEFER 1 (A-15), EXPECTED 2 (A-16, B-01), UNKNOWN 0 (componentVersion difference stays UNKNOWN, not acted on). Contracts H1-H8 in section 2.
+**Decisions:** H7 Windows: resolve npm/npx shims to their Node entry points as argv (no shell); shell wrappers stay refused.
+**Build:** doc only; no code
+**Next step:** —
+
+---
+## 2026-10-07 16:47 · Cell: hardening-handoff-consent
+**Status:** ✔
+**Facts:** H1: vault/builder never walked/planned/copied; new tolerates it; draft-only target promotes nothing. H2: gitignore block adds vault/builder/; refusal warns in plan and install output. H5: plan text and --json carry exact managed-block text and one complete approval list (existing adds baseline-checks); report list suppressed on install path (B-04). B-12 uninstall --verbose lists all. A-13 limitations printed whole. +12 tests (bootstrap-draft, bootstrap-consent).
+**Decisions:** Merged Cells 2 and 5 (same modules), one active cell kept.
+**Build:** trilateral typecheck 0 errors, 279 modules, tests 1444/1444; gates release clean
+**Next step:** —
+
+---
+## 2026-10-07 16:55 · Cell: hardening-test-isolation
+**Status:** ✔
+**Facts:** H4: tools/gates/test-counts.mjs renamed count-tests.mjs (content unchanged; references updated in gates, article-8.json, tests, docs). bootstrap-discovery.test.mjs asserts no installed path in any profile matches Node default test patterns or obvious pytest/cargo/Maven/Gradle/Go conventions (mutation red then restored). Real regression: target node --test 3 before, 3 after install (old name: 4).
+**Decisions:** Layout change preferred over target-side ignores.
+**Build:** trilateral typecheck 0 errors, 279 modules, tests 1446/1446; gates release clean
+**Next step:** —
+
+---
+## 2026-10-07 17:14 · Cell: hardening-ownership
+**Status:** ✔
+**Facts:** H3: status-ownership.mjs derives immutable/evolving/user by frozen path rule (evolving: vault/state/**, vault/verification.json); evolved paths reported, never drift; modified block and immutable changes still drift/partial. B-13: status-residue.mjs reads the uninstall report; uninstalled-with-residue exit 0, no repair. Schema unchanged. +6 tests (bootstrap-status-h3).
+**Decisions:** Class derived from path rule, not a manifest field; old manifests valid.
+**Build:** trilateral typecheck 0 errors, 281 modules, tests 1452/1452; gates release clean
+**Next step:** —
+
+---
+## 2026-10-07 18:13 · Cell: hardening-article8-onboarding
+**Status:** ✔
+**Facts:** H6: verification CLI in Bootstrap (list/add/run/approve/mandatory/revoke; confirm-gated; writer-evolving replaceEvolving limited to vault/verification.json); approval never sets VERIFIED; remedy text everywhere names node tools/gates/verify-final.mjs. H7: npm/npx resolved to Node entry points on win32 without shell, mirrored in tools/gates/verification-suite.mjs and tools/bootstrap/exec-shim.mjs with cross-test tests/verification-shim.test.mjs. E2E: CLI-only add/run/mandatory then verify-final passes and commit accepted. +15 tests. INCIDENT: the coder ran git checkout on docs/12-bootstrap.md and FINAL-VERIFICATION.md, discarding unstaged Stage 8 doc edits; FINAL-VERIFICATION fully restored; docs/12 status section reconstructed; Cell 2+5 doc facts (draft tolerated/ignored, block text shown, uninstall --verbose) lost and to be restored in Cell 8. Code and tests unaffected.
+**Decisions:** Resolvers mirrored (gates must not import bootstrap) with a cross-test; resolved argv printed, never persisted (machine path). Future delegations forbid git checkout/restore/reset/stash.
+**Build:** typecheck 0 errors; tests 1467/1467; gates release clean
+**Next step:** —
+
+---
+## 2026-10-07 18:47 · Cell: hardening-builder
+**Status:** ✔
+**Facts:** H8: scope-out question after scope-in (none/nada accepted, DECLARED entries, idk invents nothing, tired one question). A-07: deferral recognized by provenance or exact shared constant; undecided stack yields architecture cell; rationale can no longer claim a stated stack. A-05: status/next print PROPOSED text with assumptions and the accepting command. A-06: decide accept-proposal/reject-proposal <questionId> --confirm composes propose+decide on stored text. docs/11 + skills/builder updated. +~10 tests.
+**Decisions:** Deferral constant single-sourced in questions.mjs.
+**Build:** trilateral typecheck 0 errors, 287 modules, tests 1477/1477; gates release clean
+**Next step:** —
+
+---
+## 2026-10-07 19:15 · Cell: hardening-docs
+**Status:** ✔
+**Facts:** Docs: 8-step beginner path at top of docs/12 (verified end to end in a scratch target: final verification passed), docs/11 aligned (new-project path no longer starts with cellmode init; Builder-without-Bootstrap kept as alternative), README pointer (net-zero), restored H1/H2/H5/B-12 facts lost in the incident, DOC items A-17/A-12/B-10/B-14/B-02/B-01/A-16, prompt-builder/CONTRACTS.md question list with scope in/out. Corrected docs: gitignore-block is not offered on an empty new target (approve hooks,first-cell); Builder --root must follow the command; cellmode open quoting.
+**Decisions:** New finding not from the trial: Builder CLI with --root before the command prints usage and exits 0 (silent). Out of frozen scope: recorded as deferred, not fixed.
+**Build:** focused docs tests 17/17; gates clean
+**Next step:** —
+
+---
+## 2026-10-07 19:26 · Cell: hardening-trial-2
+**Status:** ⏸
+**Facts:** Stage 8 cells 1-8 done (triage; H1/H2/H5 handoff+consent; H4 test isolation; H3 ownership; H6/H7 Article 8 onboarding + Windows npm without shell; H8 builder exclusions + A-05/A-06/A-07; beginner docs). Cell 9 repeated trials A2/B2 were running in <trial-root>/cm-trial2-20261007 and were STOPPED mid-way at the human's request (A2 had reached the planned first cell with A-04 and A-07 looking resolved; B2 was demonstrating Article 8 accept). Partial trial dirs exist; notes files may be incomplete. Repo porcelain hash before trials d4e21efd8c9e8c1a. All Stage 8 work uncommitted; no final verification run yet.
+**Decisions:** Human stopped for the day (2026-10-07). Trials to be rerun from scratch, not resumed from partial state.
+**Build:** —
+**Next step:** Delete or set aside <trial-root>/cm-trial2-20261007 (list first), rerun trials A2 and B2 from scratch, then write trial comparison into ADOPTION_HARDENING_REPORT.md, record vault closure, run rehearsals x3 + verify:final once, report and wait for commit authorization.
+
+---
+## 2026-10-08 02:28 · Cell: hardening-trial-2
+**Status:** ✔
+**Facts:** Repeated trials ran from scratch on 2026-10-08 in <trial-root>/cm-trial2-20261008 (aborted 2026-10-07 run set aside as -partial). Repo porcelain unchanged (d4e21efd) before/after both. A2: full new-project path, 0 hand edits, Article 8 four steps verified, 11 Builder questions, 38 CM commands, 19 concepts; trial-1 A findings 11 resolved, 6 changed, 1 still present (A-15); 12 new issues, top A2-01 (beginner path omits git init) high doc. B2: analyze 21/21, zero writes, block text + one approval list shown, npm on Windows works via shim, tests 11->11, CLI-only Article 8, healthy after normal work, uninstall restores all 11 originals; trial-1 B findings 9 resolved, 1 still present (B-07), 3 changed, 1 not exercised; 8 new low/med issues. No blocker in either trial.
+**Decisions:** Post-trial fixes limited to public-path mismatches: A2-01, B-07/B2-02, A2-05; other new findings deferred.
+**Build:** observational; no repo writes
+**Next step:** —
+
+---
+## 2026-10-08 02:43 · Cell: hardening-closure
+**Status:** ✔
+**Facts:** Post-trial fixes: A2-01 beginner path now starts with git init (docs/12 step 0, docs/11 and README pointers; verified: without git init the approval list is first-cell and ci-workflow only, with it hooks too and verify-final installed); B-07/B2-02 install text points to the verification CLI and never advises hand edits (test strengthened); A2-05 acceptance question asks for checks a command or test decides (test added). ADOPTION_HARDENING_REPORT.md completed (171 lines: fixes, usability, docs, deferred, unknowns, security, trial 1 vs 2 metrics, observed behaviour). Redaction authorized by the human on 2026-10-08: three earlier log entries (Cell 9 pause and completion) and the hardening-trial-2 cell file contained an absolute temporary trial path written by the lead session by mistake; only that path prefix was replaced with <trial-root>, wording otherwise unchanged; original kept outside the repository.
+**Decisions:** Minimal human-approved exception to append-only for the path prefix only; leaks gate unchanged.
+**Build:** targeted: prompt-builder 185/185, bootstrap verification 14/14, docs 11/11, leaks 6/6; trilateral before redaction 1477/1478 (the leaks failure now fixed)
+**Next step:** —
+
+---
+## 2026-10-08 07:03 · Cell: pb3-test-correction
+**Status:** ✔
+**Facts:** PB3 failure of the first Stage 8 closing run was deterministic and identified: bootstrap-draft.test.mjs:126 expected 'no project contract in the target' while a Builder-absent source correctly reports 'Prompt Builder not installed in the source' first. Test now branches on BUILDER_HERE (tools/prompt-builder/cli.mjs present), as bootstrap-install.test.mjs does; H1 assertion (no draft promoted to a contract) unchanged in both worlds; compose-builder.mjs untouched. Builder-present world 6/6. This does not explain the Stage 7 PB3 failure (test did not exist then): UNKNOWN. The 1477/1478 verify-final failure: UNKNOWN, not reproduced in 10 full-suite runs and 20+20 isolated suspect runs. Report section 7 updated.
+**Decisions:** Correction authorized by the human on 2026-10-08; test expectations only.
+**Build:** bootstrap-draft 6/6; typecheck 0 errors; size/leaks/links pass
+**Next step:** —

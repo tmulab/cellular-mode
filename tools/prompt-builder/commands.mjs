@@ -19,6 +19,7 @@ import {
 import { conflicts } from './conflicts.mjs';
 import { BuilderError, CODES } from './errors.mjs';
 import { inspectProject } from './inspect.mjs';
+import { proposalLines, recordedProposals } from './proposals.mjs';
 import { nextQuestion } from './questions.mjs';
 import { readiness } from './readiness.mjs';
 import { startSession } from './session.mjs';
@@ -115,6 +116,10 @@ export function cmdStatus(root, { positional, options }) {
   const state = readiness(contract);
   const found = conflicts(contract);
   const pending = pendingDecisions(contract);
+  const proposals = recordedProposals(draft);
+  // The PROPOSED TEXT, in both modes. A mode may shorten a question; it may not shorten what a
+  // human is being asked to approve, so this report reads the same tired as ready (H5).
+  const suggested = [`Proposed, not approved (${proposals.length}):`, ...proposalLines(draft)];
   const question = nextQuestion(draft, mode);
   const head = `Draft: ${DRAFT_REL} · path ${contract.path} · asked ${draft.asked.length}`
     + ` · skipped ${draft.skipped.length}`;
@@ -125,7 +130,7 @@ export function cmdStatus(root, { positional, options }) {
   if (mode === 'tired') {
     return {
       lines: [head, known, `Blockers ${state.blockers.length} · conflicts ${found.length}`
-        + ` · pending decisions ${pending.length}`, next],
+        + ` · pending decisions ${pending.length}`, ...suggested, next],
     };
   }
   return {
@@ -135,6 +140,7 @@ export function cmdStatus(root, { positional, options }) {
       `Contract: ${CONTRACT_REL} — ${isApproved(contract) ? 'approved' : 'not approved yet'}`,
       ...section('Blockers', state.blockers.map((b) => `${b.field}: ${b.reason}`)),
       ...section('Conflicts', found.map((c) => `[${c.severity}] ${c.message}`)),
+      ...suggested,
       ...section('Pending decisions', pending.map((d) => `${String(d.id)} — ${String(d.question)}`
         + ` (proposed: ${String(d.proposal)})`)),
       next,
@@ -147,7 +153,13 @@ export function cmdNext(root, { positional, options }) {
   assertAllowed(options, ['root', 'mode'], 'next');
   assertNoPositional(positional, 'next');
   const mode = resolveMode(options);
-  return { lines: questionLines(nextQuestion(requireDraft(root), mode), mode) };
+  const draft = requireDraft(root);
+  const question = nextQuestion(draft, mode);
+  // Nothing left to ask is the one place `next` reports FIELDS rather than a question — and a
+  // recorded PROPOSED recommendation is a field still waiting for a human verdict, so its text
+  // goes with it instead of a count nobody can act on.
+  const waiting = question === null ? proposalLines(draft) : [];
+  return { lines: [...questionLines(question, mode), ...waiting] };
 }
 
 /** @param {string} root @param {ParsedArgs} args @returns {BuilderCommandResult} */

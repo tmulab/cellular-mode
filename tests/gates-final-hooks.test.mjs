@@ -35,6 +35,9 @@ test('(g) pre-commit blocks an unverified staged tree and names the command', { 
     const blocked = commit(root, 'unverified work');
     assert.notEqual(blocked.status, 0, 'a commit of an unverified state must not succeed');
     const text = blocked.stdout + blocked.stderr;
+    // H6: the command the refusal names must EXIST wherever article-8 is installed, and the
+    // node form is the only one that does — Bootstrap never writes an npm script (A-03 / B-06).
+    assert.match(text, /node tools\/gates\/verify-final\.mjs/, text);
     assert.match(text, /verify:final/, text);
     assert.equal(git(root, ['log', '--format=%s']).stdout.trim(), 'seed', 'HEAD must not move');
   } finally {
@@ -95,7 +98,7 @@ test('(i) pre-push blocks a commit range with no evidence and passes a verified 
     const input = `refs/heads/main ${head(root)} refs/heads/main ${base}\n`;
     const blocked = run(root, 'sh', ['.githooks/pre-push', 'origin', remote], { env: ENV, input });
     assert.notEqual(blocked.status, 0, 'pushing an unverified commit must be refused');
-    assert.match(blocked.stdout + blocked.stderr, /verify:final/);
+    assert.match(blocked.stdout + blocked.stderr, /node tools\/gates\/verify-final\.mjs/);
     // Verify the state the bypassed commit left behind: now its tree has evidence.
     assert.equal(verify(root).ok, true);
     const allowed = run(root, 'sh', ['.githooks/pre-push', 'origin', remote], { env: ENV, input });

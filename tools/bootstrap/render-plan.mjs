@@ -12,13 +12,19 @@
 //
 // Every path and detail goes through `sanitize`. The target directory is untrusted: a file named
 // with an embedded newline would otherwise forge a line of this very report.
-import { capList, plural, sanitize } from './display.mjs';
+import { MAX_ACTIONABLE, capList, plural, sanitize } from './display.mjs';
 import { DEFAULT_MODE, MODE_CAPS } from './plan-constants.mjs';
 
 /** @typedef {import('./plan.mjs').Plan} Plan */
 /** @typedef {import('./plan-actions.mjs').Action} Action */
+/** @typedef {import('./plan.mjs').Approval} Approval */
+/** @typedef {{ path: string, approval: string, text: string }} PlannedBlock */
 /** @typedef {'ready'|'tired'|'focus'|'explore'} RenderMode */
-/** @typedef {{ mode?: RenderMode, verbose?: boolean }} RenderOptions */
+/** `blocks` is the EXACT text each managed block would receive (contract H5) and `approvals` the
+ * ONE complete approval list; both are computed by `plan-consent.mjs`, which can read the source
+ * templates, and handed in here, which cannot.
+ * @typedef {{ mode?: RenderMode, verbose?: boolean,
+ *   blocks?: ReadonlyArray<PlannedBlock>, approvals?: ReadonlyArray<Approval> }} RenderOptions */
 
 /** @type {ReadonlyArray<string>} */
 export const RENDER_MODES = Object.freeze(['ready', 'tired', 'focus', 'explore']);
@@ -68,9 +74,23 @@ function componentSection(plan, short) {
   return out;
 }
 
+/** The EXACT text of one managed block, line by line, each line sanitized and marked `+` so that
+ * no line of it can be read as a line of this report. This is the consent document: contract H5
+ * says a human approving `agents-block` or `gitignore-block` must SEE what they approve, so it is
+ * never capped and never shortened by a mode.
+ * @param {ReadonlyArray<PlannedBlock>} blocks @param {string} path @returns {string[]} */
+function blockText(blocks, path) {
+  const found = blocks.find((entry) => entry.path === path);
+  if (found === undefined) return [];
+  const lines = found.text.replace(/\n+$/, '').split('\n');
+  return [`      the exact text to append, with --approve ${sanitize(found.approval, 40)} (${plural(lines.length, 'line')}):`,
+    ...lines.map((line) => `      + ${sanitize(line, MAX_ACTIONABLE)}`)];
+}
+
 /** The file sections. `create` is the only capped list in the whole renderer.
- * @param {Plan} plan @param {boolean} short @param {number} cap @returns {string[]} */
-function fileSection(plan, short, cap) {
+ * @param {Plan} plan @param {boolean} short @param {number} cap
+ * @param {ReadonlyArray<PlannedBlock>} blocks @returns {string[]} */
+function fileSection(plan, short, cap, blocks) {
   const byKind = (/** @type {string} */ kind) => plan.actions.filter((entry) => entry.kind === kind);
   const creates = byKind('create');
   /** @type {string[]} */
@@ -80,7 +100,10 @@ function fileSection(plan, short, cap) {
   const modifies = byKind('modify-block');
   if (modifies.length > 0) {
     out.push('', `${short ? 'Modify' : 'Files to modify'} (${modifies.length}):`);
-    for (const entry of modifies) out.push(`  - ${sanitize(entry.path)} — ${BLOCK_NOTE}`);
+    for (const entry of modifies) {
+      out.push(`  - ${sanitize(entry.path)} — ${BLOCK_NOTE}`);
+      out.push(...blockText(blocks, entry.path));
+    }
   }
   const patches = byKind('propose-patch');
   if (patches.length > 0) {
@@ -101,8 +124,9 @@ function fileSection(plan, short, cap) {
   return out;
 }
 
-/** @param {Plan} plan @param {boolean} short @returns {string[]} */
-function decisionSection(plan, short) {
+/** @param {Plan} plan @param {boolean} short
+ * @param {ReadonlyArray<Approval>} approvals @returns {string[]} */
+function decisionSection(plan, short, approvals) {
   /** @type {string[]} */
   const out = [];
   out.push(`${short ? 'Conflicts' : 'Conflicts needing a human'} (${plan.conflicts.length}):`);
@@ -117,9 +141,11 @@ function decisionSection(plan, short) {
   for (const entry of plan.commandsProposed) {
     out.push(`  - ${entry.argv.map((part) => sanitize(part, 60)).join(' ')} [${entry.status}]`);
   }
-  out.push('', `${short ? 'Approvals' : 'Approvals required before anything is written'} (${plan.approvals.length}):`);
-  if (plan.approvals.length === 0) out.push('  (none)');
-  for (const entry of plan.approvals) {
+  // ONE list, complete (contract H5): every approval id this run could use, whichever command
+  // produced it. Two different lists in one dry run (trial finding B-04) are two consent documents.
+  out.push('', `${short ? 'Approvals' : 'Approvals this run can use — the complete list'} (${approvals.length}):`);
+  if (approvals.length === 0) out.push('  (none)');
+  for (const entry of approvals) {
     out.push(`  - [${sanitize(entry.id, 40)}] ${sanitize(entry.action)}`);
     if (!short) out.push(`      why: ${sanitize(entry.why)}`);
   }
@@ -151,8 +177,12 @@ export function renderPlan(plan, options = {}) {
   out.push('');
   out.push(...componentSection(plan, short));
   out.push('');
-  out.push(...fileSection(plan, short, cap));
+  out.push(...fileSection(plan, short, cap, options.blocks ?? []));
   out.push('');
-  out.push(...decisionSection(plan, short));
+  out.push(...decisionSection(plan, short, options.approvals ?? plan.approvals));
+  if (plan.warnings.length > 0) {
+    out.push('', `Warnings (${plan.warnings.length}) — nothing is wrong yet, and nothing here stops an install:`);
+    for (const line of plan.warnings) out.push(`  ! ${sanitize(line, MAX_ACTIONABLE)}`);
+  }
   return `${out.join('\n')}\n`;
 }

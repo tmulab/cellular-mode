@@ -7,17 +7,26 @@
 // forged line can reach a terminal.
 import { capList, plural, sanitize } from './display.mjs';
 import { CI_WORKFLOW_FILE } from './plan-constants.mjs';
+import { RESIDUE_CLASS, evolvedOf, extrasOf, filesOf } from './status-ownership.mjs';
 import { PATH_CAP } from './status.mjs';
 
 /** @typedef {import('./status.mjs').StatusFacts} StatusFacts */
 /** @typedef {import('./status.mjs').FileFact} FileFact */
 
-/** @param {ReadonlyArray<string>} paths @param {string} label @returns {string[]} */
-function pathLines(paths, label) {
+/** @param {ReadonlyArray<string>} paths @param {string} label @param {number} cap
+ * @returns {string[]} */
+function pathLines(paths, label, cap) {
   if (paths.length === 0) return [];
-  const { shown, hidden } = capList([...paths].sort(), PATH_CAP);
+  const { shown, hidden } = capList([...paths].sort(), cap);
   return [`${label}:`, ...shown.map((rel) => `  - ${sanitize(rel)}`),
     ...(hidden === 0 ? [] : [`  … and ${hidden} more`])];
+}
+
+/** The IMMUTABLE recorded paths in one state. The evolving ones are listed separately, under their
+ * own heading, because "missing" and "modified" are complaints and those are not.
+ * @param {StatusFacts} facts @param {import('./status.mjs').FileState} state @returns {string[]} */
+function immutablePaths(facts, state) {
+  return filesOf(facts, 'immutable').filter((f) => f.state === state).map((f) => f.entry.path);
 }
 
 /** The state of the additive CI workflow, as a file rather than as an install-time sentence: the
@@ -31,12 +40,15 @@ function ciFileState(facts) {
 
 /**
  * PURE. The report a human reads. Paths are sanitized and capped; no absolute path can appear,
- * because every path here is target-relative by construction.
+ * because every path here is target-relative by construction. `--verbose` lifts the cap: the
+ * evolved list is the audit trail of the project's own record, and a capped audit trail is not one.
  * @param {StatusFacts} facts
- * @param {import('./status.mjs').Verdict} verdict @param {string} name @returns {string[]}
+ * @param {import('./status.mjs').Verdict} verdict @param {string} name
+ * @param {{ verbose?: boolean | undefined }} [options] @returns {string[]}
  */
-export function statusLines(facts, verdict, name) {
+export function statusLines(facts, verdict, name, options = {}) {
   const { counts } = verdict;
+  const cap = options.verbose === true ? -1 : PATH_CAP;
   const installed = facts.source;
   const hooks = facts.integrations.find((entry) => entry.kind === 'hooks');
   const hooksNow = hooks?.status !== 'applied'
@@ -50,17 +62,24 @@ export function statusLines(facts, verdict, name) {
       + ` @ ${installed?.revision === null || installed?.revision === undefined ? 'revision UNKNOWN' : installed.revision.slice(0, 7)}`
       + ` · profile ${sanitize(facts.profile)}`,
     `Components: ${facts.components.length === 0 ? 'none recorded' : facts.components.map((id) => sanitize(id, 40)).join(', ')}`,
-    `Files: ${counts.healthy} healthy · ${counts.missing} missing · ${counts.modified} modified · ${counts.extra} extra (unowned, never touched)`,
+    `Files: ${counts.healthy} healthy · ${counts.missing} missing · ${counts.modified} modified · ${counts.extra} extra (unowned, never touched)`
+      + ` · ${counts.evolved} evolved (expected, never drift)`,
     `Blocks: ${counts.intact} intact · ${counts.blocksModified} modified · ${counts.blocksMissing} missing`
       + `${counts.blocksUnknown === 0 ? '' : ` · ${counts.blocksUnknown} UNKNOWN (no digest was recorded)`}`,
     `Integrations: hooks — ${hooksNow}`,
     ...facts.integrations.filter((entry) => entry.kind === 'ci')
       .map((entry) => `              ci — ${ciFileState(facts)}; at install: ${sanitize(entry.detail, 120)}`),
-    ...pathLines(facts.files.filter((f) => f.state === 'missing').map((f) => f.entry.path), 'Missing'),
-    ...pathLines(facts.files.filter((f) => f.state === 'modified').map((f) => f.entry.path), 'Modified'),
+    ...pathLines(immutablePaths(facts, 'missing'), 'Missing', cap),
+    ...pathLines(immutablePaths(facts, 'modified'), 'Modified', cap),
     ...pathLines(facts.files.filter((f) => f.block === 'modified' || f.block === 'missing')
-      .map((f) => `${f.entry.path} (block ${f.block})`), 'Blocks'),
-    ...pathLines(facts.extras, `Extra, unowned (${plural(facts.extras.length, 'file')}, never touched)`),
+      .map((f) => `${f.entry.path} (block ${f.block})`), 'Blocks', cap),
+    ...pathLines(extrasOf(facts, 'immutable'),
+      `Extra, unowned (${plural(extrasOf(facts, 'immutable').length, 'file')}, never touched)`, cap),
+    // Listed for audit and for nothing else: this is the project's own record doing what it is for.
+    ...pathLines(evolvedOf(facts),
+      'Evolved (expected — your own record; never drift, never repaired)', cap),
+    ...(verdict.classification !== RESIDUE_CLASS ? [] : pathLines(facts.residue?.kept ?? [],
+      'Kept by that uninstall (leave them, or delete them by hand — both are safe)', cap)),
     `State: ${verdict.classification}`,
     `Next: ${verdict.action} — ${verdict.why}`,
   ];

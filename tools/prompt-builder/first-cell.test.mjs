@@ -11,10 +11,12 @@ import { NEXT_HEADING } from '../cellmode/cell-file.mjs';
 import { applyAnswer } from './answers.mjs';
 import { entry } from './contract-shape.mjs';
 import { emptyDraft } from './draft.mjs';
+import { decide, proposeDecision } from './decisions.mjs';
 import { appendField, entriesAt, setField } from './fields.mjs';
 import { conflicting, readyContract, scenario } from './fixtures/index.mjs';
 import { proposeFirstCell } from './first-cell.mjs';
 import { PROPOSAL_HEADING, renderProposal } from './first-cell-preview.mjs';
+import { TECHNOLOGY_DEFERRAL } from './questions.mjs';
 import { PROPOSED_LABEL, inertText } from './sanitize.mjs';
 import { FIELD_KINDS } from './validate-parts.mjs';
 
@@ -97,6 +99,36 @@ test('first cell · no PROPOSED value is ever shown without its label', () => {
       assert.ok(rendered.includes(`${PROPOSED_LABEL} ${value}`), `${id}: unlabelled "${value}"`);
     }
   }
+});
+
+test('first cell · an approved DEFERRAL is still an undecided stack, and says so', () => {
+  // The adoption trial's exact flow (A-07): "I don't know" to technologies records the
+  // deferral as PROPOSED; the human then records it as a decision and approves it, so
+  // `technologies.approved` holds the deferral, DECLARED, with basis decision:D1. The stack
+  // is still nobody's decision, and the first cell must not claim otherwise.
+  const draft = applyAnswer(emptyDraft('new'), 'technologies', "I don't know").draft;
+  let contract = identified(draft.contract, 'local-task-board');
+  contract = setField(contract, 'objective', entry('A task board I can use offline.', 'DECLARED'));
+  contract = setField(contract, 'security.sensitiveData', entry('No.', 'DECLARED'));
+  contract = appendField(contract, 'scope.in', [entry('add a task', 'DECLARED')]);
+  contract = appendField(contract, 'acceptance', [entry('I can add a task and see it', 'DECLARED')]);
+  const pending = proposeDecision(contract, {
+    question: 'Is there a language, framework or service it must use?',
+    proposal: TECHNOLOGY_DEFERRAL,
+    field: 'technologies.proposed',
+  }, '2026-10-04T09:00:00.000Z');
+  const settled = decide(pending, 'D1', 'approved', '2026-10-04T09:00:00.000Z');
+  assert.deepEqual(settled.technologies.approved.map((/** @type {any} */ e) => e.basis), ['decision:D1']);
+
+  const proposal = proposeFirstCell(settled, { draftProposals: draft.proposals });
+  assert.equal(proposal.kind, 'architecture', 'a deferred stack cannot carry an implementation cell');
+  const reasons = proposal.reasons.join(' ');
+  assert.match(reasons, /deferral — the stack is still undecided/);
+  assert.doesNotMatch(reasons, /stack are all stated/);
+  assert.doesNotMatch(renderProposal(proposal), /stack are all stated/);
+  // A real stack in the same list is never mistaken for the deferral.
+  const decided = appendField(settled, 'technologies.approved', [entry('Node.js', 'DECLARED')]);
+  assert.equal(proposeFirstCell(decided).kind, 'implementation');
 });
 
 test('first cell · hostile answer text is rendered as content, never as structure', () => {

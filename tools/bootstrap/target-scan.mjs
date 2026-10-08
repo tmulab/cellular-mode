@@ -17,6 +17,7 @@ import { join, sep } from 'node:path';
 import { pathProblem } from './component-parts.mjs';
 import { controlProblem } from './display.mjs';
 import { isInsideWorkTree } from './exec.mjs';
+import { BUILDER_DRAFT_DIR } from './plan-constants.mjs';
 import { makeFacts } from './target-facts.mjs';
 
 /** @typedef {import('./target-facts.mjs').TargetFacts} TargetFacts */
@@ -26,6 +27,14 @@ import { makeFacts } from './target-facts.mjs';
 
 /** Directories whose contents no plan touches and no human wants listed. */
 export const NOT_WALKED = Object.freeze(['.git', 'node_modules', '.cellular']);
+
+/** Target-relative directories that are not walked WHEREVER else a directory of that name would
+ * be fine. `vault/builder/` is the Prompt Builder's private draft (contract H1): not walking it is
+ * how "never read for planning" is enforced by construction rather than promised — its paths reach
+ * no plan, no manifest and no report, and its bytes are never opened at all. Its mere PRESENCE is
+ * still established, as the boolean fact `hasBuilderDraft`, because contract H2 has to warn about
+ * it. @type {ReadonlyArray<string>} */
+export const NOT_WALKED_PATHS = Object.freeze([BUILDER_DRAFT_DIR.replace(/\/+$/, '')]);
 
 export const MAX_FILES = 5000;
 export const MAX_DEPTH = 8;
@@ -119,7 +128,7 @@ export function walkTarget(root, limits = {}) {
         continue;
       }
       if (entry.isDirectory()) {
-        if (NOT_WALKED.includes(entry.name)) continue;
+        if (NOT_WALKED.includes(entry.name) || NOT_WALKED_PATHS.includes(rel)) continue;
         if (here.depth + 1 > maxDepth) {
           truncated = true;
           continue;
@@ -173,6 +182,8 @@ export function scanTarget(targetRoot, options = {}) {
     ci: CI_MARKERS.filter((marker) => has(targetRoot, marker.path)).map((marker) => marker.id),
     hasInstallManifest: present.has('vault/install-manifest.json'),
     hasProjectContract: present.has('vault/project-contract.json'),
+    // PRESENCE only, and never a read: the draft is not authoritative about anything (H1).
+    hasBuilderDraft: has(targetRoot, BUILDER_DRAFT_DIR),
   });
   return {
     facts,

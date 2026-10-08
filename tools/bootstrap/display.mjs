@@ -34,6 +34,11 @@ const UNSAFE = new RegExp(`[${UNSAFE_RANGES.map((range) => (range.lo === range.h
  * cannot push a report off the screen. */
 export const MAX_DISPLAY = 160;
 
+/** The cap for text a human has to ACT on: a limitation that names a command to run, a line of a
+ * managed block they are approving. Truncating one of those mid-command (trial finding A-13) makes
+ * it useless, so this cap exists only to bound a hostile string, never to fit a screen. */
+export const MAX_ACTIONABLE = 2000;
+
 /** @param {string} char @returns {string} */
 const escapeChar = (char) => escapeCode(char.charCodeAt(0));
 

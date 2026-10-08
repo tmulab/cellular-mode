@@ -56,8 +56,13 @@ node tools/prompt-builder/cli.mjs status
 - Ask the question in the human's own language. Ask **one**, wait, then ask the next.
 - Type **their** answer, never yours. If you are not sure what they meant, ask.
 - **"I don't know" is a good answer.** Record it as it is. Where a sensible default exists, the
-  program records a suggestion and labels it PROPOSED. Explain that suggestion in your own
-  words: what it assumes, what it costs, and that it is **PROPOSED, not decided**.
+  program records a suggestion and labels it PROPOSED, and prints its full text — read that text
+  back: what it assumes, what it costs, and that it is **PROPOSED, not decided**. `status`
+  reprints every one of them, so you never have to open the draft file to find out what they say.
+- **Ask what is OUT.** One question (`scope-out`) collects what the human explicitly does not
+  want in the first version. "none" is a real answer there: `answer scope-out "none"` records
+  that they declared no exclusions, and the question is not asked again. Never infer an
+  exclusion from silence, and never add one they did not say.
 - Never invent an answer, never fill a gap "to move on", and never guess a name or a technology.
 - Never ask for a password, a key, a token or any other secret. The program refuses answers that
   look like one; say what shape it refused and ask for a description instead ("the key for the
@@ -67,10 +72,16 @@ node tools/prompt-builder/cli.mjs status
 To settle one of those suggestions:
 
 ```
+node tools/prompt-builder/cli.mjs decide accept-proposal <questionId> --confirm   # the program's own
+node tools/prompt-builder/cli.mjs decide reject-proposal <questionId> --confirm   # suggestion, as stored
 node tools/prompt-builder/cli.mjs decide propose --question "<question>" --proposal "<option>"
 node tools/prompt-builder/cli.mjs decide D1 approve --confirm     # only after an explicit yes
 node tools/prompt-builder/cli.mjs decide D1 reject --confirm
 ```
+
+Use `accept-proposal` for a suggestion the program made: it settles the **stored** text, so you
+never retype it. Retyping is how a suggestion silently becomes something else. `decide propose` is
+for an option the **human** named. Either way, `--confirm` only after they said yes to that.
 
 ## 3. Agree the description
 
@@ -90,6 +101,10 @@ run git, and say so if they ask.
 node tools/prompt-builder/cli.mjs cell                      # shows it; writes nothing
 node tools/prompt-builder/cli.mjs cell --accept --confirm    # records it as planned 📋
 ```
+
+If no stack is decided, the proposal is an **architecture** or **discovery** cell — including when
+the only approved technology entry is the program's *deferral* ("decide technology in a first
+cell"). Say so plainly: deciding to decide later is not a decided stack.
 
 The cell is **planned, not active**. Tell the human the next step is theirs:
 `node tools/cellmode/cli.mjs open "<name>"`, or `/cell`.

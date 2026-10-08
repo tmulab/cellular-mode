@@ -19,6 +19,10 @@ import { VERIFICATION_FILE } from '../tools/bootstrap/plan-constants.mjs';
 import {
   CONTRACT_SCHEMA, CONTRACT_VERSION, buildContract, contractBytes, contractFor, mandatoryChecks,
 } from '../tools/bootstrap/verification.mjs';
+import {
+  addCheck, approveCheck, argvRefusal, markVerified, revokeCheck,
+} from '../tools/bootstrap/verification-edit.mjs';
+import { argvProblem } from '../tools/gates/verification-argv.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const NOW = '2026-10-06T12:00:00Z';
@@ -107,4 +111,58 @@ test('contract · mandatory needs a human, and an unknown id is a refusal', () =
   assert.throws(() => contractFor({ ...common, mandatory: ['ci-1'] }), /ci-1/,
     'a CI-parsed command is not an id a human can approve: it never became a check');
   assert.deepEqual(mandatorySuite(buildContract({ ...common })), [], 'nothing is mandatory by default');
+});
+
+// THE SAME LOOP, CLOSED AROUND THE CLI (H6). `bootstrap verification add/run/approve/mandatory/
+// revoke` is now the documented route to a green Article 8, so every document those edits can
+// produce has to be one the GATE accepts — otherwise the command that was supposed to replace a
+// hand-edited file would write a contract that fails closed for reasons nobody asked for.
+test('contract · every document the verification CLI writes is one the gate accepts', () => {
+  const discovery = discoverCommands(DETECTION);
+  const base = buildContract({ projectName: 'demo', now: NOW, commands: discovery.commands });
+  const ok = (/** @type {Record<string, unknown>} */ c, /** @type {string} */ what) => {
+    const parsed = parseContract(contractBytes(c));
+    assert.equal(parsed.ok, true, `${what}: ${parsed.errors.map((e) => `${e.path}: ${e.message}`).join('\n')}`);
+    return c;
+  };
+  const added = ok(addCheck(base, { id: 'node-tests', argv: ['node', '--test'], now: NOW }), 'add');
+  const ran = ok(markVerified(added, 'node-tests', NOW), 'run (passed)');
+  ok(approveCheck(ran, 'node-tests', { now: NOW, mandatory: true }), 'mandatory on VERIFIED');
+  ok(approveCheck(added, 'node-tests', { now: NOW, mandatory: false }), 'approve only');
+  // The hard one: mandatory on a check that is NOT verified. It is valid ONLY because the edit
+  // records an explicit human approval and leaves the label alone.
+  const approved = ok(approveCheck(added, 'node-tests', { now: NOW, mandatory: true }), 'mandatory on PROPOSED');
+  const check = /** @type {ReadonlyArray<Record<string, unknown>>} */ (approved.checks)
+    .find((entry) => entry.id === 'node-tests');
+  assert.equal(check?.status, 'PROPOSED', 'an approval is NEVER evidence: the label does not move');
+  assert.deepEqual(check?.approval, { by: 'human', at: NOW });
+  assert.deepEqual(mandatorySuite(approved).map((entry) => entry.id), ['node-tests'],
+    'and the gate agrees it may run, because a human said so');
+  // Revoke takes the contract back to failing closed, and is still a valid document.
+  const revoked = ok(revokeCheck(approved, 'node-tests'), 'revoke');
+  assert.deepEqual(mandatorySuite(revoked), [], 'revoke returns verify-final to fail-closed');
+  // An id the contract does not hold is a refusal from the edit layer, never a silent no-op.
+  for (const edit of [markVerified, revokeCheck]) {
+    assert.throws(() => edit(base, 'nope', NOW), /nope/);
+  }
+  assert.throws(() => addCheck(added, { id: 'node-tests', argv: ['node'], now: NOW }), /already holds/);
+  assert.throws(() => addCheck(base, { id: 'Node_Tests', argv: ['node'], now: NOW }), /kebab-case/);
+});
+
+test('contract · the argv refusal Bootstrap mirrors is the gate argv rule, answer for answer', () => {
+  /** @type {ReadonlyArray<unknown>} */
+  const inputs = [
+    ['node', '--test'], ['npm', 'test'], ['cargo', 'build'], ['bash', 'deploy.sh'],
+    ['sh', '-c', 'ls'], ['bash', '-lc', 'ls'], ['cmd', '/c', 'dir'], ['powershell', '-Command', 'ls'],
+    ['pwsh', '-c', 'ls'], ['CMD.EXE', '/C', 'dir'], ['/bin/sh', '-c', 'ls'],
+    ['npm run test'], ['/usr/local/my tools/node', '--test'], [], [''], ['node', ''],
+    ['node', 'a\nb'], ['node', 'x'.repeat(301)], Array(33).fill('node'), 'not an array', null,
+  ];
+  for (const input of inputs) {
+    const gate = argvProblem(input);
+    const boot = argvRefusal(input);
+    assert.equal(boot === null, gate === null,
+      `the two argv rules disagree on ${JSON.stringify(input)}: gate ${gate}, bootstrap ${boot}`);
+    assert.equal(boot, gate, 'and they say it the same way');
+  }
 });

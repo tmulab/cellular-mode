@@ -19,7 +19,7 @@
 // or a `&&` in it reaches the program as text and nothing interprets it.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import {
   MAX_CONTRACT_BYTES, NO_MANDATORY_REASON, VERIFICATION_REL, mandatorySuite, parseContract,
 } from './verification-contract.mjs';
@@ -97,16 +97,62 @@ export function readContract(root) {
   }
 }
 
+/** H7 — THE CLOSED LIST OF PACKAGE-MANAGER SHIMS, and the ONE place the contract side resolves
+ * them. On Windows `npm` is `npm.cmd`, which `spawnSync` without a shell cannot start, so a
+ * project whose check is `["npm","test"]` had no way to go green (trial finding B-09) short of a
+ * shell — the one thing a contract check may never get. The resolution is narrow: an EXACT `npm`
+ * or `npx` becomes `[node, <dirname(node)>/node_modules/npm/bin/<shim>-cli.js, …rest]` when that
+ * file exists. `cmd /c`, `./npm.cmd` and every other wrapper stay refused by `verification-argv`.
+ *
+ * MIRRORED, NOT SHARED. `tools/bootstrap/exec-shim.mjs` holds the identical rule, because
+ * Bootstrap may not import the gates (bootstrap/CONTRACTS.md). `tests/verification-shim.test.mjs`
+ * imports both and asserts they answer identically; a drift between them fails that test. */
+export const SHIMS = Object.freeze({ npm: 'npm-cli.js', npx: 'npx-cli.js' });
+
+/** The alternative a human is handed when resolution fails — a NON-SHELL one, on purpose. */
+export const SHIM_ALTERNATIVE = 'use ["node", ...] directly, e.g. node --test';
+
+/** @param {string} program @param {string} cli @returns {string} */
+export function shimReason(program, cli) {
+  return `${program} is a Windows .cmd shim and no shell is ever used for a check; ${cli} is not`
+    + ` there either — ${SHIM_ALTERNATIVE}`;
+}
+
+/** PURE given `deps`. @param {ReadonlyArray<string>} argv
+ * @param {{ platform?: string | undefined, execPath?: string | undefined,
+ *   exists?: ((path: string) => boolean) | undefined }} [deps]
+ * @returns {{ argv: ReadonlyArray<string>, resolved: boolean, reason: string | null }} */
+export function resolveShimArgv(argv, deps = {}) {
+  const list = Object.freeze([...(Array.isArray(argv) ? argv : [])].map(String));
+  const platform = deps.platform ?? process.platform;
+  const program = list[0] ?? '';
+  const script = Object.hasOwn(SHIMS, program)
+    ? /** @type {Record<string, string>} */ (SHIMS)[program]
+    : undefined;
+  if (platform !== 'win32' || script === undefined) return { argv: list, resolved: false, reason: null };
+  const execPath = deps.execPath ?? process.execPath;
+  const cli = join(dirname(execPath), 'node_modules', 'npm', 'bin', script);
+  if (!(deps.exists ?? existsSync)(cli)) return { argv: list, resolved: false, reason: shimReason(program, cli) };
+  return { argv: Object.freeze([execPath, cli, ...list.slice(1)]), resolved: true, reason: null };
+}
+
 /** PURE given the suite entries. The runnable checks a contract's mandatory list denotes. Each
- * argv is spawned with NO shell and the check's own timeout.
+ * argv is spawned with NO shell and the check's own timeout; the resolved argv is reported in the
+ * output, so the evidence record says what actually ran.
  * @param {ReadonlyArray<import('./verification-contract.mjs').SuiteEntry>} entries
  * @returns {ReadonlyArray<Check>} */
 export function contractChecks(entries) {
   return Object.freeze(entries.map((entry) => Object.freeze({
     name: entry.id,
     /** @param {string} root @returns {CheckOutcome} */
-    run: (root) => spawnCheck(root, entry.argv[0] ?? '', entry.argv.slice(1), false,
-      entry.timeoutSeconds * MS),
+    run: (root) => {
+      const shim = resolveShimArgv(entry.argv);
+      if (shim.reason !== null) return { exit: 1, output: `not-runnable: ${shim.reason}` };
+      const outcome = spawnCheck(root, shim.argv[0] ?? '', shim.argv.slice(1), false,
+        entry.timeoutSeconds * MS);
+      if (!shim.resolved) return outcome;
+      return { exit: outcome.exit, output: `resolved argv: ${shim.argv.join(' ')}\n${outcome.output}` };
+    },
   })));
 }
 

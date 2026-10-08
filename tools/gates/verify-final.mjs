@@ -28,7 +28,7 @@ import {
   FINAL_EVIDENCE_FILE, FINAL_EVIDENCE_PATH, FINAL_EVIDENCE_SEGMENTS,
   finalRecord, sanitizeSummary, verdict,
 } from './final-evidence.mjs';
-import { countsSummary, parseTestCounts, skipLines } from './test-counts.mjs';
+import { countsSummary, parseTestCounts, skipLines } from './count-tests.mjs';
 
 /** @typedef {import('./final-evidence.mjs').FinalRecord} FinalRecord */
 /** @typedef {import('./final-evidence.mjs').CheckRecord} CheckRecord */
@@ -94,7 +94,7 @@ export function runFinalVerification(options = {}) {
   for (const check of equivalence.equivalent && selected.error === null ? suite : []) {
     const outcome = check.run(root);
     // A check that printed `node --test` counts is recorded WITH them: "exit 0" alone is a
-    // claim nobody can audit (./test-counts.mjs). Checks with no counts are unchanged, and
+    // claim nobody can audit (./count-tests.mjs). Checks with no counts are unchanged, and
     // the counts never decide the verdict — the exit code does.
     const counts = parseTestCounts(outcome.output);
     const skips = skipLines(outcome.output).map((line) => sanitizeSummary(line, root));

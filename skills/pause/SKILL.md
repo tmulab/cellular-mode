@@ -67,8 +67,9 @@ node tools/cellmode/cli.mjs check
 **A ✔ is RECORDED here, authorized later** (Article 8, `docs/00-constitution.md`). Steps 2–5 write
 controlled files, so every verification that ran before them is now about a state that no longer
 exists. After the records are written: stop writing · fingerprint the state · run the whole
-mandatory suite · confirm nothing moved · record the evidence outside the verified files. In this
-repository that is `npm run verify:final`, and `node tools/gates/authorization.mjs status` answers
+mandatory suite · confirm nothing moved · record the evidence outside the verified files. That is
+`node tools/gates/verify-final.mjs` — the command every project with `article-8` has; this
+repository also has `npm run verify:final`. `node tools/gates/authorization.mjs status` answers
 "is this exact state authorized?". A late write — even one vault line — revokes it; re-run.
 
 `pause` requires an active cell and a non-empty `--next`. `complete` refuses without

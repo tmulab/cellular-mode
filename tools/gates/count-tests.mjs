@@ -1,4 +1,4 @@
-// test-counts.mjs — PURE. How many tests actually ran, read from what `node --test` printed.
+// count-tests.mjs — PURE. How many tests actually ran, read from what `node --test` printed.
 //
 // WHY IT EXISTS: `verify-final` recorded each check as the FIRST line of its output, and
 // for the tests check that line is a file name. The record therefore asserted "tests —
@@ -13,7 +13,7 @@
 // fabricated pass.
 //
 // Pure on purpose: the parser is exercised on real captured output in
-// tests/gates-test-counts.test.mjs, with no suite to run and no repository to create.
+// tests/gates-count-tests.test.mjs, with no suite to run and no repository to create.
 
 /** @typedef {{ tests: number, pass: number, fail: number, skipped: number,
  *   cancelled: number, todo: number }} TestCounts */

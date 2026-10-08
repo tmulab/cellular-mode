@@ -17,7 +17,7 @@ import { CODES, refuse } from './errors.mjs';
 /** @typedef {{ claude: boolean, cursor: boolean }} ToolFacts */
 /** @typedef {{ isGitRepo: boolean, existingFiles: ReadonlyArray<string>, tools: ToolFacts,
  *   hookMachinery: HookMachinery, ci: ReadonlyArray<string>, hasInstallManifest: boolean,
- *   hasProjectContract: boolean }} TargetFacts */
+ *   hasProjectContract: boolean, hasBuilderDraft: boolean }} TargetFacts */
 /** @typedef {{ path: string, message: string }} FactError */
 /** @typedef {{ ok: boolean, errors: ReadonlyArray<FactError> }} FactResult */
 
@@ -36,7 +36,9 @@ export const CI_SYSTEMS = Object.freeze([
 /** @type {ReadonlyArray<string>} */
 export const FACT_KEYS = Object.freeze([
   'isGitRepo', 'existingFiles', 'tools', 'hookMachinery', 'ci', 'hasInstallManifest',
-  'hasProjectContract',
+  // `hasBuilderDraft` is PRESENCE, never content: the Prompt Builder's draft is tolerated and
+  // ignored (H1), and this flag exists only so that H2 can warn it may become committable.
+  'hasProjectContract', 'hasBuilderDraft',
 ]);
 
 /** @type {(path: string, message: string) => FactError} */
@@ -57,6 +59,7 @@ export function emptyFacts() {
     ci: Object.freeze([]),
     hasInstallManifest: false,
     hasProjectContract: false,
+    hasBuilderDraft: false,
   });
 }
 
@@ -117,7 +120,7 @@ export function validateFacts(value) {
   for (const key of Object.keys(record)) {
     if (!FACT_KEYS.includes(key)) errors.push(fail(key, 'unknown key: facts hold exactly the declared contract'));
   }
-  for (const key of ['isGitRepo', 'hasInstallManifest', 'hasProjectContract']) {
+  for (const key of ['isGitRepo', 'hasInstallManifest', 'hasProjectContract', 'hasBuilderDraft']) {
     if (typeof record[key] !== 'boolean') errors.push(fail(key, `${key} must be a boolean`));
   }
   checkFileList(record, errors);

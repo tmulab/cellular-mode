@@ -19,7 +19,7 @@
 // behind, not less, and the exit status (2) still says that something did not happen.
 import { CODES, refuse } from './errors.mjs';
 import { run } from './exec.mjs';
-import { HOOKS_DIR, INSTALL_MANIFEST, SCRATCH_DIR } from './plan-constants.mjs';
+import { HOOKS_DIR, INSTALL_MANIFEST, MAX_REPORTS, SCRATCH_DIR, UNINSTALL_REPORT, reportPathAt } from './plan-constants.mjs';
 import { sanitize } from './display.mjs';
 import { blockSpan, bytesIfPresent, readIfPresent, removeBlock, removeEmptyDir, removeOwned, sha256, writeNew } from './writer.mjs';
 
@@ -33,12 +33,12 @@ import { blockSpan, bytesIfPresent, readIfPresent, removeBlock, removeEmptyDir, 
 export const UNSET_ARGV = Object.freeze(['git', 'config', '--unset', 'core.hooksPath']);
 
 /** Where the report of what REMAINS is written when the manifest is kept. Git-ignored scratch, so
- * it is not somebody's history and not part of the install record. */
-export const REPORT_REL = `${SCRATCH_DIR}uninstall-report.json`;
-
-/** How many numbered report files may exist before Bootstrap stops writing them. A previous report
- * is never overwritten — `writeNew` could not anyway — because it is evidence of a previous run. */
-export const MAX_REPORTS = 50;
+ * it is not somebody's history and not part of the install record. The name lives in
+ * `plan-constants.mjs` because `status` reads it too, and a path two commands must agree on is not
+ * one either of them may own. A previous report is never overwritten — `writeNew` could not
+ * anyway — because it is evidence of a previous run. */
+export const REPORT_REL = UNINSTALL_REPORT;
+export { MAX_REPORTS };
 
 /** The text of a managed block as it stands in the target right now: the reverse patch a human needs
  * in order to remove by hand what Bootstrap refused to remove for them.
@@ -54,7 +54,7 @@ export function currentBlock(targetRoot, rel, component) {
  * @param {string} targetRoot @returns {string} */
 export function freeReportPath(targetRoot) {
   for (let i = 1; i <= MAX_REPORTS; i += 1) {
-    const rel = i === 1 ? REPORT_REL : REPORT_REL.replace(/\.json$/, `-${i}.json`);
+    const rel = reportPathAt(i);
     if (bytesIfPresent(targetRoot, rel) === null) return rel;
   }
   throw refuse(CODES.CONFLICT, `${SCRATCH_DIR} already holds ${MAX_REPORTS} uninstall reports: move them away first`, {});

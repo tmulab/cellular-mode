@@ -166,9 +166,9 @@ Validated on write and read; publication-checked (no secret, contact or absolute
 ## Existing installation, drift and uninstall
 
 - A present manifest makes `new`/`existing` refuse, naming its state; `status` reports version,
-  components, files (healthy / missing / modified / extra-unowned), blocks and integrations,
-  classifies the install as **healthy, drift or partial** and the next action as **none, repair,
-  upgrade or repair-or-upgrade** — never a silent reinstall.
+  components, files (healthy / missing / modified / extra-unowned / evolved), blocks and integrations, classifies the install as
+  **healthy, drift, partial or uninstalled-with-residue** and the next action as **none, repair, upgrade or repair-or-upgrade** — never a silent reinstall.
+  Ownership classes (H3, a frozen path rule, no schema field): only *immutable* assets drift or go partial; *evolving* (`vault/state/**`, `vault/verification.json`) is changed by using the method, so it is reported as **evolved (expected)**, listed for audit (`--verbose` uncaps), and never drift, partial or repair; *user/referenced* is never drift. A manifest kept by a finished uninstall is residue — read from that uninstall's own report in `vault/bootstrap/`, exit 0, with the kept paths and both safe next steps.
 - If anything is kept, the manifest is kept untouched and `vault/bootstrap/uninstall-report.json`
   lists what remains. Limitation: when nothing is kept the manifest is removed, so a
   `--force-modified` deletion is then recorded only in the command output.

@@ -7,6 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { applyAnswer, isUnknownAnswer, skipQuestion, splitList } from './answers.mjs';
 import { emptyDraft } from './draft.mjs';
+import { nextQuestion } from './questions.mjs';
 import { codeOf } from './errors.mjs';
 import { injection, unknownTech } from './fixtures/index.mjs';
 
@@ -39,6 +40,42 @@ test('answers · a list field splits on lines and semicolons, markers removed', 
   const { draft } = applyAnswer(emptyDraft('new'), 'scope-in', 'add a task\nlist tasks; mark done');
   assert.deepEqual(draft.contract.scope.in.map((e) => e.value), ['add a task', 'list tasks', 'mark done']);
   assert.deepEqual([...new Set(draft.contract.scope.in.map((e) => e.status))], ['DECLARED']);
+});
+
+test('answers · exclusions: text becomes DECLARED entries, "none" records no entry at all', () => {
+  const asked = applyAnswer(emptyDraft('new'), 'scope-out', 'no accounts\nno cloud; no analytics');
+  assert.deepEqual(asked.draft.contract.scope.out.map((e) => e.value),
+    ['no accounts', 'no cloud', 'no analytics']);
+  assert.deepEqual([...new Set(asked.draft.contract.scope.out.map((e) => e.status))], ['DECLARED']);
+
+  for (const text of ['none', 'None.', 'nothing', 'No', 'nada', 'nenhum']) {
+    const { draft, notes } = applyAnswer(emptyDraft('new'), 'scope-out', text);
+    assert.deepEqual(draft.contract.scope.out, [], `${text}: no fake entry may be recorded`);
+    assert.deepEqual(draft.asked, ['scope-out'], `${text}: the question must count as asked`);
+    assert.notEqual(nextQuestion(draft)?.id, 'scope-out', `${text}: it must not be asked again`);
+    assert.ok(notes.some((note) => note.includes('nothing to record')));
+  }
+  // "none" is accepted ONLY where the bank says so: it is an answer ABOUT the project
+  // everywhere else, and dropping it would drop a security answer.
+  const sensitive = applyAnswer(emptyDraft('new'), 'sensitive-data', 'None.');
+  assert.equal(sensitive.draft.contract.security.sensitiveData.status, 'DECLARED');
+});
+
+test('answers · exclusions: "I do not know" invents nothing and is not asked twice', () => {
+  const { draft, notes } = applyAnswer(emptyDraft('new'), 'scope-out', 'I do not know');
+  assert.deepEqual(draft.contract.scope.out, []);
+  assert.deepEqual(draft.proposals, [], 'there is no recommendation for what somebody wants left out');
+  assert.deepEqual(draft.asked, ['scope-out']);
+  assert.notEqual(nextQuestion(draft)?.id, 'scope-out');
+  assert.ok(notes.some((note) => note.includes('nothing was invented')));
+  // Tired: still exactly one question, and the help line is the only thing missing.
+  const start = emptyDraft('new');
+  const answered = ['objective', 'users', 'problem', 'smallest-version', 'scope-in']
+    .reduce((acc, id) => ({ ...acc, asked: [...acc.asked, id] }), start);
+  const tired = nextQuestion(answered, 'tired');
+  assert.equal(tired?.id, 'scope-out');
+  assert.equal(tired?.field, 'scope.out');
+  assert.equal('help' in (tired ?? {}), false);
 });
 
 test('answers · "I do not know" is recognised in several wordings, but not inside a sentence', () => {

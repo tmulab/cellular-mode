@@ -10,7 +10,9 @@
 // renderer downstream can separate the value from the warning. An UNKNOWN field contributes
 // nothing but an open issue.
 import { slugify } from '../cellmode/slug.mjs';
+import { normalizeItem } from './conflicts.mjs';
 import { entriesAt, getField } from './fields.mjs';
+import { DEFERRAL_QUESTION, TECHNOLOGY_DEFERRAL } from './questions.mjs';
 import { deriveOpenQuestions } from './readiness.mjs';
 import { asProposed, inertText, joinInert } from './sanitize.mjs';
 
@@ -48,6 +50,29 @@ export function statedValues(contract, path, limit = Number.MAX_SAFE_INTEGER) {
     .map((entry) => inertText(entry.value))
     .filter((value) => value !== '')
     .slice(0, limit);
+}
+
+/** PURE. Is this entry the question bank's TECHNOLOGY DEFERRAL — "decide the stack in a first
+ * cell"? Two exact recognitions, no prose matching: the provenance basis the recommendation is
+ * recorded with (`recommendation:technologies`), and normalized equality with the constant
+ * questions.mjs exports — which is what survives promotion, since an approved deferral reads
+ * DECLARED with `basis: "decision:<id>"` and loses its provenance.
+ * @param {Entry} item @returns {boolean} */
+export function isDeferral(item) {
+  if (String(item?.basis ?? '').startsWith(`recommendation:${DEFERRAL_QUESTION}`)) return true;
+  return normalizeItem(item?.value) === normalizeItem(TECHNOLOGY_DEFERRAL);
+}
+
+/** PURE. Why the stack is NOT settled, or `null` when it is. A deferral the human approved is
+ * a decision to decide later, never a stack: counting it as one made a first cell claim "the
+ * stack is stated" about a contract that states no technology at all.
+ * @param {unknown} contract @returns {string | null} */
+export function undecidedStack(contract) {
+  const stated = entries(contract, 'technologies.approved').filter((e) => STATED.includes(e.status));
+  if (stated.some((item) => !isDeferral(item))) return null;
+  return stated.length === 0
+    ? 'no technology is stated as approved — the stack is still open'
+    : 'the only approved technology entry is the recorded deferral — the stack is still undecided';
 }
 
 /** PURE. One line for `path`: the first stated value, else the first PROPOSED one with its

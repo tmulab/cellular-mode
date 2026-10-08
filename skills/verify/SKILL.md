@@ -89,8 +89,9 @@ with real counts:
 LAST, in this order: 1 implement · 2 update docs and vault records · 3 stop writing · 4 fingerprint
 the state · 5 run the whole mandatory suite · 6 confirm the fingerprint did not move · 7 record the
 evidence outside the verified files · 8 only then call it done. Any later write — a doc, a
-checklist, a vault entry — invalidates the authorization; re-run, do not argue. In this repository
-the whole of 4–8 is `npm run verify:final` (`tools/gates/FINAL-VERIFICATION.md`).
+checklist, a vault entry — invalidates the authorization; re-run, do not argue. The whole of 4–8 is
+`node tools/gates/verify-final.mjs` — or `npm run verify:final` where that script exists
+(`tools/gates/FINAL-VERIFICATION.md`).
 
 ## 4. A revert that passes is a FINDING, not relief
 

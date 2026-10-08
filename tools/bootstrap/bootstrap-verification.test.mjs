@@ -138,6 +138,15 @@ test('contract · what the install reports about what it did and did not establi
     'vault/verification.json').join('\n');
   assert.match(lines, /unit \[INFERRED\]: npm test/);
   assert.match(lines, /NEXT STEP/);
+  // B-07 / B2-02: the summary used to advise `--mandatory <id> --confirm` (exit 3 on an installed
+  // target) "or edit the file", contradicting H6. One route only, through the verification CLI.
+  assert.match(lines, /verification <dir> list/);
+  assert.match(lines, /add <id> --confirm -- <argv…>/);
+  assert.match(lines, /run <id> --confirm/);
+  assert.match(lines, /mandatory <id> --confirm/);
+  assert.doesNotMatch(lines, /--mandatory/, 'the install-time flag is refused after an install');
+  assert.doesNotMatch(lines, /edit the file/, 'H6: no hand-edit advice');
+  assert.match(lines, /never hand-edit this file \(H6\)/);
 });
 
 test('cli · --mandatory needs --confirm, and an id nobody discovered is a refusal', () => {

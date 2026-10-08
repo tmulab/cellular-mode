@@ -9,8 +9,8 @@
 // contract behind it, so the proposal changes shape rather than guessing:
 //   1. discovery — the contract contradicts itself, or nobody has said what the project is
 //      FOR. Nothing can be bounded from that, so the cell's work is answering questions.
-//   2. architecture — the purpose is stated but no stack is decided (`technologies.approved`
-//      holds nothing stated) or a decision is still pending. The cell produces decisions.
+//   2. architecture — the purpose is stated but no stack is decided: `technologies.approved`
+//      holds nothing stated, or only the DEFERRAL, or a decision is pending. It yields decisions.
 //   3. implementation — purpose, scope and stack all stated. The cell is bounded to the
 //      smallest useful version and nothing else.
 // The undecided stack is asked BEFORE a missing `scope.in`: a project whose objective is clear
@@ -24,7 +24,8 @@ import { blockingConflicts, holdsSensitiveData } from './conflicts.mjs';
 import { readiness } from './readiness.mjs';
 import { inertText, joinInert } from './sanitize.mjs';
 import {
-  ALLOWED, PROHIBITED, VERIFICATION, exclusions, factAt, openIssueLine, projectLabel, statedValues,
+  ALLOWED, PROHIBITED, VERIFICATION, exclusions, factAt, openIssueLine, projectLabel,
+  statedValues, undecidedStack,
 } from './first-cell-parts.mjs';
 
 /** @typedef {import('../cellmode/types.mjs').Cell} Cell */
@@ -71,9 +72,8 @@ export function classifyFirstCell(contract, blockers) {
   if (purpose.length > 0) {
     return { kind: 'discovery', reasons: purpose.map((b) => `${b.field}: ${inertText(b.reason)}`) };
   }
-  if (statedValues(contract, 'technologies.approved').length === 0) {
-    return { kind: 'architecture', reasons: ['no technology is stated as approved — the stack is still open'] };
-  }
+  const open = undecidedStack(contract);
+  if (open !== null) return { kind: 'architecture', reasons: [open] };
   if (hasPendingDecision(contract)) {
     return { kind: 'architecture', reasons: ['a decision is still pending — the stack is not settled'] };
   }

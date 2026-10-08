@@ -16,7 +16,13 @@
 // different commit means `repair-or-upgrade`, explained rather than chosen, because this tool cannot
 // tell a fix from a feature in somebody else's checkout. UNKNOWN stays UNKNOWN: a revision nobody
 // established does not become evidence of sameness.
+//
+// AND NOT EVERY OWNED FILE IS BOOTSTRAP'S TO JUDGE. `status-ownership.mjs` holds contract H3: the
+// project's own record (`vault/state/**`, `vault/verification.json`) EVOLVES by design, so it is
+// reported as evolved and never counted into a verdict; and a target an uninstall already left is
+// `uninstalled-with-residue`, not a damaged install.
 import { blockOf } from './install-manifest-parts.mjs';
+import { extrasOf, filesOf, residueVerdict } from './status-ownership.mjs';
 
 /** @typedef {{ component: string, sha256: string | null }} BlockRef */
 /** @typedef {{ path: string, mode: string, created: boolean, sha256Before: string | null,
@@ -26,9 +32,13 @@ import { blockOf } from './install-manifest-parts.mjs';
 /** @typedef {{ entry: Entry, state: FileState, block: BlockState | null,
  *   sha256: string | null }} FileFact */
 /** @typedef {{ name: string, version: string, revision: string | null }} Identity */
+/** What an uninstall left behind, as its own report describes it: the report's path, the instant it
+ * was written, and the paths it says it KEPT.
+ * @typedef {{ report: string, at: string, kept: ReadonlyArray<string> }} Residue */
 /** @typedef {{ installed: boolean, source: Identity | null, sourceNow: Identity | null,
- *   profile: string, components: ReadonlyArray<string>, files: ReadonlyArray<FileFact>,
- *   extras: ReadonlyArray<string>, integrations: ReadonlyArray<{ kind: string, status: string,
+ *   profile: string, installedAt: string, components: ReadonlyArray<string>,
+ *   files: ReadonlyArray<FileFact>, extras: ReadonlyArray<string>, residue: Residue | null,
+ *   integrations: ReadonlyArray<{ kind: string, status: string,
  *   detail: string }>, hooksPath: string | null, hooksDir: string }} StatusFacts */
 
 /** How many paths a status report prints per category before it counts the rest. */
@@ -104,20 +114,28 @@ export function compareVersions(a, b) {
   return 0;
 }
 
-/** @typedef {{ files: number, healthy: number, missing: number, modified: number, extra: number,
- *   intact: number, blocksModified: number, blocksMissing: number, blocksUnknown: number }} Counts */
+/** @typedef {{ files: number, healthy: number, missing: number, modified: number, evolved: number,
+ *   extra: number, intact: number, blocksModified: number, blocksMissing: number,
+ *   blocksUnknown: number }} Counts */
 
-/** PURE. The counts a report prints and a classification is made of.
- * @param {StatusFacts} facts @returns {Counts} */
+/** PURE. The counts a report prints and a classification is made of. `missing`, `modified` and
+ * `extra` count IMMUTABLE paths only; everything the project's own record did — a rewritten
+ * `CURRENT-CELL.md`, an approved check, a new cell file — lands in `evolved`, which no verdict
+ * reads (contract H3). @param {StatusFacts} facts @returns {Counts} */
 export function countsOf(facts) {
-  const state = (/** @type {FileState} */ name) => facts.files.filter((f) => f.state === name).length;
+  const immutable = filesOf(facts, 'immutable');
+  const evolving = filesOf(facts, 'evolving');
+  const state = (/** @type {ReadonlyArray<FileFact>} */ list, /** @type {FileState} */ name) =>
+    list.filter((f) => f.state === name).length;
   const block = (/** @type {BlockState} */ name) => facts.files.filter((f) => f.block === name).length;
   return {
     files: facts.files.length,
-    healthy: state('healthy') + state('referenced'),
-    missing: state('missing'),
-    modified: state('modified'),
-    extra: facts.extras.length,
+    healthy: state(facts.files, 'healthy') + state(facts.files, 'referenced'),
+    missing: state(immutable, 'missing'),
+    modified: state(immutable, 'modified'),
+    evolved: state(evolving, 'missing') + state(evolving, 'modified')
+      + extrasOf(facts, 'evolving').length,
+    extra: extrasOf(facts, 'immutable').length,
     intact: block('intact'),
     blocksModified: block('modified'),
     blocksMissing: block('missing'),
@@ -130,11 +148,14 @@ export function countsOf(facts) {
 
 /**
  * PURE. The verdict: classification, next action, the reason for it, and the exit status. A missing
- * created file is `partial`; anything else Bootstrap owns having changed is `drift`.
+ * created IMMUTABLE file is `partial`; anything else Bootstrap owns having changed is `drift`; a
+ * target an uninstall already left is neither, and is answered before anything else.
  * @param {StatusFacts} facts @returns {Verdict}
  */
 export function classify(facts) {
   const counts = countsOf(facts);
+  const residue = residueVerdict(facts, counts);
+  if (residue !== null) return residue;
   const changed = counts.modified + counts.blocksModified + counts.blocksMissing;
   const classification = counts.missing > 0 ? 'partial' : changed > 0 ? 'drift' : 'healthy';
   const installed = facts.source;

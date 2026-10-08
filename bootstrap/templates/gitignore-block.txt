@@ -1,4 +1,6 @@
 # plans, drafts and reports in progress — never the install record itself
 vault/bootstrap/
+# the Prompt Builder's private draft: a half-finished conversation, not a record
+vault/builder/
 # local evidence, specific to one machine and one run
 .cellular/

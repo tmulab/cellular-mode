@@ -12,7 +12,9 @@
 // The copied case is a conflict and not a patch for an epistemic reason: a copy's content is only
 // known once the source file is read, and this module reads nothing. "Same bytes or different
 // bytes" is therefore UNKNOWN here, and UNKNOWN about overwriting someone's file is a stop.
-import { MANAGED_FILES } from './plan-constants.mjs';
+import {
+  BUILDER_DRAFT_DIR, BUILDER_IGNORE_LINE, GITIGNORE, MANAGED_FILES,
+} from './plan-constants.mjs';
 
 /** @typedef {import('./catalog.mjs').Component} Component */
 /** @typedef {{ source: string, target: string }} Expanded */
@@ -115,6 +117,28 @@ export function conflictsOf(actions, existing) {
   return Object.freeze([...found.entries()]
     .sort((a, b) => (a[0] < b[0] ? -1 : 1))
     .map(([path, reason]) => Object.freeze({ path, reason })));
+}
+
+/** The one warning contract H2 requires, as one line a human can act on. Exported so that the
+ * plan, the renderer and the install summary all print the SAME sentence. */
+export const BUILDER_IGNORE_WARNING = `${BUILDER_DRAFT_DIR} holds a Prompt Builder draft and`
+  + ` ${GITIGNORE} already exists, so the rule that hides it is only appended with`
+  + ` --approve gitignore-block. Without that approval the draft MAY BECOME COMMITTABLE.`
+  + ` The exact line to add to ${GITIGNORE} yourself: ${BUILDER_IGNORE_LINE}`;
+
+/**
+ * PURE. What a human must be told even though nothing is wrong yet. A warning is not a conflict:
+ * it never stops an install, and it is printed in full in every mode, because it names a privacy
+ * consequence of WITHHOLDING an approval — the one thing a plan would otherwise be silent about.
+ * @param {{ hasBuilderDraft: boolean }} facts @param {ReadonlyArray<Action>} actions
+ * @returns {ReadonlyArray<string>}
+ */
+export function warningsOf(facts, actions) {
+  /** @type {string[]} */
+  const out = [];
+  const gated = actions.some((entry) => entry.kind === 'modify-block' && entry.path === GITIGNORE);
+  if (facts.hasBuilderDraft && gated) out.push(BUILDER_IGNORE_WARNING);
+  return Object.freeze(out);
 }
 
 /** PURE. Actions in a total order: by path, then component, then kind. A plan whose order

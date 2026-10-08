@@ -15,10 +15,10 @@
 // to ignore the one line that does mean tampering.
 import { appendFileSync, readFileSync } from 'node:fs';
 import { repoState } from './fingerprint.mjs';
-import { countsSummary, parseTestCounts } from './test-counts.mjs';
+import { countsSummary, parseTestCounts } from './count-tests.mjs';
 
 /** @typedef {import('./ci-trailer.mjs').Row} Row */
-/** @typedef {import('./test-counts.mjs').TestCounts} TestCounts */
+/** @typedef {import('./count-tests.mjs').TestCounts} TestCounts */
 /** @typedef {{ fingerprint: string, tree: string } | null} CiState */
 /** @typedef {{ total: number, failed: number, ok: boolean, reason: string }} Result */
 

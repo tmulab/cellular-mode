@@ -1,11 +1,12 @@
 // writer.mjs — the ONE door through which Bootstrap touches a target directory. Everything else
 // produces bytes and asks this file to place them, or names a path and asks it to remove it.
 //
-// The family is three files, for the 200-line rule, and this one is the public face of all three:
-//   `writer-base.mjs`   — `confine` (the security boundary), `sha256`, the reads, the markers.
-//   `writer.mjs`        — the writes: `writeNew`, `appendBlock`, `mkdirIn`.
-//   `writer-remove.mjs` — the deletions: `removeOwned`, `removeEmptyDir`, `removeBlock`.
-// Everything is re-exported here, so no caller needs to know which of the three it came from.
+// The family is four files, for the 200-line rule, and this one is the public face of all four:
+//   `writer-base.mjs`     — `confine` (the security boundary), `sha256`, the reads, the markers.
+//   `writer.mjs`          — the writes: `writeNew`, `appendBlock`, `mkdirIn`.
+//   `writer-remove.mjs`   — the deletions: `removeOwned`, `removeEmptyDir`, `removeBlock`.
+//   `writer-evolving.mjs` — `replaceEvolving`, the one REPLACE, for a closed list of paths.
+// Everything is re-exported here, so no caller needs to know which of the four it came from.
 //
 // Two rules make an install auditable rather than merely successful. NEVER OVERWRITE: `writeNew`
 // opens with the exclusive flag `wx`, so "it was not there a moment ago" is enforced by the
@@ -26,6 +27,7 @@ export {
 export {
   blockSpan, candidates, removeBlock, removeEmptyDir, removeOwned,
 } from './writer-remove.mjs';
+export { REPLACEABLE, TEMP_SUFFIX, replaceEvolving } from './writer-evolving.mjs';
 
 /** @typedef {'md'|'hash'} CommentStyle */
 /** @typedef {{ path: string, created: boolean, sha256Before: string | null,

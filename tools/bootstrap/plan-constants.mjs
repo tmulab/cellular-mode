@@ -20,6 +20,25 @@ export const SCRATCH_DIR = 'vault/bootstrap/';
 /** The file whose managed block keeps the scratch directory out of the target's history. */
 export const GITIGNORE = '.gitignore';
 
+/** The uninstall's own report of what REMAINS, numbered so that a second uninstall never
+ * overwrites the first one's evidence. `uninstall` writes it; `status` READS it, because a report
+ * written after the install is the one signal already on disk that tells a finished removal from a
+ * damaged install — no marker file is invented for it (contract H3). */
+export const UNINSTALL_REPORT = `${SCRATCH_DIR}uninstall-report.json`;
+
+/** How many numbered reports may exist before Bootstrap stops writing them. */
+export const MAX_REPORTS = 50;
+
+/** PURE and TOTAL. The nth report path, 1-based. @param {number} n @returns {string} */
+export const reportPathAt = (n) => (n === 1 ? UNINSTALL_REPORT : UNINSTALL_REPORT.replace(/\.json$/, `-${n}.json`));
+
+/** The Prompt Builder's private draft directory INSIDE A TARGET (contract H1). Bootstrap tolerates
+ * it, never walks it, never reads it, never copies it and never records it: the only contract it
+ * accepts as input is an approved `vault/project-contract.json`. Contract H2 keeps it out of
+ * history through the managed `.gitignore` block, whose exact line is `BUILDER_IGNORE_LINE`. */
+export const BUILDER_DRAFT_DIR = 'vault/builder/';
+export const BUILDER_IGNORE_LINE = 'vault/builder/';
+
 /** The hook directory Article 8's hooks are copied into, and the only hook path Bootstrap may
  * ever propose activating. */
 export const HOOKS_DIR = '.githooks';

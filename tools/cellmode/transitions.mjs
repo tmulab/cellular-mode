@@ -161,12 +161,15 @@ export function cmdComplete(root, { positional, options }, env) {
   // step 2 of the eight-step procedure and never the end of it. The CLI says so instead of
   // checking it: `tools/cellmode` must keep running in a repository that has no
   // `tools/gates` at all (see the boundary rule cellular-mode-is-runtime-independent), so
-  // the authorization is asked for by `npm run verify:final` / `authorization.mjs status`.
+  // the authorization is asked for by `node tools/gates/verify-final.mjs` /
+  // `authorization.mjs status`. The node form is named first because it is the one that exists in
+  // an adopted project: Bootstrap never adds an npm script (trial findings A-03 / B-06).
   return {
     lines: [
       `Completed "${cell.name}" · ✔`,
       'Cell file kept as history.',
-      'Completion RECORDED — not yet authorized: run `npm run verify:final` on this exact state.',
+      'Completion RECORDED — not yet authorized: run `node tools/gates/verify-final.mjs`'
+      + ' (or `npm run verify:final` where that script exists) on this exact state.',
     ],
   };
 }

@@ -86,10 +86,13 @@
 
 /** One question of the bank. `field` is a dot path into the contract (`scope.in`,
  * `security.sensitiveData`); `paths` says which discovery paths ask it; lower `priority`
- * is asked first.
+ * is asked first. `acceptsNone` marks the one kind of question an explicit "none" answers
+ * truthfully (the exclusions question): the answer is recorded as "asked, and the human
+ * declared nothing" — the field stays empty, because a list of exclusions nobody stated is
+ * not a list with "none" in it.
  * @typedef {{ id: string, field: string, prompt: string, help: string,
  *   paths: ReadonlyArray<ProjectPath>, priority: number,
- *   unknownRecommendation?: Recommendation }} Question */
+ *   unknownRecommendation?: Recommendation, acceptsNone?: boolean }} Question */
 
 /** A question as it is handed to the interface. In `tired` mode `help` is absent.
  * @typedef {{ id: string, field: string, prompt: string, help?: string }} AskedQuestion */

@@ -1,29 +1,18 @@
 # 11 · Cellular Prompt Builder — from an idea to a first cell
 
-**Status: OPTIONAL.** Cellular Mode works unchanged without it. Delete `tools/prompt-builder/`
-and `prompt-builder/` and the method, the CLI, the gates, the runtime and the Observer behave
-exactly as before — that is a gate, not a hope (`tests/gates-builder-boundary.test.mjs`). If you
-have never used Cellular Mode and never written a prompt for an agent, this is the page to read;
-you need no other document first.
+**Status: OPTIONAL.** Cellular Mode works unchanged without it. Delete `tools/prompt-builder/` and `prompt-builder/` and the method, the CLI, the gates, the runtime and the Observer behave exactly as before — that is a gate, not a hope (`tests/gates-builder-boundary.test.mjs`). If you have never used Cellular Mode and never written a prompt for an agent, this is the page to read; you need no other document first. For the complete beginner's path from here to a verified first cell, in eight numbered steps after a `git init` in the target directory (Article 8 installs only into a git work tree), see the top of [`docs/12-bootstrap.md`](12-bootstrap.md).
 
 ## What it is
 
-You have an idea for something to build. The Builder asks a few plain questions, writes your
-answers down with an honest label on each, and produces three things: a **project contract** (what
-this is, who it is for, what is in and out of scope, how you will know it works), a **first cell**
-(one small piece of work with a yes/no finish line), and a **prompt** you hand to a coding agent so
-it starts from your project instead of a blank page. It is an ordinary program: no language model,
-no network, no dependencies, and the same answers produce the same files every time.
-**What it never does:** it does not build your project and does not decide anything for you; it does
-not open, pause or finish a cell — that is the normal `/cell` and `/pause` ritual; it never runs
-`git`; and it never invents an answer you did not give.
+You have an idea for something to build. The Builder asks a few plain questions, writes your answers down with an honest label on each, and produces three things: a **project contract** (what this is, who it is for, what is in and out of scope, how you will know it works), a **first cell** (one small piece of work with a yes/no finish line), and a **prompt** you hand to a coding agent so it starts from your project instead of a blank page. It is an ordinary program: no language model, no network, no dependencies, and the same answers produce the same files every time.
+**What it never does:** it does not build your project and does not decide anything for you; it does not open, pause or finish a cell — that is the normal `/cell` and `/pause` ritual; it never runs `git`; and it never invents an answer you did not give.
 
-Two ways to run it, identical in effect (argument forwarding through `npm run --` is VERIFIED):
+Two ways to run it, identical in effect (argument forwarding through `npm run --` is VERIFIED). Prefer the `node` form: a brand-new project has no `package.json`, so the `npm` alias only exists inside *this* repository.
 
 ```
 node tools/prompt-builder/cli.mjs <command> [--root <dir>] [--mode ready|tired|focus|explore]
 npm run -s builder -- <command> [--root <dir>]
-#   --root says which project to work on; without it, the current directory.
+#   --root says which project to work on; without it, the current directory. It goes AFTER the command.
 ```
 
 An agent can drive all of this for you through the `builder` skill (`/builder`, or `/construtor` in
@@ -39,32 +28,35 @@ Portuguese).
 
 ## A walkthrough — a new project
 
-A complete recorded session with real output is
-[`examples/prompt-builder/`](../examples/prompt-builder/README.md); the short form:
+A complete recorded session with real output is [`examples/prompt-builder/`](../examples/prompt-builder/README.md); the
+short form. The Builder needs no `vault/state/` to run — create the empty directory and start:
 ```
-node tools/cellmode/cli.mjs init                  # the vault skeleton, if you have none
-npm run -s builder -- start new --name "Household Reading List"
-npm run -s builder -- next                        # exactly one question
-npm run -s builder -- answer objective "Keep one shared list of what we are reading."
-npm run -s builder -- status                      # labels, blockers, conflicts, next question
-#   answer / next / status is the whole loop — repeat until `next` says nothing is left.
-#   For a list answer separate the items with `;`; `skip <id>` passes a question over.
-npm run -s builder -- approve                     # a report; writes nothing; exit 5
-npm run -s builder -- approve --confirm           # writes vault/project-contract.json
-npm run -s builder -- cell                        # the proposed first cell; writes nothing
-npm run -s builder -- cell --accept --confirm     # records it as 📋 planned
-npm run -s builder -- prompt --adapter neutral    # prints the prompt
+node tools/prompt-builder/cli.mjs start new --root ../my-idea --name "Household Reading List"
+node tools/prompt-builder/cli.mjs next --root ../my-idea       # exactly one question
+node tools/prompt-builder/cli.mjs answer objective "Keep one shared list of what we are reading." --root ../my-idea
+node tools/prompt-builder/cli.mjs status --root ../my-idea     # labels, blockers, PROPOSED text, next question
+#   the loop is answer / next / status; list items separate with `;`; `skip <id>` passes one over; and
+#   `answer scope-out none` records that you declared nothing out of scope.
+node tools/prompt-builder/cli.mjs approve --root ../my-idea    # readiness, conflicts, publication check; writes nothing; exit 5
+node tools/prompt-builder/cli.mjs approve --confirm --root ../my-idea   # writes vault/project-contract.json
+node tools/prompt-builder/cli.mjs prompt --adapter neutral --root ../my-idea   # prints the prompt
 ```
+
+**Then hand the approved contract to Bootstrap.** That is the one executable new-project path, written out step by step
+in [`docs/12-bootstrap.md`](12-bootstrap.md): `bootstrap new ../my-idea --profile standard --dry-run`, read the plan,
+then `… --confirm --approve hooks,first-cell` — which creates `vault/state/` **and** the planned 📋 first cell from this
+contract — then `cellmode open "<the 📋 name>"`, then `bootstrap verification … add / run / mandatory`, then
+`node tools/gates/verify-final.mjs`, and only then commit. On that path do **not** run `cellmode init` or `cell --accept`
+first: Bootstrap makes both the state and the cell, and `init` refuses a `vault/state/` that already exists.
+
+**The Builder without Bootstrap** — you want only the contract and a planned cell. Then the state is yours to create,
+because `cell --accept` needs it and says so rather than guessing: `node tools/cellmode/cli.mjs init --root ../my-idea`,
+then `node tools/prompt-builder/cli.mjs cell --root ../my-idea` (the proposal; writes nothing) and
+`node tools/prompt-builder/cli.mjs cell --accept --confirm --root ../my-idea` (records it 📋 planned).
 
 ## "I don't know" is a real answer
 
-It is recorded as **UNKNOWN**, and nothing is invented to fill the hole. Where a sensible default
-exists, the Builder adds a second, clearly separate entry labelled **PROPOSED**, with what it
-assumes and what it costs. A PROPOSED entry is a suggestion you have not accepted: it becomes
-something the project relies on only through a decision (below). There is deliberately **no**
-recommendation for the objective, the users, the problem or sensitive data — recommending an
-objective would be inventing your project, and recommending an answer about personal data would be
-deciding your risk for you.
+It is recorded as **UNKNOWN**, and nothing is invented to fill the hole. Where a sensible default exists, the Builder adds a second, clearly separate entry labelled **PROPOSED**, with what it assumes and what it costs — printed in full where it is recorded and by `status`, never only counted. A PROPOSED entry is a suggestion you have not accepted: it becomes something the project relies on only through a decision (below). There is deliberately **no** recommendation for the objective, the users, the problem or sensitive data — recommending an objective would be inventing your project, and recommending an answer about personal data would be deciding your risk for you.
 
 ## The five labels, in plain words
 
@@ -84,14 +76,16 @@ name what is missing.
 ## Decisions — how a PROPOSED entry stops being a suggestion
 
 ```
-npm run -s builder -- decide propose --question "Which technology?" --proposal "…" --field technologies.proposed
-npm run -s builder -- decide D1 approve --confirm     # only after you said yes
-npm run -s builder -- decide D1 reject --confirm
+node tools/prompt-builder/cli.mjs decide propose --question "Which technology?" --proposal "…" --field technologies.proposed --root ../my-idea
+node tools/prompt-builder/cli.mjs decide D1 approve --confirm --root ../my-idea     # only after you said yes
+node tools/prompt-builder/cli.mjs decide D1 reject --confirm --root ../my-idea
+node tools/prompt-builder/cli.mjs decide accept-proposal technologies --confirm --root ../my-idea   # or reject-proposal
 ```
 
-Approving promotes the entry to DECLARED and keeps `basis: "decision:D1"`, so the contract never
-loses the fact that it began as a recommendation. Rejecting removes the entry, and the decision
-record is the history. There is no sixth label for "approved" — the constitution has five.
+Approving promotes the entry to DECLARED and keeps `basis: "decision:D1"`, so the contract never loses the
+fact that it began as a recommendation; `accept-proposal <questionId>` does both steps from the STORED text,
+so nobody retypes — or quietly edits — a recommendation on the way to approving it. Rejecting removes the
+entry, and the decision record is the history. There is no sixth label: the constitution has five.
 
 ## Approval, and what it does not authorize
 
@@ -109,20 +103,18 @@ enters version control is a separate decision, yours, afterwards.
 
 Four steps, and only two of them belong to the Builder.
 1. **Prepared.** `cell` renders a proposal in the ordinary cell format and writes nothing. If the
-   objective or scope is not yet actionable, or no technology is decided, the proposal is a
-   **discovery** or **architecture** cell — a cell whose deliverable is a decision is a normal cell.
-2. **Planned.** `cell --accept --confirm` records it as **📋 planned** through cellmode's own
-   transition. Planned is not active, and no log entry is written: a planned cell never ran.
-3. **Activated — only by you**, with `node tools/cellmode/cli.mjs open "<name>"` or `/cell`: the
-   Builder has no code path that activates a cell.
+   objective or scope is not yet actionable, or no technology is decided — an approved *deferral* of
+   that choice still counts as undecided — the proposal is a **discovery** or **architecture** cell.
+2. **Planned.** `cell --accept --confirm` records it as **📋 planned** through cellmode's own transition, and needs an existing `vault/state/`. Planned is not active, and no log entry is written: a planned cell never ran. On the Bootstrap path you skip this step: the install plans the cell from the approved contract.
+3. **Activated — only by you**, with `node tools/cellmode/cli.mjs open "<name>" --root <dir>` (the name is the 📋 row in `vault/state/INDEX.md`) or `/cell`: the Builder has no code path that activates a cell.
 4. **Completed — the normal ritual**: `/pause`, `complete --confirm`, the append-only log. The
    Builder cannot mark anything ✔ done.
 
 ## Prompts
 ```
-npm run -s builder -- adapters
-npm run -s builder -- prompt --adapter neutral     # or claude-code
-npm run -s builder -- prompt --draft               # before approval only, for finding things out
+node tools/prompt-builder/cli.mjs adapters --root ../my-idea
+node tools/prompt-builder/cli.mjs prompt --adapter neutral --root ../my-idea    # or claude-code
+node tools/prompt-builder/cli.mjs prompt --draft --root ../my-idea   # before approval only, for finding things out
 ```
 
 Three layers: the **method** (a pointer to `AGENTS.md` and the two skills, never the whole
@@ -135,9 +127,9 @@ content, so quoted text cannot close the block and continue as the author. No pr
 deployment, destructive commands, publication or production-data changes, and nothing is written to
 disk — the prompt is printed.
 Implemented adapters: `neutral` (any chat window) and `claude-code` (which points at the project-local
-`.claude/skills/` instead of inlining them). `cursor`, `codex-cli` and `gemini-cli` are listed as
-**proposed — not supported**, and asking for one is refused rather than approximated; contracts are
-adapter-independent, and no model name or context-window size is assumed anywhere.
+`.claude/skills/` instead of inlining them). `cursor`, `codex-cli` and `gemini-cli` are listed as **proposed
+— not supported**, and asking for one is refused rather than approximated; contracts are adapter-independent,
+and no model name or context-window size is assumed anywhere.
 
 ## Optional: a declared working mode
 

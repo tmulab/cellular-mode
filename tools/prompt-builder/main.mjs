@@ -13,9 +13,8 @@ import { resolve } from 'node:path';
 import { CliError } from '../cellmode/errors.mjs';
 import { EXIT, EXIT_FOR, parseBuilderArgs, scrub } from './cli-shared.mjs';
 import { cmdAnswer, cmdNext, cmdSkip, cmdStart, cmdStatus } from './commands.mjs';
-import {
-  cmdAdapters, cmdApprove, cmdCell, cmdDecide, cmdPrompt,
-} from './commands-approve.mjs';
+import { cmdAdapters, cmdApprove, cmdCell, cmdPrompt } from './commands-approve.mjs';
+import { cmdDecide } from './commands-decide.mjs';
 import { codeOf, detailsOf } from './errors.mjs';
 
 /** @typedef {import('./cli-shared.mjs').BuilderCommandResult} BuilderCommandResult */
@@ -33,12 +32,16 @@ Commands:
   start <new|existing|resume>     begin or continue discovery; writes vault/builder/draft.json
         [--name N]                existing: read-only inspection first · resume: defers to /cell
         [--replace-draft --confirm]  replace an open draft instead of refusing
-  status                          draft summary: labels, blockers, conflicts, next question
+  status                          draft summary: labels, blockers, conflicts, PROPOSED text,
+                                  pending decisions, next question
   next                            exactly one question
-  answer <questionId> <text…>     record an answer ("I do not know" is a valid answer)
+  answer <questionId> <text…>     record an answer ("I do not know" is a valid answer;
+                                  "none" answers the exclusions question)
   skip <questionId>               pass a question over; the field keeps what it says
   decide propose --question Q --proposal P [--field F]      record a PENDING decision
   decide <id> approve|reject --confirm                      settle it
+  decide accept-proposal|reject-proposal <questionId> --confirm
+                                  settle the Builder's OWN recommendation, without retyping it
   approve [--confirm]             show readiness, conflicts and the publication check, then
                                   write vault/project-contract.json
   cell [--accept --confirm]       render the proposed first cell; --accept plans it as 📋

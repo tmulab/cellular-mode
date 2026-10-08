@@ -51,7 +51,7 @@ templates/vault/state/  →  vault/state/     # the empty state skeleton
 node tools/cellmode/cli.mjs init            # …or let the CLI create the skeleton
 ```
 
-Both Level 4 configuration files are optional and read only if present: `templates/project-policy.md` → `vault/policy.md`, `templates/user-profile.md` → `vault/profile.md`.
+Both Level 4 configuration files are optional and read only if present: `templates/project-policy.md` → `vault/policy.md`, `templates/user-profile.md` → `vault/profile.md`. **Starting a brand-new project, and new to all of this?** Take the guided path instead: `git init` in the directory first (Article 8 installs only into a git work tree), then eight numbered steps with the exact command for each — describe your project · answer the Builder's questions · approve the contract · review the installation plan · approve the installation · open the first cell · approve a verification check · run final verification — at the top of [`docs/12-bootstrap.md`](docs/12-bootstrap.md).
 
 ## Create, pause, resume
 

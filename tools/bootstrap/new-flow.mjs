@@ -22,10 +22,10 @@ import { diskSource, sourceIdentity } from './source-read.mjs';
 import { scanTarget } from './target-scan.mjs';
 import { resolveSelection } from './resolve.mjs';
 import { buildPlan } from './plan.mjs';
-import { renderPlan } from './render-plan.mjs';
+import { consentRender, warningLines } from './plan-consent.mjs';
 import { applyPlan } from './apply.mjs';
-import { INSTALL_MANIFEST, VERIFICATION_FILE } from './plan-constants.mjs';
-import { plural, sanitize } from './display.mjs';
+import { BUILDER_DRAFT_DIR, INSTALL_MANIFEST, VERIFICATION_FILE } from './plan-constants.mjs';
+import { MAX_ACTIONABLE, plural, sanitize } from './display.mjs';
 import { existingInstallRefusal } from './status-read.mjs';
 import { assertNoOverlap } from './writer.mjs';
 
@@ -41,9 +41,13 @@ export const ALLOWED_NEW = Object.freeze(['README.md', 'README', 'LICENSE', 'LIC
   'AGENTS.md', 'CLAUDE.md']);
 
 /** PURE. The existing files that stop a directory from counting as new, sorted and capped.
+ * `vault/builder/**` never stops anything (contract H1, trial finding A-01): it is the Prompt
+ * Builder's private draft, the documented step BEFORE `new`, and refusing over it broke the one
+ * path docs/12 recommends. `target-scan.mjs` does not even walk it, so this is belt and braces.
  * @param {ReadonlyArray<string>} files @returns {ReadonlyArray<string>} */
 export function notNewBecause(files) {
   return Object.freeze(files.filter((rel) => !ALLOWED_NEW.includes(rel)
+    && !rel.startsWith(BUILDER_DRAFT_DIR)
     && !(rel.startsWith('docs/') && rel.endsWith('.md'))).sort());
 }
 
@@ -96,8 +100,9 @@ export function requireExistingDirectory(targetArg) {
 }
 
 /** The summary printed after a successful install. Counts and relative paths only.
- * @param {import('./apply.mjs').ApplyResult} result @param {string} name @returns {string[]} */
-function summaryLines(result, name) {
+ * @param {import('./apply.mjs').ApplyResult} result @param {string} name
+ * @param {string[]} warnings @returns {string[]} */
+function summaryLines(result, name, warnings) {
   /** @type {string[]} */
   const out = [`Installed Cellular Mode into ${sanitize(name)}.`, ''];
   out.push(`Files written: ${plural(result.files.length, 'file')}`);
@@ -106,8 +111,11 @@ function summaryLines(result, name) {
   for (const entry of result.integrations) out.push(`  - ${entry.kind} [${entry.status}] ${sanitize(entry.detail, 200)}`);
   if (result.limitations.length > 0) {
     out.push('', `Not applied (${result.limitations.length}) — recorded in the install manifest:`);
-    for (const line of result.limitations) out.push(`  - ${sanitize(line, 200)}`);
+    // IN FULL. A limitation names a command the human has to run; truncating it mid-command
+    // (trial finding A-13) turns an instruction into a riddle.
+    for (const line of result.limitations) out.push(`  - ${sanitize(line, MAX_ACTIONABLE)}`);
   }
+  out.push(...warnings);
   out.push('', `First cell: ${sanitize(result.cell.detail, 200)}`);
   out.push('', `Verification contract: ${VERIFICATION_FILE} — EMPTY on purpose: Bootstrap ran nothing here,`,
     '  so it established nothing. `node tools/gates/verify-final.mjs` FAILS CLOSED until you run a check yourself and record it there.');
@@ -120,7 +128,7 @@ function summaryLines(result, name) {
  * testable in process — the arrangement tools/cellmode and tools/prompt-builder already use.
  * @param {{ sourceRoot: string, targetArg: string, profile: string,
  *   components?: ReadonlyArray<string> | undefined, approvals: ReadonlySet<string>,
- *   dryRun?: boolean | undefined, confirm?: boolean | undefined,
+ *   dryRun?: boolean | undefined, confirm?: boolean | undefined, json?: boolean | undefined,
  *   mode?: import('./render-plan.mjs').RenderMode | undefined, verbose?: boolean | undefined,
  *   mandatory?: ReadonlyArray<string> | undefined,
  *   now: string, env?: NodeJS.ProcessEnv | undefined,
@@ -153,17 +161,17 @@ export function runNew(input) {
     profile: input.profile,
     components: input.components,
   });
-  const rendered = renderPlan(plan, {
-    ...(input.mode === undefined ? {} : { mode: input.mode }), verbose: input.verbose === true,
-  });
-  const head = [`Target: ${sanitize(name)}`, ''];
+  const rendered = consentRender({ plan, read: (rel) => source.read(rel), projectName: name,
+    json: input.json === true, ...(input.mode === undefined ? {} : { mode: input.mode }),
+    verbose: input.verbose === true });
+  const head = input.json === true ? [] : [`Target: ${sanitize(name)}`, ''];
   if (input.dryRun === true) {
-    return { lines: [...head, rendered.trimEnd(), '', 'Dry run: nothing was written.'], code: 0 };
+    return { lines: [...head, ...rendered, ...(input.json === true ? [] : ['', 'Dry run: nothing was written.'])], code: 0 };
   }
   if (input.confirm !== true) {
     return {
-      lines: [...head, rendered.trimEnd(), '',
-        'Nothing was written. Re-run with --confirm to install, and --approve <ids> for the steps above.'],
+      lines: [...head, ...rendered, ...(input.json === true ? [] : ['',
+        'Nothing was written. Re-run with --confirm to install, and --approve <ids> for the steps above.'])],
       code: 5,
     };
   }
@@ -183,5 +191,5 @@ export function runNew(input) {
       ? ['the target scan hit its file or depth cap: paths beyond it were not seen']
       : [],
   });
-  return { lines: summaryLines(result, name), code: 0 };
+  return { lines: summaryLines(result, name, warningLines(plan, input.approvals)), code: 0 };
 }

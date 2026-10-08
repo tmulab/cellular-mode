@@ -29,7 +29,7 @@ export function contractDetail(contract) {
   const checks = /** @type {ReadonlyArray<{ status: string, mandatory: boolean }>} */ (contract.checks ?? []);
   const mandatory = checks.filter((check) => check.mandatory).length;
   const verified = checks.filter((check) => check.status === 'VERIFIED').length;
-  return `${VERIFICATION_FILE}: ${checks.length} check(s), ${verified} VERIFIED by an approved baseline run, ${mandatory} mandatory${mandatory === 0 ? '. Final verification FAILS CLOSED until a human approves one (--mandatory <id> --confirm)' : ' by explicit human approval'}.`;
+  return `${VERIFICATION_FILE}: ${checks.length} check(s), ${verified} VERIFIED by an approved baseline run, ${mandatory} mandatory${mandatory === 0 ? '. Final verification FAILS CLOSED until a human approves one: node tools/bootstrap/cli.mjs verification <target> list, then mandatory <id> --confirm' : ' by explicit human approval'}.`;
 }
 
 /**

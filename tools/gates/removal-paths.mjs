@@ -86,7 +86,10 @@ export const BUILDER_PENDING = Object.freeze([]);
  * Bootstrap tree, so they are part of the module rather than part of the repository that must
  * survive without it. `tests/verification-contract.test.mjs` is the second one — it round-trips the
  * BS3 verification contract across its GENERATOR (Bootstrap) and its READER (the gates), so it
- * cannot run with the generator deleted.
+ * cannot run with the generator deleted. `tests/verification-shim.test.mjs` is the third, for the
+ * same reason one step down: it holds the two H7 shim resolvers to the same answers, and one of
+ * them is Bootstrap's. The gate-side resolver keeps its own surviving coverage in
+ * `tests/gates-verification-suite.test.mjs`, which imports no Bootstrap module.
  *
  * WHAT IS NOT HERE, deliberately: `tools/gates/verification-contract.mjs`,
  * `verification-argv.mjs` and `verification-suite.mjs`. BS3 generalized ONE Article 8
@@ -103,6 +106,7 @@ export const BOOTSTRAP_PATHS = Object.freeze([
   'BOOTSTRAP_REPORT.md',
   'tests/gates-bootstrap-boundary.test.mjs',
   'tests/verification-contract.test.mjs',
+  'tests/verification-shim.test.mjs',
 ]);
 
 /** Bootstrap's documented paths owned by a CONCURRENT cell of the same stage. EMPTY now: the

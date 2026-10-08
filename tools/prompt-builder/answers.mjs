@@ -29,6 +29,16 @@ export const UNKNOWN_PHRASES = Object.freeze([
   'not sure', 'im not sure', 'no idea', 'nao sei', 'no clue',
 ]);
 
+/** The answers that mean "there is nothing to record here", accepted ONLY by a question the
+ * bank marks `acceptsNone` — today the exclusions question. "No" to "will it hold information
+ * about people?" is a statement about the project and stays DECLARED, so this list is never
+ * applied to a question that did not declare it accepts one.
+ * @type {ReadonlyArray<string>} */
+export const NONE_PHRASES = Object.freeze([
+  'none', 'nothing', 'no', 'no exclusions', 'nothing comes to mind',
+  'nada', 'nenhum', 'nenhuma', 'nao', 'none for now',
+]);
+
 /** Words that may trail an "I do not know" without changing it into an answer. */
 const FILLERS = Object.freeze(['yet', 'ainda', 'really', 'honestly', 'sorry', 'at all', 'right now']);
 
@@ -55,6 +65,12 @@ export function isUnknownAnswer(text) {
     if (shorter === current) return false;
     current = shorter;
   }
+}
+
+/** PURE. Does this answer mean "there is nothing of this kind"? Only asked of a question that
+ * accepts one. @param {unknown} text @returns {boolean} */
+export function isNoneAnswer(text) {
+  return NONE_PHRASES.includes(normalize(text));
 }
 
 /** PURE. A list answer, one item per line or per semicolon, list markers removed.
@@ -110,7 +126,12 @@ function applyUnknown(base, question) {
     const target = proposalField(field);
     if (list) contract = appendField(contract, target, [proposed]);
     else proposals = [...proposals, { questionId: question.id, field, entry: proposed }];
-    notes.push(`a PROPOSED option was recorded for ${target} — nothing is approved`);
+    notes.push(
+      `a PROPOSED option was recorded for ${target} — nothing is approved`,
+      `  PROPOSED: ${recommendation.value}`,
+      `  assumes ${recommendation.assumptions}; trade-off: ${recommendation.tradeoffs}`,
+      `  accept it with: decide accept-proposal ${question.id} --confirm`,
+    );
   }
   return { draft: { ...base, contract, proposals }, notes };
 }
@@ -136,6 +157,13 @@ export function applyAnswer(draft, questionId, text) {
   /** @type {Draft} */
   const base = { ...draft, asked };
   if (isUnknownAnswer(clean)) return applyUnknown(base, question);
+  if (question.acceptsNone === true && isNoneAnswer(clean)) {
+    return {
+      draft: base,
+      notes: [`${question.field}: you declared there is nothing to record — the question is`
+        + ' answered and the field stays empty; nothing was invented'],
+    };
+  }
   const { field } = question;
   if (isListField(base.contract, field)) {
     const items = splitList(clean);

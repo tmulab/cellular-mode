@@ -19,15 +19,18 @@ import { currentBlock } from './uninstall.mjs';
  * needs more than this is one a human should open rather than read here. */
 export const PATCH_CAP = 24;
 
-/** @param {ReadonlyArray<import('./uninstall-plan.mjs').Step>} steps @param {string} action
- * @returns {string[]} */
-function group(steps, action) {
+/** One action group. `cap` of `-1` prints every step: a destructive plan a human is about to
+ * `--confirm` must be reviewable IN FULL (trial finding B-12, where `--verbose` hid 44 of 52
+ * deletions), and the capped default now says how to see the rest instead of only counting it.
+ * @param {ReadonlyArray<import('./uninstall-plan.mjs').Step>} steps @param {string} action
+ * @param {number} cap @returns {string[]} */
+function group(steps, action, cap) {
   const mine = steps.filter((step) => step.action === action);
   if (mine.length === 0) return [];
-  const { shown, hidden } = capList(mine, PATH_CAP);
+  const { shown, hidden } = capList(mine, cap);
   return [`  ${action.padEnd(15)} ${String(mine.length).padStart(3)}`,
     ...shown.map((step) => `      ${sanitize(step.path)} — ${sanitize(step.reason, 200)}`),
-    ...(hidden === 0 ? [] : [`      … and ${hidden} more`])];
+    ...(hidden === 0 ? [] : [`      … and ${hidden} more — re-run with --verbose to list every one`])];
 }
 
 /** The reverse patch for every block the plan refuses to remove. @param {string} targetRoot
@@ -49,14 +52,16 @@ export function patchLines(targetRoot, plan) {
 
 /**
  * The plan, for `--dry-run` and for the refusal that asks for `--confirm`.
- * @param {{ targetRoot: string, plan: UninstallPlan, name: string }} input @returns {string[]}
+ * @param {{ targetRoot: string, plan: UninstallPlan, name: string,
+ *   verbose?: boolean | undefined }} input @returns {string[]}
  */
 export function planLines(input) {
   const { plan } = input;
+  const cap = input.verbose === true ? -1 : PATH_CAP;
   return [
     `Target: ${sanitize(input.name)}`,
     `Uninstall plan — ${plural(plan.steps.length, 'recorded path')}. Nothing outside the install record is ever touched.`,
-    ...ACTIONS.flatMap((action) => group(plan.steps, action)),
+    ...ACTIONS.flatMap((action) => group(plan.steps, action, cap)),
     `  hooks           ${plan.hooks.action.padEnd(5)} ${sanitize(plan.hooks.reason, 200)}`,
     `  directories     ${String(plan.dirs.length).padStart(3)}  candidates, each removed only if it is empty by then`,
     `  ${INSTALL_MANIFEST}: ${plan.manifest.action} — ${sanitize(plan.manifest.reason, 240)}`,

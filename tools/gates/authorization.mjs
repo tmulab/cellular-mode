@@ -20,8 +20,8 @@ import {
 /** @typedef {import('./final-evidence.mjs').FinalRecord} FinalRecord */
 /** @typedef {{ ok: boolean, evidence: FinalRecord | null, reason: string }} Answer */
 
-/** The sentence every refusal ends with. One command, named once. */
-export const REMEDY = 'run `npm run verify:final` on this exact state';
+/** The sentence every refusal ends with. One command, in the form that EXISTS wherever `article-8` is installed: `npm run verify:final` is a script of THIS repository's `package.json` and Bootstrap writes none into a target, so there it does not exist at all (trial findings A-03 / B-06). Hence the node form first. */
+export const REMEDY = 'run `node tools/gates/verify-final.mjs` (or `npm run verify:final` where that script exists) on this exact state';
 
 /** Every record on disk, newest last. A missing file is simply "no evidence yet".
  * @param {string} [root] @returns {FinalRecord[]} */
@@ -112,7 +112,7 @@ function cmdCommit(root) {
   }
   write('❌ commit refused — Article 8: the staged state has not been verified AS IT STANDS.');
   write(`   ${answer.reason}`);
-  write('   Stage everything you changed, then `npm run verify:final`, then commit.');
+  write(`   Stage everything you changed, then ${REMEDY.replace('run ', '')}, then commit.`);
   return 1;
 }
 

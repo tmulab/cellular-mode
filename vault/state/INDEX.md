@@ -77,3 +77,13 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [stage-7-doc-corrections](cells/stage-7-doc-corrections.md) | stage-7 | ✔ | 2026-10-07 | — |
 | [posix-hook-executability](cells/posix-hook-executability.md) | stage-7 | ✔ | 2026-10-07 | — |
 | [article8-staged-modes](cells/article8-staged-modes.md) | stage-7 | ✔ | 2026-10-07 | — |
+| [hardening-triage](cells/hardening-triage.md) | stage-8 | ✔ | 2026-10-07 | — |
+| [hardening-handoff-consent](cells/hardening-handoff-consent.md) | stage-8 | ✔ | 2026-10-07 | — |
+| [hardening-test-isolation](cells/hardening-test-isolation.md) | stage-8 | ✔ | 2026-10-07 | — |
+| [hardening-ownership](cells/hardening-ownership.md) | stage-8 | ✔ | 2026-10-07 | — |
+| [hardening-article8-onboarding](cells/hardening-article8-onboarding.md) | stage-8 | ✔ | 2026-10-07 | — |
+| [hardening-builder](cells/hardening-builder.md) | stage-8 | ✔ | 2026-10-07 | — |
+| [hardening-docs](cells/hardening-docs.md) | stage-8 | ✔ | 2026-10-07 | — |
+| [hardening-trial-2](cells/hardening-trial-2.md) | stage-8 | ✔ | 2026-10-08 | — |
+| [hardening-closure](cells/hardening-closure.md) | stage-8 | ✔ | 2026-10-08 | — |
+| [pb3-test-correction](cells/pb3-test-correction.md) | stage-8 | ✔ | 2026-10-08 | — |

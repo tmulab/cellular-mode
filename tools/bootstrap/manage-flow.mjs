@@ -39,8 +39,9 @@ export function notInstalled(name) {
 }
 
 /**
- * Runs `status`. Read-only.
- * @param {{ sourceRoot?: string | undefined, targetArg: string,
+ * Runs `status`. Read-only. `--verbose` lifts the path caps, which is what makes the evolved list
+ * an audit trail rather than a sample.
+ * @param {{ sourceRoot?: string | undefined, targetArg: string, verbose?: boolean | undefined,
  *   env?: NodeJS.ProcessEnv | undefined }} input @returns {FlowResult}
  */
 export function runStatus(input) {
@@ -52,7 +53,7 @@ export function runStatus(input) {
   });
   if (!read.facts.installed) return notInstalled(name);
   const verdict = classify(read.facts);
-  const lines = statusLines(read.facts, verdict, name);
+  const lines = statusLines(read.facts, verdict, name, { verbose: input.verbose === true });
   if (read.truncated) lines.push('The walk for unowned files hit its cap: there may be more than are listed.');
   // A drift exit (2) is a verdict about the TARGET, not a failure of the command, so the report
   // still goes to stdout — the same rule `existing --analyze` follows.
@@ -63,7 +64,7 @@ export function runStatus(input) {
  * Runs `uninstall`.
  * @param {{ sourceRoot?: string | undefined, targetArg: string, dryRun?: boolean | undefined,
  *   confirm?: boolean | undefined, forceModified?: ReadonlyArray<string> | undefined,
- *   now: string, env?: NodeJS.ProcessEnv | undefined,
+ *   verbose?: boolean | undefined, now: string, env?: NodeJS.ProcessEnv | undefined,
  *   exec?: typeof import('./exec.mjs').run | undefined }} input @returns {FlowResult}
  */
 export function runUninstall(input) {
@@ -76,7 +77,7 @@ export function runUninstall(input) {
     ...(input.forceModified === undefined ? {} : { forceModified: input.forceModified }),
     confirm: input.confirm === true,
   });
-  const rendered = planLines({ targetRoot, plan, name });
+  const rendered = planLines({ targetRoot, plan, name, verbose: input.verbose === true });
   if (input.dryRun === true) {
     return { lines: [...rendered, '', 'Dry run: nothing was removed, nothing was written.'], code: 0, stdout: true };
   }

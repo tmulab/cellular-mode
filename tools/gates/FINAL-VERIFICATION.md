@@ -76,15 +76,19 @@ justified, documented, human-approved exception the constitution describes.
 
 ### A project-local suite — `vault/verification.json`
 
-Absent in THIS repository, and absent means exactly the four checks above (asserted by
-`tests/gates-verification-suite.test.mjs`). An adopting project supplies its own instead
-(`cellular-mode/verification` v1, decision BS3): `checks: [{ id, argv, status, basis, mandatory,
-approval, timeoutSeconds? }]`. `argv` is an argument ARRAY run with `shell: false` — a `;` in it
-is text — and a shell WRAPPER (`sh -c`, `cmd /c`, `powershell -Command`) is refused by name.
-`mandatory: true` needs status VERIFIED or `approval: { by: "human", at }`: nothing merely
-INFERRED may block a commit. `cell-state` is added by the gate and cannot be approved away. FAIL
-CLOSED three ways — unreadable, invalid, or nothing mandatory — each producing an EMPTY suite, a
-printed reason and a non-zero exit, never a pass.
+Absent in THIS repository, and absent means exactly the four checks above (asserted by `tests/gates-verification-suite.test.mjs`). An
+adopting project supplies its own instead (`cellular-mode/verification` v1, decision BS3): `checks: [{ id, argv, status, basis, mandatory,
+approval, timeoutSeconds? }]`. `argv` is an argument ARRAY run with `shell: false` — a `;` in it is text — and a shell WRAPPER (`sh -c`,
+`cmd /c`, `powershell -Command`) is refused by name. `mandatory: true` needs status VERIFIED or `approval: { by: "human", at }`: nothing
+merely INFERRED may block a commit. `cell-state` is added by the gate and cannot be approved away. FAIL CLOSED three ways — unreadable,
+invalid, or nothing mandatory — each producing an EMPTY suite, a printed reason and a non-zero exit, never a pass.
+
+**That file is NOT hand-edited (H6).** `node tools/bootstrap/cli.mjs verification <dir> <list|add|run|approve|mandatory|revoke>` reads and
+writes it: `list` says why each check cannot block a commit yet, `run <id> --confirm` is the only route to VERIFIED, `mandatory <id>
+--confirm` records `approval: { by: "human", at }` without ever touching the label, and `revoke` returns this gate to failing closed.
+**Windows (H7):** an argv whose first element is exactly `npm` or `npx` is resolved to the Node script the shim wraps and run with NO
+shell; an unresolvable one is reported with the `["node", …]` alternative. And the command that RUNS this gate is
+`node tools/gates/verify-final.mjs`, which exists wherever `article-8` is installed — `npm run verify:final` is only this repo's script.
 
 ## The verdict
 
@@ -103,23 +107,19 @@ failures included:
  "ok":true,"reason":"...","equivalent":true}
 ```
 
-`summary` is sanitised: a machine-local absolute path never reaches the file (the repository's
-own leak gate scans it like any other file). `counts` and `skips` are OPTIONAL and present
-only for a check that actually printed `node --test` numbers: "exit 0" with no count is a
-green nobody can audit ([`test-counts.mjs`](test-counts.mjs)). A SKIPPED test is listed, never
-failed and never counted as a pass. `drifted` appears beside `equivalent: false`.
+`summary` is sanitised: a machine-local absolute path never reaches the file (the repository's own leak gate scans it like any other
+file). `counts` and `skips` are OPTIONAL and present only for a check that actually printed `node --test` numbers: "exit 0" with no count
+is a green nobody can audit ([`count-tests.mjs`](count-tests.mjs)). A SKIPPED test is listed, never failed and never counted as a pass.
+`drifted` appears beside `equivalent: false`.
 
 ## No circularity
 
-The evidence cannot live inside the state it certifies — writing it would change the
-fingerprint it claims. So it lives in `.cellular/`, which is gitignored and therefore outside
-the controlled set, and is bound back to the state by the fingerprint, the tree id **and** the
-equivalence result. `verify-final.mjs` asserts this on every run (`assertEvidenceOutside`)
-rather than trusting `.gitignore` to stay as it is.
+The evidence cannot live inside the state it certifies — writing it would change the fingerprint it claims. So it lives in `.cellular/`,
+which is gitignored and therefore outside the controlled set, and is bound back to the state by the fingerprint, the tree id **and** the
+equivalence result. `verify-final.mjs` asserts this on every run (`assertEvidenceOutside`) rather than trusting `.gitignore` to stay put.
 
-For the same reason `check-all --release` does **not** require the evidence by default: the
-mandatory suite runs it, so demanding it there would make the gate depend on its own result.
-`--require-authorized` is the explicit, opt-in form, used by the push hook and a release run.
+For the same reason `check-all --release` does **not** require the evidence by default: the mandatory suite runs it, so demanding it there
+would make the gate depend on its own result. `--require-authorized` is the opt-in form, used by the push hook and a release run.
 
 ## Git enforcement
 
@@ -190,7 +190,7 @@ honour `CELLULAR_NODE` to pin the node binary; otherwise `PATH` decides.
 | `verification-argv.mjs` | an argument array, or a shell string wearing one? the wrapper refusal (pure) |
 | `verification-suite.mjs` | which suite runs — built-in or contract — and the one spawner |
 | `authorization.mjs` | "is this state authorized?", for the hooks, the CLI and the release gate |
-| `test-counts.mjs` | how many tests ran, parsed from what `node --test` printed; the six counts must ADD UP, and a CANCELLED test is a failure (pure) |
+| `count-tests.mjs` | how many tests ran, parsed from what `node --test` printed; the six counts must ADD UP, and a CANCELLED test is a failure (pure) |
 | `ci-trailer.mjs` | does a commit's trailer name the tree it records? (pure core + git shell) |
 | `ci-summary.mjs` | how a CI run reports what it established (pure + one append) |
 

@@ -24,14 +24,14 @@ import { allFiles, read, report } from './helpers.mjs';
  * rehearsal runs is not the fast half of anything. `verification-contract.` joined the exclusion
  * in stage 7 cell 7 for the same reason as the adaptive names: it round-trips the BS3 contract
  * across its GENERATOR (Bootstrap) and its READER (the gates), so `removal-paths.mjs` counts it as
- * part of the BOOTSTRAP set and `rehearse:bootstrap-removal` deletes it. Excluding a file the
- * rehearsal deletes is not a hole; excluding a surviving one would be. */
+ * part of the BOOTSTRAP set and `rehearse:bootstrap-removal` deletes it; `verification-shim.` joined in stage 8 cell 6 on the same ground (it holds the two H7 resolvers to identical answers, so it needs both halves).
+ * Excluding a file the rehearsal deletes is not a hole; excluding a surviving one would be. */
 const SCOPE = Object.freeze([
   /^eip\/host\/(?!adaptive-)[^/]+\.mjs$/,
   /^apps\/observer\/(?!vendor\/).+\.mjs$/,
   /^tools\/cellmode\/.+\.mjs$/,
   /^eip\/plugins\/observer-[^/]+\/.+\.mjs$/,
-  /^tests\/(?!adaptive-integration\.|gates-adaptive-boundary\.|verification-contract\.)[^/]+\.mjs$/,
+  /^tests\/(?!adaptive-integration\.|gates-adaptive-boundary\.|verification-(?:contract|shim)\.)[^/]+\.mjs$/,
 ]);
 
 /** Repo-relative prefixes that ARE an optional module. A resolved specifier starting with one

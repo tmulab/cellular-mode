@@ -39,7 +39,7 @@ tools/adaptive adaptive apps/observer skills` = **4 files**, and `tools/cellmode
 | Transports and the host seam | `eip/upp-host/` (22 modules, 12 test files) | operator config and the manifest pin, the NDJSON child-process channel, the HTTP client transport, the in-process endpoint, the kernel adapter, application registry and health, the conformance runner |
 | Conformance corpus | `upp/conformance/` | **11** language-independent JSON cases + a pinned reference manifest, replayed by one runner against every implementation present |
 | Example plugins | `examples/upp-{node,python,java,rust,cpp}/`, `examples/upp-app-nextjs/` | five capability plugins in five languages, standard library only; one application-plugin contract example (markdown + manifest + config snippet, no toolchain) |
-| Independent CI | `.github/workflows/verify.yml`, `tools/gates/{ci-trailer,ci-summary,test-counts,rules}.mjs`, `tools/gates/CI.md` | a clean-checkout re-run of the mandatory suite plus the Article-8 `Verified-State` trailer check |
+| Independent CI | `.github/workflows/verify.yml`, `tools/gates/{ci-trailer,ci-summary,count-tests,rules}.mjs`, `tools/gates/CI.md` | a clean-checkout re-run of the mandatory suite plus the Article-8 `Verified-State` trailer check |
 | Documents | `docs/upp/` (9 files), ADR 0005, the ADR 0001 amendment | specification, audit, criteria, verdicts, interop record, security review |
 
 ## 3 · What was deliberately deferred
@@ -88,7 +88,7 @@ C++) have documented gaps in their own READMEs.
 
 **VERIFIED:** the stage-5 suites are **260 tests, 260 pass, 0 fail, 0 skipped** (`node --test`
 over `eip/upp/`, `eip/upp-host/`, `tests/upp-*`, `tests/gates-upp*`, `tests/ci-workflow*`,
-`tests/gates-ci-trailer*`, `tests/gates-test-counts`), inside a whole-suite `npm test` of
+`tests/gates-ci-trailer*`, `tests/gates-count-tests`), inside a whole-suite `npm test` of
 **1029 tests, 1029 pass, 0 fail, 0 skipped**, 48 suites, exit 0 on Node 24.19.0 in this closing
 cell: 1028 are the tests CI re-ran on commit `5c18401` (§9), and this cell added one.
 
@@ -185,7 +185,7 @@ defects in the *verification*, not in the feature, and both were fixed. (2) A gr
 number behind it is unauditable, so the record carries **real test counts** and lists skipped
 tests with their reasons. (3) Counts must ADD UP and name every outcome: `989 + 2 = 993` passed
 review for a whole stage, and the two results it hid were CANCELLED tests
-(`tools/gates/test-counts.mjs`, §9).
+(`tools/gates/count-tests.mjs`, §9).
 
 ## 11 · Remaining technical work — PROPOSED cells, with done criteria
 

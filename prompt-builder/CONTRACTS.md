@@ -101,8 +101,8 @@ UNKNOWN plus, where a deterministic recommendation exists, a PROPOSED entry with
 assumptions and trade-offs (never approved automatically).
 
 Paths:
-- **new** — questions in priority order: objective, users/problem, smallest version,
-  sensitive data, constraints, technologies, involvement.
+- **new** — questions in priority order: `objective`, `users`, `problem`, `smallest-version`, `scope-in`, `scope-out`, `sensitive-data`, `technologies`, `involvement`, `environment`, `acceptance`.
+  Scope is **two** questions, never one: what is in and what is out are two separate declarations, and `scope.out` is what bounds the proposed first cell. `scope-out` is contract **H8** — explicit exclusions are asked, never inferred from silence; the literal answer `none` is accepted and recorded DECLARED, so "nothing is excluded" is a statement rather than an absence.
 - **existing** — read-only inspection first (`inspect(root)`): manifest files, languages
   by extension, test directories, existing agent instructions, existing `vault/state/`.
   Findings become VERIFIED entries with relative evidence paths; it writes nothing outside

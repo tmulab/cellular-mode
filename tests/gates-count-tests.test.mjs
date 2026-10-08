@@ -8,7 +8,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   countsProblem, countsSummary, parseCountsValue, parseTestCounts, skipLines,
-} from '../tools/gates/test-counts.mjs';
+} from '../tools/gates/count-tests.mjs';
 import { finalRecord, parseFinalRecord } from '../tools/gates/final-evidence.mjs';
 import { runFinalVerification } from '../tools/gates/verify-final.mjs';
 import { cleanup, hasGit, makeRepo } from './git-fixture.mjs';
