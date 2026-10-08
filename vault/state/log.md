@@ -693,3 +693,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Minimal CHANGELOG added; lockfile version edited in place (two fields) rather than via npm install.
 **Build:** docs tests 17/17, pause-triggers 8/8, gates-deps 10/10; check-all release clean; trilateral 1478/1478
 **Next step:** —
+
+---
+## 2026-10-08 10:08 · Cell: citation-cff
+**Status:** ✔
+**Facts:** Added CITATION.cff at the repository root for the published v1.0.0 release (DOI 10.5281/zenodo.23239314, commit field 1070dcd as provided); validated with cffconvert 2.0.0: valid according to schema version 1.2.0. No release functionality, tag, GitHub Release, version or npm change.
+**Decisions:** Metadata as provided by the human, already validated externally; commit field kept.
+**Build:** cffconvert validate exit 0; gates release clean; docs/leaks tests 17/17
+**Next step:** —

@@ -88,3 +88,4 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [hardening-closure](cells/hardening-closure.md) | stage-8 | ✔ | 2026-10-08 | — |
 | [pb3-test-correction](cells/pb3-test-correction.md) | stage-8 | ✔ | 2026-10-08 | — |
 | [v1-release-alignment](cells/v1-release-alignment.md) | release | ✔ | 2026-10-08 | — |
+| [citation-cff](cells/citation-cff.md) | release | ✔ | 2026-10-08 | — |
