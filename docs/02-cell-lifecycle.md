@@ -15,7 +15,7 @@ and **recorded state** when it closes.
 | Symbol | State | Meaning |
 |---|---|---|
 | 📋 | planned | Declared but never run. No log entry — inventing one would be fiction in an append-only log. |
-| 🔵 | active | Being worked on right now. **At most one in the whole project.** |
+| 🔵 | active | Being worked on right now. **At most one in the whole project** outside an operation; inside one, up to the pack's `max-active-cells`. |
 | ⏸ | paused | Closed with state recorded, waiting with its next step ready. Coexisting paused cells are normal. |
 | ✔ | done | Done criterion met **and** confirmed by the human. Terminal. |
 
@@ -42,6 +42,8 @@ Two consequences worth stating plainly:
   boundary, which opening completes.
 - **Switching cells always costs a pause.** There is no "switch over the top". Closing
   the current cell first is what keeps the log honest and the return cheap.
+- **Inside an operation the "no other cell is 🔵" guard becomes a count plus a conflict
+  check** (next section). Everything else in the table holds unchanged.
 
 ## The cycle
 
@@ -93,6 +95,57 @@ is what the next session reads first.
 
 Test: could a tired person do it in under five minutes without making a decision?
 
+## Operations and parallel cells
+
+An **operation** is the unit above the cell: the human's unit of attention. **One
+operation is ACTIVE at a time**, and inside it several cells may be 🔵 at once, up to the
+`max-active-cells` of its authorization pack. Outside an operation nothing changes: one
+🔵 cell at a time, and small projects never need the layer at all.
+
+Opening an operation is four declarations, asked one at a time (the file format is in
+`03-state-and-memory.md`):
+
+1. **Finish line**, frozen at opening, with a fingerprint — what "finished" means, which
+   no later discovery edits. Discoveries go to the parking lot; moving the line is a
+   recorded decision (rule 6).
+2. **Authorization pack**, in a closed vocabulary — spend ceiling · publisher · batches
+   with limits · requires-yes · denied list · max-active-cells. It can never grant a
+   destructive operation, the mutation of a protected resource, or skipping a gate or a
+   test (`04-collaboration.md`), and it expires with the operation.
+3. **Quality bar** — the subjective ruler the result is judged by, written once instead
+   of re-argued per cell.
+4. **Planned cells** — the cells the orchestrator may open on its own.
+
+Then the lifecycle is short: cells open, work and close exactly as described above, each
+carrying `Operation:` in its file → **pausing the operation pauses every 🔵 cell under
+it**, one closure entry each → **completing it requires an explicit human confirmation
+and no 🔵 cell left**, like completing a cell, never on the agent's initiative.
+
+### Opening a cell beside another: naming the conflicts
+
+Before a second cell goes 🔵 in the same operation, the conflict step is **mandatory**,
+at two levels:
+
+- **Mechanical:** cross the candidate's `Boundary`, `Dependencies` and `Inputs`/`Outputs`
+  against every active cell and against the shared resources the pack names (test
+  database, migration, GPU, a shared file). The same file in two boundaries is a
+  **refusal**; a shared resource is a **warning** to be declared, not a refusal.
+- **Semantic:** the orchestrator reads both cell files and names what no crossing of
+  fields can see — "A rewrites the JSON that B reads" — or says **"none"**. Saying
+  nothing is not an option: the sentence belongs in the log entry of the opening.
+
+A cell that is **not** in `Planned cells` is not the orchestrator's to open. It needs the
+human's yes, recorded as an amendment to the pack, and the amendment never touches the
+finish line.
+
+**Decided, and not yet built.** The model above is **decided**; it replaces the "no
+mechanical multi-agent locking" gap this file used to list as an open question. Its
+enforcement is **PROPOSED**: `tools/cellmode` implements none of it today, so the
+operation file, the `Operation:` field, the crossing above and the amendment entry are
+**written by hand by the orchestrator**, and `cellmode check` still applies the old rule,
+reporting a second 🔵 cell as a finding. Cells R3–R5 of the revision plan carry the CLI
+work; until they land, the discipline is the only enforcement.
+
 ## What this lifecycle does NOT specify — open issues
 
 These are deliberate gaps, not oversights. The original method never needed them, and
@@ -108,13 +161,11 @@ inventing semantics here would create behavior that nobody has validated in real
    old slug in its minimal context. This keeps the log honest but loses the thread of
    "the same work, later". Whether a `supersedes:` field should make that link explicit
    is **open**.
-3. **No mechanical multi-agent locking.** "At most one 🔵 cell" is a *convention checked
-   after the fact* by the integrity guard, not a lock. Two agents working the same
-   repository at the same time can both open a cell and both append to the log; the log
-   survives (appends do not conflict semantically) but the index and `CURRENT-CELL.md`
-   can end up inconsistent, and the guard will report it afterwards. Coordination today
-   is human and by contract (`04-collaboration.md`). A real lock file, or a
-   per-agent/per-worktree vault, is **open**.
+3. **Still no lock, and no per-worktree vault.** With parallel cells decided, "how many
+   🔵 cells" is answered, but the *mechanism* is not: there is no lock file, so two
+   agents can still both write the index and `CURRENT-CELL.md`. The method's answer is
+   organisational — one cell per worktree, and only the orchestrator writes the vault —
+   and whether a lock file or a per-agent vault should replace it is **open**.
 4. **No cell dependencies in the lifecycle.** A cell file may list dependencies as prose,
    but nothing enforces an order, and there is no blocked state.
 5. **Time is not modelled.** Cells have an opened date and a last-visit date; there is no

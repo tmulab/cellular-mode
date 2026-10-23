@@ -709,3 +709,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Stage 8 commit 45c69dd and CI 37771618776 kept only as labelled history; policy/relaxations.md 'not release-ready' preserved (gate semantics).
 **Build:** docs tests 25/25; check-all release clean; cffconvert valid
 **Next step:** —
+
+---
+## 2026-10-23 20:21 · Cell: R1 rules and lifecycle v2
+**Status:** ✔
+**Facts:** Plan v2 (2026-10-23) cell R1: AGENTS.md rewritten with the seven rules for one active operation + parallel cells (54 lines, budget 55); docs/02-cell-lifecycle.md (172) gains 'Operations and parallel cells' and the conflict-naming step, old open issue 3 rewritten; docs/03-state-and-memory.md (200) documents operations/<slug>.md, the Operation/Base commit/Spend fields, operation log entries, pack amendments and the CURRENT-CELL projection with an operation; docs/04-collaboration.md (134) gains two approval rows and 'The authorization pack'; adaptive/policies/boundaries.md gains the invariant bullet (12 lines, 896 bytes); tools/adaptive/README.md size table re-measured (tired 2032 / explore 2015 / focus 1930 of 2048). Operation support is text only: CLI enforcement PROPOSED for R3-R5. Parked: bootstrap templates and README mirrors of the rules, v1.0.0 guides/preprints revision, stale 4,365-byte figure.
+**Decisions:** Model (c): several active cells inside one active operation; unplanned cell needs the human's yes as a pack amendment; pack never grants destructive ops, protected resources or gate/test skipping; human widened R1 to tools/adaptive/README.md to land the boundaries line
+**Build:** green (typecheck clean; node --test 1478 pass / 0 fail / 0 skipped after the coder's last write; verify:final runs next as the last action before commit)
+**Next step:** —

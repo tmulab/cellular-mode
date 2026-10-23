@@ -90,3 +90,4 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [v1-release-alignment](cells/v1-release-alignment.md) | release | ✔ | 2026-10-08 | — |
 | [citation-cff](cells/citation-cff.md) | release | ✔ | 2026-10-08 | — |
 | [published-artifacts-docs](cells/published-artifacts-docs.md) | release | ✔ | 2026-10-08 | — |
+| [R1 rules and lifecycle v2](cells/r1-rules-and-lifecycle-v2.md) | method-docs | ✔ | 2026-10-23 | — |

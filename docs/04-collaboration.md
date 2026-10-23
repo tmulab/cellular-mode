@@ -48,7 +48,13 @@ big and should be split along an interface.
 2. **Never two people in the same cell.** If two people need to be in it, the cell was
    too big: split it along the contract, giving each side its own boundary and done
    criterion. This is also the honest answer to "can two agents work in parallel?" —
-   yes, in different cells (and see the open issue on locking in `02-cell-lifecycle.md`).
+   yes, in different cells, and **yes at the same time inside one operation**, up to its
+   `max-active-cells`, once the conflicts have been named: the mechanical crossing of
+   boundaries, dependencies and the pack's shared resources, then the orchestrator's
+   sentence naming what that crossing cannot see, or "none" (`02-cell-lifecycle.md`).
+   Until the CLI implements it — PROPOSED — the crossing and the naming are done **by
+   hand by the orchestrator**, and `cellmode check` still reports a second active cell as
+   a finding under the old one-active-cell rule.
 3. **Integrate by the done criterion**, not by line-by-line review. If the checks pass
    and the contract was respected, it integrates. Review the *contract* carefully;
    review the interior lightly.
@@ -60,7 +66,7 @@ big and should be split along an interface.
 
 ## Approval boundaries
 
-The agent prepares; the human decides. These five decisions are **always** the human's,
+The agent prepares; the human decides. These seven decisions are **always** the human's,
 and the agent must stop and wait for an explicit written answer in the conversation:
 
 | Decision | Why it is the human's |
@@ -70,6 +76,30 @@ and the agent must stop and wait for an explicit written answer in the conversat
 | Marking a cell **✔ done** | "Done" is a claim about reality, and the human owns it |
 | **Switching the active cell** | Direction is the human's right; the agent holds the thread, not the steering wheel |
 | The direction to take after a **scope divergence** | The agent flags risk once and parks the idea; it does not choose |
+| Opening a cell the active operation did **not** plan | The planned cells are part of the yes the human already gave; adding one is a new yes, recorded as a pack amendment that never touches the finish line |
+| **Moving an operation's finish line** | The line is frozen at opening; a discovery goes to the parking lot, and only the human may redirect the work |
+
+### The authorization pack
+
+An operation opens with a pack the human states and the orchestrator records in
+`operations/<slug>.md` (`03-state-and-memory.md`). Its vocabulary is closed — spend
+ceiling · publisher · batches with limits · requires-yes · denied list · max-active-cells
+— and it exists so that a phase-wide yes ("the budget is released, deploying is mine, go
+ahead") has somewhere to live instead of evaporating with the conversation.
+
+What it **may** grant, within the limits it names: the batch operations it lists, spend up
+to the ceiling, and publishing by the named publisher. What it may **never** grant: a
+destructive operation, the mutation of a protected resource, or skipping a gate or a test.
+Those stay per-operation, asked each time, by the protocol below. The pack expires with
+the operation and is no precedent for the next one.
+
+And an approval still exists **only when the human gave it in this conversation**
+(Article 6.4): a pack is the *record* of such a yes, never its manufacture. A pack nobody
+can trace back to the human's words is a finding to report, not an authorization. The
+denied list travels in the prompt of every agent working under the operation, so that a
+refusal cannot be laundered into a request to someone who does not know it was refused.
+Today there is no CLI support for any of this (PROPOSED): the pack and its amendments are
+written by hand by the orchestrator, in the log and the operation file.
 
 ### The protection protocol
 
