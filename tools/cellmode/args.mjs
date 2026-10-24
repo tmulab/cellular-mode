@@ -4,7 +4,10 @@ import { CliError, EXIT } from './errors.mjs';
 
 /** @typedef {import('./types.mjs').ParsedArgs} ParsedArgs */
 
-export const BOOLEAN_OPTIONS = new Set(['confirm']);
+// Flags that carry no value. `amend-pack` is one because it is always written next to
+// `--confirm` (`--amend-pack --confirm`), and an option that read the next token would
+// swallow the confirmation instead of asking for it.
+export const BOOLEAN_OPTIONS = new Set(['confirm', 'amend-pack']);
 
 /** @param {string[]} argv @returns {ParsedArgs} */
 export function parseArgs(argv) {

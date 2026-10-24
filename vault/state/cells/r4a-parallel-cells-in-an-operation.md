@@ -1,0 +1,18 @@
+# Cell: R4a parallel cells in an operation
+**ID:** r4a-parallel-cells-in-an-operation
+**Area:** tools-cellmode
+**Opened:** 2026-10-24 · **Status:** ✔
+**Objective:** Cell commands inside an active operation (plan v2 cell R4a): open requires --boundary, writes Operation and Base commit, allows up to max-active-cells active cells, refuses an unplanned cell without --amend-pack --confirm; pause/complete by name; check's two-active only outside an operation; CURRENT-CELL shows the active cells table; docs/02 states that op pause refuses with an active cell
+**Boundary:** in: tools/cellmode/{activate,commands,args,projections,state,check,transitions,main}.mjs, new tools/cellmode/cell-in-operation*.mjs modules and tests, tools/cellmode/README.md, one paragraph of docs/02-cell-lifecycle.md, templates/vault/state if a projection changes the skeleton, plus (scope widened by the human 2026-10-24) two fixture calls in tools/cellmode/operation-status.test.mjs and the truth spots AGENTS.md:19, docs/02 "Decided" paragraph, docs/03 lines 198-200 and the §5 example | NOT in: conflict crossing and cell-overlap/cell-shared-resource (R4b), the other new check findings (R5), skills, apps/observer, eip/*, AGENTS.md, bootstrap
+**Inputs:** — · **Outputs:** —
+**Allowed operations:** — · **Prohibited operations:** —
+**Dependencies:** r3-operation-commands
+**Done criterion (binary):** with an active operation: open without --boundary exits 1; open writes Operation and Base commit (git HEAD when available, else UNKNOWN) and succeeds while active cells < max-active-cells, exits 3 at the ceiling; a cell not in Planned cells exits 1 unless --amend-pack --confirm, which appends a Pack amendment log entry; pause/complete need a name when more than one cell is active, exit 4 if ambiguous; check reports two-active only when no operation is active; CURRENT-CELL.md lists all active cells; without an operation every behaviour is byte-identical to today (existing tests untouched); docs/02 says op pause refuses; every file <= 200 lines; node --test green with real counts; verify:final green
+**Last fact:** Plan v2 cell R4a: cells inside an active operation — new cell-in-operation.mjs (156), cell-in-operation-rules.mjs (118), cell-in-operation-state.mjs (72); open requires the in/out boundary flags, writes Operation and Base commit (git HEAD or UNKNOWN), allows cells up to the pack's max-active-cells (default 1), refuses an unplanned cell unless amend-pack is confirmed, which appends a Pack amendment entry without touching the finish line; pause/complete need a name with more than one active cell (exit 4 if ambiguous) and accept a spend value; check reports two-active only outside an operation and over-ceiling inside; CURRENT-CELL.md lists active cells (byte-identical to R3 with one). Without an operation the old code path runs unchanged. Scope widened by the human: boundary flags added to two R3 fixture calls (assertions untouched); AGENTS.md:19, docs/02 and docs/03 rewritten to the CLI as built. 18 new tests.
+**Build/typecheck:** green (typecheck clean; node --test 1518 pass / 0 fail / 0 skipped; gates clean; verify:final runs next)
+**Decisions:** The in/out flags are the boundary; ceiling counts every active row; over-ceiling inside an operation; human authorised on 2026-10-24 that the orchestrator approves and commits cells through R10b while away, stopping before R11; push, R11, destructive operations and test-assertion changes still need the human
+**Open issues:** none inside the boundary; conflict crossing is R4b, new check findings are R5
+**Minimal context (≤5 lines):** —
+
+## ➜ NEXT STEP (doable in <5 min, without thinking)
+—

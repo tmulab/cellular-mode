@@ -12,6 +12,7 @@ import { STATE_REL } from './paths.mjs';
 import { CliError, EXIT } from './errors.mjs';
 import {
   isInitialized, writeSkeleton, readState, readCell, writeCell, writeIndex, appendParkingLot,
+  activeOperation,
 } from './state.mjs';
 import {
   assertAllowed, assertNoPositional, requireOption, requireName,
@@ -20,8 +21,12 @@ import {
   cmdOpen, cmdResume, cmdPause, cmdComplete,
 } from './transitions.mjs';
 import { cmdOp } from './operation-commands.mjs';
+import {
+  openInOperation, resumeInOperation, pauseInOperation, completeInOperation,
+} from './cell-in-operation.mjs';
 
 /** @typedef {import('./types.mjs').ParsedArgs} ParsedArgs */
+/** @typedef {import('./cell-in-operation.mjs').InOperationFn} InOperationFn */
 /** @typedef {import('./types.mjs').CommandResult} CommandResult */
 /** @typedef {import('./types.mjs').CommandFn} CommandFn */
 
@@ -111,14 +116,30 @@ export function cmdCheck(root, { positional, options }) {
   };
 }
 
+/**
+ * A cell transition has TWO laws, and which one applies is a fact on disk rather than a
+ * flag: with no 🔵 operation the old one-active-cell law runs unchanged (same code, same
+ * bytes, same exit codes), and with one the in-operation form runs. Nothing else in the
+ * CLI branches on the operation layer.
+ * @param {CommandFn} plain @param {InOperationFn} inOperation @returns {CommandFn}
+ */
+function byOperation(plain, inOperation) {
+  return (root, args, env) => {
+    // No state at all answers `null` without throwing, so "run `cellmode init` first"
+    // keeps coming from the transition itself.
+    const op = activeOperation(root);
+    return op === null ? plain(root, args, env) : inOperation(root, args, env, op);
+  };
+}
+
 /** @type {Record<string, CommandFn>} */
 export const COMMANDS = {
   init: cmdInit,
   plan: cmdPlan,
-  open: cmdOpen,
-  resume: cmdResume,
-  pause: cmdPause,
-  complete: cmdComplete,
+  open: byOperation(cmdOpen, openInOperation),
+  resume: byOperation(cmdResume, resumeInOperation),
+  pause: byOperation(cmdPause, pauseInOperation),
+  complete: byOperation(cmdComplete, completeInOperation),
   park: cmdPark,
   status: cmdStatus,
   check: cmdCheck,

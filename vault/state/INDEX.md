@@ -93,3 +93,4 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [R1 rules and lifecycle v2](cells/r1-rules-and-lifecycle-v2.md) | method-docs | ✔ | 2026-10-23 | — |
 | [R2 operation model](cells/r2-operation-model.md) | tools-cellmode | ✔ | 2026-10-24 | — |
 | [R3 operation commands](cells/r3-operation-commands.md) | tools-cellmode | ✔ | 2026-10-24 | — |
+| [R4a parallel cells in an operation](cells/r4a-parallel-cells-in-an-operation.md) | tools-cellmode | ✔ | 2026-10-24 | — |

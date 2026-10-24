@@ -16,7 +16,7 @@ This project is developed in **cells**: small bounded units of work whose state 
 
 `vault/state/` — `log.md` (append-only, the source of truth) · `INDEX.md` · `CURRENT-CELL.md` · `operations/<slug>.md` · `cells/<slug>.md` · `parking-lot.md`.
 
-**Operation layer, today (VERIFIED 2026-10-24):** `node tools/cellmode/cli.mjs op open|pause|complete|status` writes and reads `operations/<slug>.md` and the operation log entries. The cell `Operation:` field, parallel active cells, the conflict check and pack amendments are still **written by hand by the orchestrator**; `cellmode check` still enforces the old "one active cell" rule and knows nothing about operations. That cell-side support is PROPOSED.
+**Operation layer, today (VERIFIED 2026-10-24):** `node tools/cellmode/cli.mjs op open|pause|complete|status` manages `operations/<slug>.md`; inside an active operation `open` requires a boundary (`--in`/`--out`), writes `Operation:` and `Base commit:`, allows cells up to the pack's `max-active-cells`, and refuses an unplanned cell without `--amend-pack --confirm`; `check` reports `two-active` only outside an operation. Still PROPOSED: the conflict crossing between cells and the other new `check` findings.
 
 ## Entry points
 

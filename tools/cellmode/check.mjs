@@ -8,10 +8,12 @@ import { oneLine } from './fields.mjs';
 /** @typedef {import('./types.mjs').LogEntry} LogEntry */
 /** @typedef {import('./types.mjs').CurrentCell} CurrentCell */
 /** @typedef {import('./types.mjs').Finding} Finding */
+/** @typedef {import('./types.mjs').Operation} Operation */
 
 export const CODES = {
   LOG_SHRUNK: 'log-shrunk',
   TWO_ACTIVE: 'two-active',
+  OVER_CEILING: 'over-ceiling',
   CURRENT_MISMATCH: 'current-cell-mismatch',
   STATUS_MISMATCH: 'status-mismatch',
 };
@@ -21,10 +23,27 @@ const RECORDED = ['⏸', '✔'];
 const name = (r) => oneLine(r.name, 'unnamed');
 
 /**
- * @param {{ indexRows?: ReadonlyArray<IndexRow>, logEntries?: ReadonlyArray<LogEntry>,
- *   current?: CurrentCell | null }} [state] @returns {Finding[]}
+ * How many cells may be 🔵 at once. With no 🔵 operation the answer is the old rule, ONE.
+ * Inside one it is the pack's `max-active-cells`; a pack that grants none — or grants
+ * something that is not a positive whole number — also means one: fail closed, never a
+ * guess. The in-operation transitions read the same function, so the ceiling the guard
+ * reports and the ceiling `open` enforces cannot drift apart.
+ * @param {Operation | null} [operation] @returns {number}
  */
-export function checkState({ indexRows = [], logEntries = [], current = null } = {}) {
+export function ceilingOf(operation) {
+  if (!operation || operation.status !== '🔵') return 1;
+  const n = Number.parseInt(operation.pack.maxActiveCells, 10);
+  return Number.isInteger(n) && n > 0 ? n : 1;
+}
+
+/**
+ * @param {{ indexRows?: ReadonlyArray<IndexRow>, logEntries?: ReadonlyArray<LogEntry>,
+ *   current?: CurrentCell | null, operation?: Operation | null }} [state]
+ * @returns {Finding[]}
+ */
+export function checkState({
+  indexRows = [], logEntries = [], current = null, operation = null,
+} = {}) {
   /** @type {Finding[]} */
   const findings = [];
   /** @type {(code: string, message: string) => number} */
@@ -40,10 +59,20 @@ export function checkState({ indexRows = [], logEntries = [], current = null } =
     }
   }
 
-  // 2. At most one active cell.
+  // 2. At most one active cell — or, inside an operation, at most the pack's ceiling.
+  //    Two findings, because the two states are different: outside an operation a second
+  //    🔵 cell is the old breach, inside one it is a breach of a NAMED ceiling.
   const active = indexRows.filter((r) => r.status === '🔵');
-  if (active.length > 1) {
-    add(CODES.TWO_ACTIVE, `more than one active cell (🔵): ${active.map(name).join(', ')}`);
+  const inOperation = operation !== null && operation.status === '🔵';
+  const ceiling = ceilingOf(operation);
+  if (active.length > ceiling) {
+    const who = active.map(name).join(', ');
+    if (inOperation) {
+      add(CODES.OVER_CEILING, `${active.length} active cells (🔵) in operation `
+        + `"${name(operation)}" — max-active-cells: ${ceiling}: ${who}`);
+    } else {
+      add(CODES.TWO_ACTIVE, `more than one active cell (🔵): ${who}`);
+    }
   }
 
   // 3. CURRENT-CELL.md must match the active cell, or say there is none.
@@ -61,6 +90,17 @@ export function checkState({ indexRows = [], logEntries = [], current = null } =
   } else if (active.length === 0 && current) {
     add(CODES.CURRENT_MISMATCH,
       `CURRENT-CELL.md points to "${oneLine(current.name)}" but no cell is 🔵 in INDEX.md`);
+  } else if (inOperation && active.length > 1) {
+    // Several cells are legitimately 🔵: the file projects the most recent of them above
+    // the table of all of them, so the test is MEMBERSHIP and not equality.
+    const shown = current === null ? '' : oneLine(current.name);
+    if (shown === '') {
+      add(CODES.CURRENT_MISMATCH, `CURRENT-CELL.md shows no active cell but ${active.length} `
+        + 'cells are 🔵 in INDEX.md');
+    } else if (!active.some((r) => oneLine(r.name).toLowerCase() === shown.toLowerCase())) {
+      add(CODES.CURRENT_MISMATCH, `CURRENT-CELL.md points to "${shown}" but it is not one of `
+        + `the ${active.length} 🔵 cells in INDEX.md`);
+    }
   }
 
   // 4. Index status must agree with the last logged status for that cell.

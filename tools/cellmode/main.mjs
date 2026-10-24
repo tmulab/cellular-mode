@@ -19,11 +19,17 @@ Commands:
               --in --out --done --next
               --deps "a, b"]              new cell or 📋 -> 🔵 (an opening, not a resume)
                                           --next "<action>" records the FIRST STEP
+                                          in an operation: --in/--out REQUIRED, and an
+                                          unplanned cell needs --amend-pack --confirm
   resume <name>                           ⏸ -> 🔵 (fuzzy, case-insensitive)
-  pause --facts F --next N
-        [--decisions D --build B --note M]  🔵 -> ⏸: append log, update projections
-  complete --facts F --confirm
-        [--decisions D --build B --note M]  🔵 -> ✔ (requires human confirmation)
+  pause [name] --facts F --next N
+        [--decisions D --build B
+         --note M --spend S]              🔵 -> ⏸: append log, update projections
+  complete [name] --facts F --confirm
+        [--decisions D --build B
+         --note M --spend S]              🔵 -> ✔ (requires human confirmation)
+                                          [name] only inside an operation, where it is
+                                          REQUIRED once two cells are 🔵
   park <idea>                             append an idea to parking-lot.md
   status                                  <=5-line reconnection, or the waiting list
   check                                   integrity guard over log + projections
@@ -35,7 +41,8 @@ Commands:
   op status                               the active operation, or the paused ones
 
 Exit codes: 0 ok · 1 usage/bad args · 2 integrity findings · 3 another cell or
-            operation is active · 4 ambiguous name · 5 human confirmation required`;
+            operation is active, or the pack's max-active-cells is reached ·
+            4 ambiguous name · 5 human confirmation required`;
 
 /**
  * @param {string[]} [argv]

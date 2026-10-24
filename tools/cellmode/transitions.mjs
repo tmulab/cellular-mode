@@ -88,10 +88,15 @@ export function cmdResume(root, { positional, options }, env) {
   return { lines: [...reconnectLines(cell), 'Shall we continue?'] };
 }
 
-/** @param {string} root @param {State} st @param {IndexRow} row
+/** The one closing write path, shared with the in-operation transitions
+ * (./cell-in-operation.mjs): log first, then the cell file, the INDEX row and the
+ * projection. `entry.patch` carries cell FIELDS the closure also sets (the operation
+ * link, the base commit, the spend); the log renderer ignores it.
+ * @param {string} root @param {State} st @param {IndexRow} row
  * @param {{ status: string, facts: string, next: string, decisions?: unknown,
- *   build?: unknown, note?: unknown }} entry @param {NodeJS.ProcessEnv} [env] @returns {Cell} */
-function close(root, st, row, entry, env) {
+ *   build?: unknown, note?: unknown, patch?: Record<string, unknown> }} entry
+ * @param {NodeJS.ProcessEnv} [env] @returns {Cell} */
+export function close(root, st, row, entry, env) {
   const slug = rowSlug(row);
   const stamp = now(env);
   const prior = readCell(root, slug) ?? makeCell({ name: row.name, id: slug, area: row.area });
@@ -100,6 +105,7 @@ function close(root, st, row, entry, env) {
   appendLog(root, { ...entry, timestamp: stamp, cell: row.name, build });
   const cell = makeCell({
     ...prior,
+    ...(entry.patch ?? {}),
     name: row.name,
     id: slug,
     status: entry.status,

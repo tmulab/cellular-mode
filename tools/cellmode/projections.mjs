@@ -28,9 +28,34 @@ export function operationHeaderLines(op) {
   ];
 }
 
-/** @param {Cell} cell @param {Operation | null} [op] @returns {string} */
-export function renderCurrentCell(cell, op = null) {
-  const head = operationHeaderLines(op);
+/** @type {(value: unknown) => string} */
+const tableCell = (value) => oneLine(value).replaceAll('|', '\\|');
+
+/** The table of the 🔵 cells an operation carries above the cell projection (docs/03 §5,
+ * with the columns cell R4a declares: the conflict column belongs to the crossing, which
+ * is not built). Rendered from the SECOND active cell on: with one active cell
+ * CURRENT-CELL.md must stay exactly the operation header plus the cell file, byte for byte.
+ * @param {ReadonlyArray<{ name?: unknown, area?: unknown, baseCommit?: unknown,
+ *   nextStep?: unknown }>} cells @returns {string[]} */
+export function activeCellsLines(cells) {
+  if (cells.length < 2) return [];
+  return [
+    '| Cell | Area | Base commit | Next step |',
+    '|---|---|---|---|',
+    ...cells.map((c) => `| ${tableCell(c.name)} | ${tableCell(c.area)} | `
+      + `${tableCell(c.baseCommit)} | ${tableCell(c.nextStep)} |`),
+    '',
+  ];
+}
+
+/** @param {Cell} cell @param {Operation | null} [op]
+ * @param {ReadonlyArray<{ name?: unknown, area?: unknown, baseCommit?: unknown,
+ *   nextStep?: unknown }>} [activeCells] @returns {string} */
+export function renderCurrentCell(cell, op = null, activeCells = []) {
+  const header = operationHeaderLines(op);
+  // No header means no operation is 🔵, and then there is no table either: the table is
+  // part of the operation projection, never of the plain one-active-cell file.
+  const head = header.length === 0 ? [] : [...header, ...activeCellsLines(activeCells)];
   return head.length === 0 ? renderCellFile(cell) : `${head.join('\n')}\n${renderCellFile(cell)}`;
 }
 

@@ -117,9 +117,13 @@ Opening an operation is four declarations, asked one at a time (the file format 
 4. **Planned cells** — the cells the orchestrator may open on its own.
 
 Then the lifecycle is short: cells open, work and close exactly as described above, each
-carrying `Operation:` in its file → **pausing the operation pauses every 🔵 cell under
-it**, one closure entry each → **completing it requires an explicit human confirmation
-and no 🔵 cell left**, like completing a cell, never on the agent's initiative.
+carrying `Operation:` and `Base commit:` in its file → **`op pause` and `op complete`
+refuse while a cell of the operation is 🔵** (exit 3): the cells are paused first, each
+with its own facts and its own next step, because a pause nobody wrote is fiction and
+neither the CLI nor the orchestrator may invent one — cascading is the human's decision,
+not a default (decision of cell R3, VERIFIED 2026-10-24) → **completing the operation
+then requires an explicit human confirmation**, like completing a cell, never on the
+agent's initiative.
 
 ### Opening a cell beside another: naming the conflicts
 
@@ -138,13 +142,13 @@ A cell that is **not** in `Planned cells` is not the orchestrator's to open. It 
 human's yes, recorded as an amendment to the pack, and the amendment never touches the
 finish line.
 
-**Decided, and not yet built.** The model above is **decided**; it replaces the "no
-mechanical multi-agent locking" gap this file used to list as an open question. Its
-enforcement is **PROPOSED**: `tools/cellmode` implements none of it today, so the
-operation file, the `Operation:` field, the crossing above and the amendment entry are
-**written by hand by the orchestrator**, and `cellmode check` still applies the old rule,
-reporting a second 🔵 cell as a finding. Cells R3–R5 of the revision plan carry the CLI
-work; until they land, the discipline is the only enforcement.
+**Decided, and partly built** (VERIFIED 2026-10-24). The model above replaces the "no
+mechanical multi-agent locking" gap this file used to list as an open question. Built:
+`op open|pause|complete|status`, the `Operation:`/`Base commit:` fields written by `open`,
+the `max-active-cells` ceiling, the amendment entry via `--amend-pack --confirm`, and a
+`check` that reports `two-active` only outside an operation (`over-ceiling` inside).
+**PROPOSED:** the mechanical crossing above (cell R4b) — until it lands the orchestrator
+names the conflicts by hand — and the remaining `check` findings (cell R5).
 
 ## What this lifecycle does NOT specify — open issues
 

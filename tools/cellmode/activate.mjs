@@ -65,6 +65,6 @@ export function activate(root, st, { row, name, slug, patch, env }) {
     name: cell.name, slug, area: cell.area, status: '🔵', lastVisit: day, nextStep: cell.nextStep,
   });
   writeIndex(root, rows);
-  writeCurrentActive(root, cell);
+  writeCurrentActive(root, cell, rows);
   return cell;
 }

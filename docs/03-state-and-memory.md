@@ -119,12 +119,12 @@ against the ceiling, the human's pending decisions, the finish line with each it
 and then the table of the active cells:
 
 ```markdown
-# Operation: Go live · 🔵 · spend 1.2k/2k · pending: the deploy window
-Finish line: 1 ✔ published · 2 🔵 login · 3 📋 enrolment 404 · 4 📋 module 1 · 5 📋 admin
-| Cell | Status | Conflicts declared | Next step |
+# Operation: Go live · 🔵 · spend 1.2k/2k
+Finish line: published · login · enrolment 404 · module 1 · admin
+| Cell | Area | Base commit | Next step |
 |---|---|---|---|
-| Login | 🔵 | none | run `npm test -w auth` |
-| Enrolment | 🔵 | shares the test db with Login | open src/enrol.ts line 40 |
+| Login | auth | 3f2a9c1 | run `npm test -w auth` |
+| Enrolment | enrol | 3f2a9c1 | open src/enrol.ts line 40 |
 ```
 
 ## 6. `parking-lot.md` — captured ideas
@@ -195,6 +195,6 @@ active cells, a pause with no next step, a completion without `--confirm`), docu
 codes, and a `CELLMODE_NOW` override for byte-identical state in examples and tests.
 Hand-editing the files is fully supported and gives the same result.
 
-**The operation layer in the CLI, today** (VERIFIED 2026-10-24): `op open|pause|complete|status`
-write the operation file, its log entries and the `CURRENT-CELL.md` header. Not yet: the cell
-`Operation`/`Base commit`/`Spend` fields on open, the conflict check and the amendment — by hand.
+**The operation layer in the CLI, today** (VERIFIED 2026-10-24): `op` commands, cells opened
+inside an operation with `Operation`/`Base commit`, `--spend` on close, the ceiling and the
+amendment. Not yet: the conflict crossing (R4b) and the new `check` findings (R5).

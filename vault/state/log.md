@@ -733,3 +733,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Operation log heading 'Operation:' is invisible to log.parseLog/check by design; op pause refuses instead of cascading (docs/02 text to reconcile in R4/R6); resume keeps the frozen finish line; human widened scope to the two count assertions, example vaults and two doc lines
 **Build:** green (typecheck clean; node --test 1500 pass / 0 fail / 0 skipped; gates 882 files clean; verify:final runs next as the last action before commit)
 **Next step:** —
+
+---
+## 2026-10-24 10:52 · Cell: R4a parallel cells in an operation
+**Status:** ✔
+**Facts:** Plan v2 cell R4a: cells inside an active operation — new cell-in-operation.mjs (156), cell-in-operation-rules.mjs (118), cell-in-operation-state.mjs (72); open requires the in/out boundary flags, writes Operation and Base commit (git HEAD or UNKNOWN), allows cells up to the pack's max-active-cells (default 1), refuses an unplanned cell unless amend-pack is confirmed, which appends a Pack amendment entry without touching the finish line; pause/complete need a name with more than one active cell (exit 4 if ambiguous) and accept a spend value; check reports two-active only outside an operation and over-ceiling inside; CURRENT-CELL.md lists active cells (byte-identical to R3 with one). Without an operation the old code path runs unchanged. Scope widened by the human: boundary flags added to two R3 fixture calls (assertions untouched); AGENTS.md:19, docs/02 and docs/03 rewritten to the CLI as built. 18 new tests.
+**Decisions:** The in/out flags are the boundary; ceiling counts every active row; over-ceiling inside an operation; human authorised on 2026-10-24 that the orchestrator approves and commits cells through R10b while away, stopping before R11; push, R11, destructive operations and test-assertion changes still need the human
+**Build:** green (typecheck clean; node --test 1518 pass / 0 fail / 0 skipped; gates clean; verify:final runs next)
+**Next step:** —

@@ -35,7 +35,7 @@ function linkCellToOperation(root, slug, name = 'Go Live') {
 
 test('op pause and op complete are refused while a cell of the operation is 🔵', () => {
   const root = openedProject(freshRoot());
-  run(root, ['open', 'Login', '--area', 'auth', '--next', 'run `npm test`']);
+  run(root, ['open', 'Login', '--area', 'auth', '--in', 'src/login.ts', '--out', 'the router', '--next', 'run `npm test`']);
   linkCellToOperation(root, 'login');
   const paused = run(root, ['op', 'pause', '--facts', 'f', '--next', 'n'], { expect: 3 });
   assert.match(paused.stderr,
@@ -86,7 +86,7 @@ test('op status: the active operation, the waiting list, or neither', () => {
 
 test('check stays green on a log that carries operation entries', () => {
   const root = openedProject(freshRoot());
-  run(root, ['open', 'Login', '--area', 'auth']);
+  run(root, ['open', 'Login', '--area', 'auth', '--in', 'src/login.ts', '--out', 'the router']);
   linkCellToOperation(root, 'login');
   run(root, ['pause', '--facts', 'wrote the parser', '--next', 'run `npm test`']);
   run(root, ['op', 'pause', '--facts', 'cell 1 of 2 closed', '--next', 'open Enrolment']);

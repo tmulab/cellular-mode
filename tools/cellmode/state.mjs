@@ -11,7 +11,9 @@ import { parseIndex, renderIndex } from './index-table.mjs';
 import { parseLog, renderLogEntry } from './log.mjs';
 import { parseCellFile, renderCellFile } from './cell-file.mjs';
 import { parseOperationFile, renderOperationFile } from './operation-file.mjs';
-import { parseCurrentCell, renderCurrentCell, renderNoActive } from './projections.mjs';
+import {
+  parseCurrentCell, renderCurrentCell, renderNoActive, byRecency,
+} from './projections.mjs';
 import { skeletonFiles } from './skeleton.mjs';
 import { CliError, EXIT } from './errors.mjs';
 
@@ -78,6 +80,9 @@ export function readState(root) {
     indexRows: parseIndex(indexText),
     logEntries: parseLog(logText),
     current: parseCurrentCell(currentText),
+    // The operation layer, for the guard: `check` needs the 🔵 operation to know which
+    // ceiling applies, and the state it reads is the state on disk, never a parameter.
+    operation: activeOperation(root),
   };
 }
 
@@ -131,9 +136,19 @@ export function activeOperation(root) {
   return listOperations(root).find((o) => o.status === '🔵') ?? null;
 }
 
-/** @param {string} root @param {Cell} cell */
-export function writeCurrentActive(root, cell) {
-  writeFileSync(statePaths(root).current, renderCurrentCell(cell, activeOperation(root)), 'utf8');
+/** The projection of the cell that is active NOW, plus — inside an operation with more
+ * than one 🔵 cell — the table of all of them. `rows` is the INDEX as it has just been
+ * written, so the table and the row statuses cannot disagree.
+ * @param {string} root @param {Cell} cell @param {ReadonlyArray<IndexRow>} [rows] */
+export function writeCurrentActive(root, cell, rows = []) {
+  const active = rows.filter((r) => r.status === '🔵').map((r) => ({
+    name: r.name,
+    area: r.area,
+    nextStep: r.nextStep,
+    baseCommit: readCell(root, r.slug || slugify(r.name))?.baseCommit ?? '',
+  }));
+  writeFileSync(statePaths(root).current,
+    renderCurrentCell(cell, activeOperation(root), active), 'utf8');
 }
 
 /** @param {string} root @param {ReadonlyArray<IndexRow>} rows */
@@ -148,9 +163,11 @@ export function writeCurrentIdle(root, rows) {
 export function refreshCurrent(root) {
   const p = requireState(root);
   const rows = parseIndex(read(p.index));
-  const row = rows.find((r) => r.status === '🔵');
+  // With several 🔵 cells the file projects the most recently visited one (ties keep the
+  // INDEX order), which is the one a reader at Level 3 is most likely to be returning to.
+  const row = byRecency(rows.filter((r) => r.status === '🔵'))[0];
   const cell = row ? readCell(root, row.slug || slugify(row.name)) : null;
-  if (cell) writeCurrentActive(root, cell);
+  if (cell) writeCurrentActive(root, cell, rows);
   else writeCurrentIdle(root, rows);
 }
 
