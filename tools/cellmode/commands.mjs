@@ -21,6 +21,7 @@ import {
   cmdOpen, cmdResume, cmdPause, cmdComplete,
 } from './transitions.mjs';
 import { cmdOp } from './operation-commands.mjs';
+import { cmdReport } from './report-command.mjs';
 import { crossState, renderTable, worst } from './conflicts.mjs';
 import {
   openInOperation, resumeInOperation, pauseInOperation, completeInOperation,
@@ -135,7 +136,10 @@ export function cmdCheck(root, { positional, options }) {
   assertAllowed(options, ['root'], 'check');
   assertNoPositional(positional, 'check');
   const st = readState(root);
-  const findings = checkState(st);
+  // The map's findings are appended HERE and not inside `checkState`: `check` reports a
+  // stale map (exit 2, like any other finding), and no lifecycle transition is refused for
+  // one — see `state.mjs`, `reportFindings`.
+  const findings = [...checkState(st), ...st.reportFindings];
   if (findings.length) {
     throw new CliError(`integrity check failed — the log is truth, fix the projections:\n${
       formatFindings(findings)}`, EXIT.INTEGRITY);
@@ -176,5 +180,6 @@ export const COMMANDS = {
   status: cmdStatus,
   check: cmdCheck,
   conflicts: cmdConflicts,
+  report: cmdReport,
   op: cmdOp,
 };

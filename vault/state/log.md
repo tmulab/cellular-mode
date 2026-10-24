@@ -806,3 +806,19 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Gate allowlist entry approved by the human in conversation on 2026-10-24; an operation no cell references stays invisible to the Observer (documented)
 **Build:** green on main (typecheck clean; node --test 1577 pass / 0 fail / 0 skipped; gates clean; verify:final next)
 **Next step:** —
+
+---
+## 2026-10-24 13:46 · Operation: Revisao v2 ate R10b
+**Status:** 🔵
+**Pack amendment:** spend ceiling 0 → — (no ceiling declared: nothing in this operation spends money; a numeric 0 would flag any recorded spend), approved by human in conversation
+**Finish line:** 1. R4b conflicts between cells · 2. R5 new check findings · 3. R6 operation and worker skills · 4. R7 generated map · 5. R8 observer operation view · 6. R9 data-aware light gate · 7. R10 swarm rehearsal · 8. R10b bootstrap upgrade
+**Fingerprint:** 07f94c3ff83e4a11aa26c85366d130366cab8a0aa5c24a05a010f9bad71fe926
+**Planned cells:** r9-data-aware-light-gate, r6-operation-and-worker-skills, r10b-bootstrap-upgrade, r8-observer-operation-view, r4b-conflicts-between-cells, r5-new-check-findings, r7-generated-map, r10-swarm-rehearsal
+
+---
+## 2026-10-24 14:05 · Cell: R7 generated map
+**Status:** ✔
+**Facts:** cellmode report writes a deterministic SVG map from the vault: report-model.mjs (193) and report-svg.mjs (137) are pure, report-command.mjs (56) composes, I/O through state.mjs (199). Map shows the active operation with each finish-line item's state (slug match, at least two whole tokens), cells by status with last fact, what waits on the human (paused next steps, parked lines with 'human'), totals; every string XML-escaped; same vault, same bytes; a sha256 of log, INDEX and operations is embedded. New finding map-stale in check-report.mjs (47) fires when an existing map's fingerprint differs from the sources; no map, no finding. 15 new tests. Integrated from a worker worktree outside the repository.
+**Decisions:** map-stale is reported by cmdCheck only, never by the guard that runs before transitions: a stale drawing must never refuse to record a closure (rule 2); no map.svg is committed in this repository, so the map is generated on demand instead of going stale; human approved the spend ceiling change to — (pack amendment in the log)
+**Build:** green on main (typecheck clean; node --test 1592 pass / 0 fail / 0 skipped; gates clean; verify:final next)
+**Next step:** —

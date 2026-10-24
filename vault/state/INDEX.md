@@ -100,4 +100,4 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [R8 observer operation view](cells/r8-observer-operation-view.md) | observer | ✔ | 2026-10-24 | — |
 | [R4b conflicts between cells](cells/r4b-conflicts-between-cells.md) | tools-cellmode | ✔ | 2026-10-24 | — |
 | [R5 new check findings](cells/r5-new-check-findings.md) | tools-cellmode | ✔ | 2026-10-24 | — |
-| [R7 generated map](cells/r7-generated-map.md) | tools-cellmode | 🔵 | 2026-10-24 | Read state.mjs, operation-lookup.mjs, check-layer.mjs and the INDEX/log parsers and write which fields the map needs and where each comes from |
+| [R7 generated map](cells/r7-generated-map.md) | tools-cellmode | ✔ | 2026-10-24 | — |

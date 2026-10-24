@@ -38,6 +38,10 @@ Commands:
                                           🔵 cell of the active operation and print the
                                           | Cell | Overlapping paths | Shared resources |
                                           Verdict | table (overlap / shared / none)
+  report [--out <path>]                   write the map of the vault as SVG
+                                          (default: vault/state/map.svg) — generated
+                                          from log.md, INDEX.md and operations/, never
+                                          written by hand
   op open <name> --finish-line "a; b"
           --pack "<key>: <value> · …"
           --bar "<text>" --cells "a, b"   open (or resume ⏸) the ONE active operation

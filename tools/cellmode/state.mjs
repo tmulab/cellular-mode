@@ -3,7 +3,7 @@
 import {
   existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, appendFileSync,
 } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { statePaths, STATE_REL } from './paths.mjs';
 import { slugify } from './slug.mjs';
 import { parseIndex, renderIndex } from './index-table.mjs';
@@ -14,6 +14,7 @@ import {
   parseCurrentCell, renderCurrentCell, renderNoActive, byRecency,
 } from './projections.mjs';
 import { operationLayerFindings } from './check-layer.mjs';
+import { checkReport } from './check-report.mjs';
 import { skeletonFiles } from './skeleton.mjs';
 import { CliError, EXIT } from './errors.mjs';
 
@@ -24,10 +25,15 @@ import { CliError, EXIT } from './errors.mjs';
 /** @type {(file: string) => string} */
 const read = (file) => (existsSync(file) ? readFileSync(file, 'utf8') : '');
 
+/** The ONE write path: it creates the directory first, so a new state file cannot forget
+ * to. @type {(file: string, text: string) => void} */
+const write = (file, text) => {
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, text, 'utf8');
+};
+
 /** @param {string} root @returns {boolean} */
-export function isInitialized(root) {
-  return existsSync(statePaths(root).state);
-}
+export const isInitialized = (root) => existsSync(statePaths(root).state);
 
 /** @param {string} root @returns {import('./types.mjs').StatePaths} */
 export function requireState(root) {
@@ -39,27 +45,28 @@ export function requireState(root) {
   return p;
 }
 
-/** @param {string} stateDir @returns {Record<string, string>} */
+// The generated map is a PRODUCT of the vault rather than state, so it is not in
+// `statePaths`: `cellmode report` is the only writer and the guard only reads it.
+/** @param {string} root @returns {string} */
+export const mapFile = (root) => join(statePaths(root).state, 'map.svg');
+export const writeMap = write;
+
+/** Where each skeleton file goes. The KEYS of `skeletonFiles` are the relative POSIX paths,
+ * so the mapping is derived from them and cannot list a file the skeleton does not define.
+ * @param {string} stateDir @returns {Record<string, string>} */
 export function skeletonTargets(stateDir) {
-  return {
-    'log.md': join(stateDir, 'log.md'),
-    'INDEX.md': join(stateDir, 'INDEX.md'),
-    'CURRENT-CELL.md': join(stateDir, 'CURRENT-CELL.md'),
-    'parking-lot.md': join(stateDir, 'parking-lot.md'),
-    'cells/README.md': join(stateDir, 'cells', 'README.md'),
-    'operations/README.md': join(stateDir, 'operations', 'README.md'),
-  };
+  return Object.fromEntries(Object.keys(skeletonFiles())
+    .map((rel) => [rel, join(stateDir, ...rel.split('/'))]));
 }
 
 /** @param {string} root */
 export function writeSkeleton(root) {
   const p = statePaths(root);
-  mkdirSync(p.cells, { recursive: true });
-  mkdirSync(p.operations, { recursive: true });
   const target = skeletonTargets(p.state);
+  // `write` creates each parent directory, and the skeleton has a README in both, so
+  // `cells/` and `operations/` exist after this loop without a mkdir of their own.
   for (const [rel, content] of Object.entries(skeletonFiles())) {
-    const file = target[rel];
-    if (file !== undefined) writeFileSync(file, content, 'utf8');
+    write(target[rel] ?? join(p.state, rel), content);
   }
   return p;
 }
@@ -71,40 +78,40 @@ export function readState(root) {
   const logText = read(p.log);
   const currentText = read(p.current);
   const indexRows = parseIndex(indexText);
+  const operationTexts = listOperationTexts(root);
   return {
-    paths: p, indexText, logText, currentText, indexRows,
+    paths: p, indexText, logText, currentText, indexRows, operationTexts,
     logEntries: parseLog(logText),
     current: parseCurrentCell(currentText),
-    // The operation layer, for the guard: the 🔵 operation says which ceiling applies, and
-    // the state it reads is the state on disk, never a parameter.
+    parkingLotText: read(p.parkingLot),
+    // The operation layer for the guard: the 🔵 operation read from disk, never from a
+    // parameter, plus the findings `check-layer.mjs` composes from THIS module's reads —
+    // injected, so `check.mjs` stays pure and this stays the only opener of a vault file.
     operation: activeOperation(root),
-    // The guard's operation findings, composed in `check-layer.mjs` from the reads of THIS
-    // module, injected: `check.mjs` stays pure and this stays the only module that opens a
-    // vault file. A vault with no operation file produces none.
     layerFindings: operationLayerFindings({
-      root, logText, rows: indexRows, texts: listOperationTexts(root),
+      root, logText, rows: indexRows, texts: operationTexts,
       operations: listOperations(root), cell: (slug) => readCell(root, slug),
+    }),
+    // The map's finding is kept APART from `layerFindings` on purpose: `check` reports it
+    // (commands.mjs), and no lifecycle transition is refused for it. A map is a product of
+    // the vault, and refusing to RECORD a closure because a picture went stale would deny
+    // rule 2 (resumable <=> recorded) to protect a drawing.
+    reportFindings: checkReport({
+      mapText: read(mapFile(root)), logText, indexText, operationTexts,
     }),
   };
 }
 
-/** @param {string} root @param {string} slug @returns {Cell | null} */
-export function readCell(root, slug) {
-  const file = statePaths(root).cellFile(slug);
-  return existsSync(file) ? parseCellFile(readFileSync(file, 'utf8')) : null;
-}
+/** A missing file reads as '', which `parseCellFile` answers with null: one path, not two.
+ * @param {string} root @param {string} slug @returns {Cell | null} */
+export const readCell = (root, slug) => parseCellFile(read(statePaths(root).cellFile(slug)));
 
 /** @param {string} root @param {Cell} cell */
-export function writeCell(root, cell) {
-  const p = statePaths(root);
-  mkdirSync(p.cells, { recursive: true });
-  writeFileSync(p.cellFile(cell.id), renderCellFile(cell), 'utf8');
-}
+export const writeCell = (root, cell) =>
+  write(statePaths(root).cellFile(cell.id), renderCellFile(cell));
 
 /** @param {string} root @param {ReadonlyArray<IndexRow>} rows */
-export function writeIndex(root, rows) {
-  writeFileSync(statePaths(root).index, renderIndex(rows), 'utf8');
-}
+export const writeIndex = (root, rows) => write(statePaths(root).index, renderIndex(rows));
 
 /** Every operation file as raw TEXT, README skipped: what the guard reads to name a pack no
  * parser accepts. @param {string} root @returns {Array<{ slug: string, text: string }>} */
@@ -129,17 +136,12 @@ export function listOperations(root) {
 }
 
 /** @param {string} root @param {string} slug @returns {Operation | null} */
-export function readOperation(root, slug) {
-  const file = statePaths(root).operationFile(slug);
-  return existsSync(file) ? parseOperationFile(readFileSync(file, 'utf8')) : null;
-}
+export const readOperation = (root, slug) =>
+  parseOperationFile(read(statePaths(root).operationFile(slug)));
 
 /** @param {string} root @param {Operation} op */
-export function writeOperation(root, op) {
-  const p = statePaths(root);
-  mkdirSync(p.operations, { recursive: true });
-  writeFileSync(p.operationFile(op.id), renderOperationFile(op), 'utf8');
-}
+export const writeOperation = (root, op) =>
+  write(statePaths(root).operationFile(op.id), renderOperationFile(op));
 
 /** The one 🔵 operation, or null. @param {string} root @returns {Operation | null} */
 export function activeOperation(root) {
@@ -157,15 +159,12 @@ export function writeCurrentActive(root, cell, rows = []) {
     nextStep: r.nextStep,
     baseCommit: readCell(root, r.slug || slugify(r.name))?.baseCommit ?? '',
   }));
-  writeFileSync(statePaths(root).current,
-    renderCurrentCell(cell, activeOperation(root), active), 'utf8');
+  write(statePaths(root).current, renderCurrentCell(cell, activeOperation(root), active));
 }
 
 /** @param {string} root @param {ReadonlyArray<IndexRow>} rows */
-export function writeCurrentIdle(root, rows) {
-  const paused = rows.filter((r) => r.status === '⏸');
-  writeFileSync(statePaths(root).current, renderNoActive(paused, activeOperation(root)), 'utf8');
-}
+export const writeCurrentIdle = (root, rows) => write(statePaths(root).current,
+  renderNoActive(rows.filter((r) => r.status === '⏸'), activeOperation(root)));
 
 /** Rewrite CURRENT-CELL.md from what is on disk now: the operation header follows the
  * operation's own status, so an `op` command refreshes the projection without knowing anything

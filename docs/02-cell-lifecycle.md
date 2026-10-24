@@ -169,7 +169,9 @@ UNKNOWN and SAY so — one notice line in the output, never silence and never a 
 are deliberately not findings there, because "there is no repository here" is a fact
 about the environment and would leave every vault in a plain directory red with nothing
 to fix. When git does answer, an UNKNOWN answer is the vault's own gap and IS a finding
-(exit 2). **PROPOSED:** `map-stale` and the operation-aware report (cell R7).
+(exit 2). **VERIFIED 2026-10-24 (R7):** `cellmode report` draws `vault/state/map.svg` from
+`log.md`, `INDEX.md` and `operations/` alone, deterministically, and embeds their sha256 —
+which `map-stale` reads back: `check` reports a stale map, no transition is refused for it.
 
 ## What this lifecycle does NOT specify — open issues
 
