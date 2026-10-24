@@ -101,3 +101,4 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [R4b conflicts between cells](cells/r4b-conflicts-between-cells.md) | tools-cellmode | ✔ | 2026-10-24 | — |
 | [R5 new check findings](cells/r5-new-check-findings.md) | tools-cellmode | ✔ | 2026-10-24 | — |
 | [R7 generated map](cells/r7-generated-map.md) | tools-cellmode | ✔ | 2026-10-24 | — |
+| [R10 swarm rehearsal](cells/r10-swarm-rehearsal.md) | tools-cellmode | 🔵 | 2026-10-24 | Read conflicts.test.mjs, cell-in-operation.test.mjs and report.test.mjs and reuse their temp-root and git helpers |
