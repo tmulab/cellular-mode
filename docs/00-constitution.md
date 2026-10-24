@@ -69,9 +69,10 @@ Every claim an agent makes carries one of four labels. The label is part of the 
 
 - When a claim cannot be labelled, it is **UNKNOWN**, and work stops at the point where
   the UNKNOWN matters instead of proceeding on an optimistic reading.
-- **A gate that cannot run is UNKNOWN, never green.** It is reported with a warning
-  marker and the words that say what *was* checked instead — never with the success
-  marker of the gate it could not perform.
+- **A gate that cannot run is UNKNOWN, never green.** It is reported with a warning marker and the
+  words that say what *was* checked instead — never with the success marker of the gate it could not
+  perform. One bounded case (human decision, 2026-10-24): `cellmode check` without git prints an
+  UNKNOWN notice for its two git checks and exits 0, because Article 8 needs git: nothing is verified there.
 - "The tests pass" is not an answer to "does it work?". The answer has the shape:
   *I ran this real function over this realistic data, the output fell inside the scope
   declared beforehand, and I proved it goes red without the fix.*

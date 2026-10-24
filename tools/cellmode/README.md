@@ -97,8 +97,7 @@ before 🔵 before ⏸, no match 📋), the cells by status with their last fact
 next step, and the parked lines naming one by a configurable word list that ships no name) and the totals.
 `report-model.mjs` (vault → object) and `report-svg.mjs` (object → string) are PURE — same vault, same bytes; no
 clock, no external font, no script, every vault string XML-escaped — and the embedded `<!-- cellmode-source:
-sha256:… -->` over the three sources is what `map-stale` compares, reported by `check` and never a refusal of a
-transition.
+sha256:… -->` over the three sources is what `map-stale` compares, reported by `check` and never a refusal of a transition.
 
 ## Exit codes
 
@@ -133,7 +132,8 @@ its own five, and a vault with no `operations/` file and no map produces the byt
 never guessed; the merge range starts at the opening entry's TIMESTAMP (INFERRED, `git log --since`).
 **Without git, or outside a work tree, `cell-stale` and `merge-unrecorded` are UNKNOWN**: one NOTICE line on stderr
 (`cellmode check · UNKNOWN: …`), never silence and never a pass — and deliberately NOT a finding, which would leave
-every vault in a plain directory red with nothing to fix. When git DOES answer, an UNKNOWN answer IS a finding.
+every vault in a plain directory red with nothing to fix. When git DOES answer, an UNKNOWN answer IS a finding. Safe
+because Article 8 (`verify:final`, the hooks) needs git too: without it no completion is ever verified (human, 2026-10-24).
 
 The log is truth and only ever **appended** (`fs.appendFileSync`); every other file is a projection, and the log wins.
 

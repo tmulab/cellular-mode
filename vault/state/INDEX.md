@@ -102,3 +102,4 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [R5 new check findings](cells/r5-new-check-findings.md) | tools-cellmode | ✔ | 2026-10-24 | — |
 | [R7 generated map](cells/r7-generated-map.md) | tools-cellmode | ✔ | 2026-10-24 | — |
 | [R10 swarm rehearsal](cells/r10-swarm-rehearsal.md) | tools-cellmode | ✔ | 2026-10-24 | — |
+| [No-git UNKNOWN rationale](cells/no-git-unknown-rationale.md) | method-docs | ✔ | 2026-10-24 | — |

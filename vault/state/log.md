@@ -841,3 +841,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Quality bar:** Passes: Trilateral green with real counts, every file <= 200 lines, verify:final green at merge. Fails: an existing test assertion changed, another cell's file touched, a claim without a label. Human authorised on 2026-10-24 (in conversation, while away 1.5h): the orchestrator marks cells done and commits to main through R10b, stopping before R11.
 **Planned cells:** r9-data-aware-light-gate, r6-operation-and-worker-skills, r10b-bootstrap-upgrade, r8-observer-operation-view, r4b-conflicts-between-cells, r5-new-check-findings, r7-generated-map, r10-swarm-rehearsal
 **Spend so far:** —
+
+---
+## 2026-10-24 17:43 · Cell: No-git UNKNOWN rationale
+**Status:** ✔
+**Facts:** docs/00-constitution.md Article 3 (200 lines): the gate-that-cannot-run bullet names the one bounded case — cellmode check without git prints an UNKNOWN notice for cell-stale and merge-unrecorded and exits 0, because Article 8 needs git and nothing is verified there. tools/cellmode/README.md (200 lines): the UNKNOWN paragraph states the same reason and the decision; one one-word line joined to stay within 200. The parking-lot line asking for this decision is resolved by a new line (append-only).
+**Decisions:** Human kept the no-git rule on 2026-10-24: UNKNOWN notice and exit 0 without git; with git, an unknown Base commit stays a finding
+**Build:** green (typecheck clean; node --test 1599 pass / 0 fail / 0 skipped; gates clean; verify:final next)
+**Next step:** —
