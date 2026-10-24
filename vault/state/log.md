@@ -822,3 +822,22 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** map-stale is reported by cmdCheck only, never by the guard that runs before transitions: a stale drawing must never refuse to record a closure (rule 2); no map.svg is committed in this repository, so the map is generated on demand instead of going stale; human approved the spend ceiling change to — (pack amendment in the log)
 **Build:** green on main (typecheck clean; node --test 1592 pass / 0 fail / 0 skipped; gates clean; verify:final next)
 **Next step:** —
+
+---
+## 2026-10-24 14:29 · Cell: R10 swarm rehearsal
+**Status:** ✔
+**Facts:** tools/cellmode/rehearsal-swarm.test.mjs (172) with rehearsal-helpers.mjs (89): replays 22-23/10/2026 in a temp git repository — op open with 5 frozen items and 10 planned cells; 4 cells up to the ceiling, the 5th refused (exit 3); an overlapping boundary refused; an unplanned cell refused then amended without moving the fingerprint; closes with spend, discoveries parked; a stale worker (Base commit on a side branch) reported as cell-stale; report byte-identical twice; op complete refused with an active cell, accepted after; finish-line fingerprint identical from opening to closing. 7 subtests. Not covered: a positive merge-unrecorded case (kept in check-git.test.mjs). Integrated from a worker worktree outside the repository.
+**Decisions:** Helper named rehearsal-helpers.mjs instead of rehearsal-fixture.mjs because the cellmode-cli bootstrap manifest would ship a -fixture.mjs file to adopters (parked gap)
+**Build:** green on main (node --test 1599 pass / 0 fail / 0 skipped; verify:final next)
+**Next step:** —
+
+---
+## 2026-10-24 14:29 · Operation: Revisao v2 ate R10b
+**Status:** ✔
+**Facts:** All eight finish-line items done: R4b, R5, R6, R7, R8, R9, R10, R10b. Up to four cells ran in parallel as workers in isolated worktrees; the orchestrator integrated one at a time with verify:final before every commit. Two pack limits held and went back to the human (a gate allowlist line for R8, the push); one pack amendment (spend ceiling 0 to undeclared) approved by the human. Lessons parked: worktrees created from the last pushed commit, worktrees inside the repo break main's scans, commit openings before creating a worktree.
+**Finish line:** 1. R4b conflicts between cells · 2. R5 new check findings · 3. R6 operation and worker skills · 4. R7 generated map · 5. R8 observer operation view · 6. R9 data-aware light gate · 7. R10 swarm rehearsal · 8. R10b bootstrap upgrade
+**Fingerprint:** 07f94c3ff83e4a11aa26c85366d130366cab8a0aa5c24a05a010f9bad71fe926
+**Pack:** spend ceiling: — · publisher: the maintainer · requires-yes: push, cell R11, any destructive operation, any protected-resource mutation, changing an existing test assertion, moving the finish line · denied: git push, git checkout/restore/reset/stash, writing vault/state from a worktree, touching a file outside the cell boundary · max-active-cells: 4
+**Quality bar:** Passes: Trilateral green with real counts, every file <= 200 lines, verify:final green at merge. Fails: an existing test assertion changed, another cell's file touched, a claim without a label. Human authorised on 2026-10-24 (in conversation, while away 1.5h): the orchestrator marks cells done and commits to main through R10b, stopping before R11.
+**Planned cells:** r9-data-aware-light-gate, r6-operation-and-worker-skills, r10b-bootstrap-upgrade, r8-observer-operation-view, r4b-conflicts-between-cells, r5-new-check-findings, r7-generated-map, r10-swarm-rehearsal
+**Spend so far:** —
