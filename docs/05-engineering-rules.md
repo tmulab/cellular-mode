@@ -43,14 +43,13 @@ Before writing the first test of any task, answer explicitly:
 
 > **How can we verify that this really works?**
 
-The answer counts only with a **verification test**: realistic production-shaped data (not
-`foo`/`bar`); the **expected scope declared before running** (exact values where
-deterministic, ranges and invariants where not); the **real function** run over that data,
-mocking only what is genuinely external; a **proof that it is red without the fix**; and a
-delivery report naming scenario, data, declared scope and result. *If you cannot state the
-expected scope, you do not understand the feature yet.* It is the **middle rung** of the
-ladder — above the mocked unit test, below the expensive full-system test — and unlike the
-top rung it runs on **every** task; the whole ladder is in `skills/verify/SKILL.md`.
+Only a **verification test** counts: realistic production-shaped data (not `foo`/`bar`); the
+**expected scope declared before running** (exact values where deterministic, ranges and invariants
+where not); the **real function** run over that data, mocking only what is truly external; a
+**proof that it is red without the fix**; a delivery report naming scenario, data, scope and result.
+*Cannot state the expected scope? Then you do not understand the feature yet.* It is the **middle
+rung** — above the mocked unit test, below the expensive full-system test — and unlike the top rung
+it runs on **every** task; the whole ladder is in `skills/verify/SKILL.md`.
 
 **A revert that passes is a FINDING, not relief.** Step four is *revert and read the result*,
 never *revert and confirm the red*. Green opens an investigation. The nine forms of false green,
@@ -97,6 +96,11 @@ logic that compiles and returns the wrong answer. Together they are *categorical
   setting that still calls itself "strict" is not the goal.
 - **Does the gate reach what you think it reaches?** An exclude list filters the *program*,
   not just the output; a list-driven gate is blind to whatever is off it (`skills/sanity/`).
+- **A partial gate has a floor** (`AGENTS.md` rule 4). A lighter **commit-time** gate is allowed, and
+  must reach the tests that read **every data file it touches**: a staged `*.json` fixture pulls in
+  the tests that read it, which a "which tests import this module?" selector never does, because
+  nobody imports a fixture. A **guard** set runs always; what the light gate cannot reach, the full
+  gate must, **before any delivery**. Worked example: [`examples/gates/README.md`](../examples/gates/README.md).
 
 ## 4. Scale limits
 
@@ -133,12 +137,11 @@ capability or trust boundary gets a threat-model pass first. Checklist and defau
 
 ## 7. Coverage by layer
 
-A single global percentage rewards useless tests. The target is per layer, each with its
-own criterion, and **below the target on a mandatory layer means writing the missing tests
-before the next feature**. Targets, exemptions and the report block:
-`skills/coverage/SKILL.md`. The rule behind the numbers: **a mocked test proves the mock
-works; a real-system test proves the system works.** If the answer to "does this work?"
-depends on "it works in the tests", the tests are wrong.
+A single global percentage rewards useless tests. The target is per layer, each with its own
+criterion, and **below the target on a mandatory layer means writing the missing tests before the
+next feature**. Targets, exemptions and the report block: `skills/coverage/SKILL.md`. The rule
+behind the numbers: **a mocked test proves the mock works; a real-system test proves the system
+works.** If the answer to "does this work?" depends on "it works in the tests", the tests are wrong.
 
 ## 8. Agent epistemic errors
 
@@ -168,29 +171,26 @@ wait: five minutes of drawing avoids the "build it → not what I meant → rebu
 
 ## 10. Communication and flow
 
-- **Deliver exactly what was agreed.** Delivering less is not a disservice; delivering
-  *different* is.
-- **Never require manual edits from the human.** When your code is wrong, the human explains
-  in prose and you produce the complete correction; "edit line 42 yourself" is not an
-  acceptable output.
-- **Exact paths, real errors.** Never "in the config file", never an optimistic paraphrase of
-  a stack trace. A new file justifies in one line why it did not fit in an existing one.
-- **A new question is expensive.** Before asking, check the policy, the settled decisions,
-  the attached history, and whether you can reasonably infer the answer and mark the
-  inference as yours, subject to override. Surviving all four: ask **one** focused question.
-- **Keep the checkpoint proportional** to the decision — table in
-  `templates/project-policy.md`. Too much exhausts; too little is guesswork.
+- **Deliver exactly what was agreed.** Delivering less is not a disservice; delivering *different* is.
+- **Never require manual edits from the human.** When your code is wrong, the human explains in prose
+  and you produce the complete correction; "edit line 42 yourself" is not an acceptable output.
+- **Exact paths, real errors.** Never "in the config file", never an optimistic paraphrase of a stack
+  trace. A new file justifies in one line why it did not fit in an existing one.
+- **A new question is expensive.** Before asking, check the policy, the settled decisions, the
+  attached history, and whether you can reasonably infer the answer and mark the inference as yours,
+  subject to override. Surviving all four: ask **one** focused question.
+- **Keep the checkpoint proportional** to the decision — table in `templates/project-policy.md`.
+  Too much exhausts; too little is guesswork.
 - **Document continuously**, on the spot: *context → decision → reason*.
 
 ## 11. Many packages, and more than one repository
 
-In a multi-package repository: hold the context of every affected package, propagate a
-refactor to all of them, make cross-package integration tests mandatory, and when renaming a
-field or an interface **check every consumer** — only a gate that finds them by itself can be
-trusted (§3). Living beside a legacy repository while rebuilding is a **standard** workflow,
-not an exception: read-only over the legacy, a written inventory, the new architecture
-winning every conflict, a port-log entry per port, deprecation only after the gates are green
-and a parallel-use period has passed. Procedure: `skills/port/SKILL.md`.
+In a multi-package repository: hold the context of every affected package, propagate a refactor to
+all of them, make cross-package integration tests mandatory, and when renaming a field or an
+interface **check every consumer** — only a gate that finds them by itself can be trusted (§3).
+Living beside a legacy repository while rebuilding is a **standard** workflow, not an exception:
+read-only over the legacy, a written inventory, the new architecture winning every conflict, a
+port-log entry per port, deprecation only after green gates and a parallel-use period (`skills/port/SKILL.md`).
 
 ## 12. Settled decisions
 

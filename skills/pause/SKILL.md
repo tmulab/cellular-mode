@@ -57,9 +57,9 @@ Do it carefully, in few exchanges.
 ## Deterministic alternative to hand-editing
 
 ```
-node tools/cellmode/cli.mjs pause --facts "..." --next "..." \
-    [--decisions "..."] [--build green|red "..."] [--note "..."]
-node tools/cellmode/cli.mjs complete --facts "..." --confirm [--decisions "..."]
+node tools/cellmode/cli.mjs pause [name] --facts "..." --next "..." \
+    [--decisions "..."] [--build green|red "..."] [--note "..."] [--spend "..."]
+node tools/cellmode/cli.mjs complete [name] --facts "..." --confirm [--decisions "..."]
 node tools/cellmode/cli.mjs park "<idea>"
 node tools/cellmode/cli.mjs check
 ```
@@ -76,6 +76,23 @@ repository also has `npm run verify:final`. `node tools/gates/authorization.mjs 
 `--confirm` (exit 5: human confirmation required) — the flag stands for the human's
 explicit "yes, we finished it", never for your own judgement. The CLI performs steps
 2–5 and 7 in one deterministic transaction; you still own steps 0, 1, 6 and 8.
+
+## Closing one named cell inside an operation
+
+With several cells 🔵 in the same operation, `[name]` is **required**: `pause <name>` /
+`complete <name> --confirm` close exactly that cell (exit 1 when the name is missing or
+matches nothing, exit 4 when it is ambiguous, candidates listed). With exactly one 🔵
+it stays optional. `--spend "<amount>"` records that cell's `**Spend:**`, which the
+operation sums against its ceiling. Each cell gets its OWN facts and its OWN next step:
+one pause never speaks for the others, and `CURRENT-CELL.md` keeps the operation header
+plus the remaining 🔵 cells (VERIFIED 2026-10-24 by the cell that built the layer,
+`tools/cellmode/README.md`; not re-run here).
+
+**`op pause` and `op complete` REFUSE while a cell of the operation is still 🔵**
+(exit 3: pause the cell first). There is no cascade — a pause nobody wrote is fiction,
+so neither the CLI nor you may invent one. Close the cells one by one, then the
+operation: `skills/operation/SKILL.md`. Closing the operation needs the human's
+explicit yes too, exactly like a ✔ on a cell.
 
 ## A declared condition is not a stop request
 
@@ -96,3 +113,5 @@ then do exactly what they answer; silence is not a yes. Only an explicit request
 - Never delete the file of a completed cell: it is history. Reopening the subject later
   means a NEW cell, not editing the ✔ one.
 - Never rewrite or delete past log entries, even to "fix" them: append a correction.
+- Never pause an operation over the heads of its cells, and never pause a cell you were
+  not asked about just to clear the way for `op pause`.

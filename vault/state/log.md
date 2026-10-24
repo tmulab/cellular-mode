@@ -750,3 +750,27 @@ never ran, and inventing one would be fiction in an append-only record.
 **Pack:** spend ceiling: 0 · publisher: the maintainer · requires-yes: push, cell R11, any destructive operation, any protected-resource mutation, changing an existing test assertion, moving the finish line · denied: git push, git checkout/restore/reset/stash, writing vault/state from a worktree, touching a file outside the cell boundary · max-active-cells: 4
 **Quality bar:** Passes: Trilateral green with real counts, every file <= 200 lines, verify:final green at merge. Fails: an existing test assertion changed, another cell's file touched, a claim without a label. Human authorised on 2026-10-24 (in conversation, while away 1.5h): the orchestrator marks cells done and commits to main through R10b, stopping before R11.
 **Planned cells:** r9-data-aware-light-gate, r6-operation-and-worker-skills, r10b-bootstrap-upgrade, r8-observer-operation-view, r4b-conflicts-between-cells, r5-new-check-findings, r7-generated-map, r10-swarm-rehearsal
+
+---
+## 2026-10-24 11:27 · Cell: R9 data-aware light gate
+**Status:** ✔
+**Facts:** Example light gate examples/gates/related-with-data.mjs (189) maps staged data files to the tests that read them (path-suffix literal at a segment boundary, every reference kind selects, guard folder always runs); 6 tests prove a JSON that breaks a test turns the gate red while the related-only control stays green; skills/verify (132) gains 'A partial gate has a floor'; docs/05 (200) cites rule 4. Found and fixed a false green: the nested runner inherited NODE_TEST_CONTEXT and exited 0 without running. Integrated from a worker worktree, byte-identical copy.
+**Decisions:** —
+**Build:** green on main after integration (typecheck clean; node --test 1537 pass / 0 fail / 0 skipped; gates clean; verify:final runs next)
+**Next step:** —
+
+---
+## 2026-10-24 11:27 · Cell: R10b bootstrap upgrade
+**Status:** ✔
+**Facts:** Bootstrap verb upgrade (dry-run, confirm, verbose) in six new modules (68-155 lines) with 13 tests: replaces immutable files that still hash to the record, refuses the whole upgrade if one was changed by the adopter (exit 3, zero writes), adds what the catalog gained, extends the vault skeleton without touching log.md, rewrites the manifest last; dry-run writes zero bytes (hashed). docs/12 (193) documents it. Integrated from a worker worktree, byte-identical copy.
+**Decisions:** —
+**Build:** green on main after integration (typecheck clean; node --test 1537 pass / 0 fail / 0 skipped; gates clean; verify:final runs next)
+**Next step:** —
+
+---
+## 2026-10-24 11:27 · Cell: R6 operation and worker skills
+**Status:** ✔
+**Facts:** skills/cell (120, cap 120) and skills/pause (117) cover cells inside an operation, naming conflicts, ceiling, amendments, pause by name, op pause refusing; new skills/operation (100) and skills/worker (67) with pointers in .claude/skills and adapters/claude-code; worker forbids permission laundering and never touches the vault. Orchestrator registered both in bootstrap/components/method-core.json (componentVersion 1.1.0) and the POINTERS list of tools/bootstrap/apply-generate.mjs (116), as R10b indicated, so upgrade carries them to adopters. Integrated from a worker worktree.
+**Decisions:** One commit for R9, R10b and R6: verify:final signs the whole tree, and splitting would require reverting files between commits, which the operation denies
+**Build:** green on main after integration (typecheck clean; node --test 1537 pass / 0 fail / 0 skipped; gates clean; verify:final runs next)
+**Next step:** —

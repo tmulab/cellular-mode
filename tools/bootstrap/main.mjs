@@ -21,6 +21,7 @@ import { exitFor, isBootstrapError } from './errors.mjs';
 import { runNew } from './new-flow.mjs';
 import { runExisting } from './existing-flow.mjs';
 import { runStatus, runUninstall } from './manage-flow.mjs';
+import { runUpgrade } from './upgrade.mjs';
 import { instantOf } from './clock.mjs';
 import { runVerification } from './verification-cli.mjs';
 import { USAGE, profileLines } from './usage.mjs';
@@ -34,9 +35,9 @@ export const SOURCE_ROOT = fileURLToPath(new URL('../../', import.meta.url));
  * parser sees them — one parser, no second opinion about what an option looks like. */
 export const FLAGS = Object.freeze(['confirm', 'dry-run', 'verbose', 'analyze', 'json', 'save-report']);
 
-/** The commands this CLI implements. `status` and `uninstall` act on an install that is already
- * there; neither ever reinstalls anything. */
-export const COMMANDS = Object.freeze(['new', 'existing', 'status', 'uninstall', 'verification']);
+/** The commands this CLI implements. `status`, `upgrade` and `uninstall` act on an install already
+ * there; none reinstalls, and only `upgrade` may replace a file Bootstrap wrote. */
+export const COMMANDS = Object.freeze(['new', 'existing', 'status', 'upgrade', 'uninstall', 'verification']);
 
 /** @param {string[]} argv @returns {import('../cellmode/types.mjs').ParsedArgs} */
 export function parseBootstrapArgs(argv) {
@@ -92,6 +93,11 @@ function dispatch(args, env) {
   if (command === 'status') {
     return { ...runStatus({ sourceRoot: SOURCE_ROOT, targetArg, env,
       verbose: flag(parsed.options, 'verbose') }), root };
+  }
+  if (command === 'upgrade') {
+    return { ...runUpgrade({ sourceRoot: SOURCE_ROOT, targetArg,
+      dryRun: flag(parsed.options, 'dry-run'), confirm: flag(parsed.options, 'confirm'),
+      verbose: flag(parsed.options, 'verbose'), now: instantOf(env), env }), root };
   }
   if (command === 'uninstall') {
     return { ...runUninstall({ sourceRoot: SOURCE_ROOT, targetArg,

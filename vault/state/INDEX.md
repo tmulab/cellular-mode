@@ -94,7 +94,7 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [R2 operation model](cells/r2-operation-model.md) | tools-cellmode | ✔ | 2026-10-24 | — |
 | [R3 operation commands](cells/r3-operation-commands.md) | tools-cellmode | ✔ | 2026-10-24 | — |
 | [R4a parallel cells in an operation](cells/r4a-parallel-cells-in-an-operation.md) | tools-cellmode | ✔ | 2026-10-24 | — |
-| [R9 data-aware light gate](cells/r9-data-aware-light-gate.md) | gates | 🔵 | 2026-10-24 | Read tools/gates/README.md and rule 4 in AGENTS.md, write the criterion for 'a test that reads a data file' before coding |
-| [R6 operation and worker skills](cells/r6-operation-and-worker-skills.md) | skills | 🔵 | 2026-10-24 | List the tests that read skill texts and what each pins |
-| [R10b bootstrap upgrade](cells/r10b-bootstrap-upgrade.md) | bootstrap | 🔵 | 2026-10-24 | Read status-ownership.mjs, install-manifest.mjs and writer-evolving.mjs and write how status decides each ownership class |
+| [R9 data-aware light gate](cells/r9-data-aware-light-gate.md) | gates | ✔ | 2026-10-24 | — |
+| [R6 operation and worker skills](cells/r6-operation-and-worker-skills.md) | skills | ✔ | 2026-10-24 | — |
+| [R10b bootstrap upgrade](cells/r10b-bootstrap-upgrade.md) | bootstrap | ✔ | 2026-10-24 | — |
 | [R8 observer operation view](cells/r8-observer-operation-view.md) | observer | 🔵 | 2026-10-24 | Read observer-state/model.mjs and the observer acceptance test and write where the operation enters the model without changing the API contract |

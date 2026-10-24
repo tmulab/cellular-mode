@@ -85,6 +85,16 @@ with real counts:
   not include the file, or does not know the package exists, is silently absent.
 - Commands are per project: see `vault/policy.md`.
 
+**A partial gate has a floor** (rule 4, `AGENTS.md`). When the full suite is too slow to run on
+every save, a project may add a lighter **commit-time** gate — honest only if it names what it
+skips. The minimum: (1) it selects the tests of every staged file **including data files** — a
+staged `*.json` fixture must pull in the tests that read it, which a "which tests import this
+module?" selector never does, because nobody imports a fixture; (2) a **guard** set runs always,
+whatever is staged, covering what the selector provably cannot see; (3) what the light gate cannot
+reach, the FULL gate reaches **before any delivery** — a light green is never a delivery claim, and
+a cell is closed on the full suite (Article 8), never on the commit-time one. Worked example, with
+the field failure it comes from: [`examples/gates/README.md`](../../examples/gates/README.md).
+
 **The last write decides** (Article 8). Verification belongs to the state it ran on, so run it
 LAST, in this order: 1 implement · 2 update docs and vault records · 3 stop writing · 4 fingerprint
 the state · 5 run the whole mandatory suite · 6 confirm the fingerprint did not move · 7 record the

@@ -40,6 +40,14 @@ const POINTERS = Object.freeze([
     description: 'Run the pause ritual. Use only when the human explicitly asks to stop or to note things down.',
   }),
   Object.freeze({
+    component: 'method-core', dir: 'operation', skill: 'skills/operation/SKILL.md', name: 'operation',
+    description: 'Open, monitor, amend or close an operation: the unit above the cell, inside which several cells may be active.',
+  }),
+  Object.freeze({
+    component: 'method-core', dir: 'worker', skill: 'skills/worker/SKILL.md', name: 'worker',
+    description: 'Work as a worker inside one cell of an operation: stay in its boundary, never touch the vault, report and stop.',
+  }),
+  Object.freeze({
     component: 'adaptive', dir: 'mode', skill: 'skills/mode/SKILL.md', name: 'mode',
     description: 'Apply a working mode the human declared. Never infer one, and never let it change a gate, an approval or a test.',
   }),

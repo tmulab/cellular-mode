@@ -149,7 +149,11 @@ expression. For every other provider the output is **text you apply yourself**.
 
 **Three ownership classes (H3).** *immutable* — the copied and generated installation assets, judged exactly as above. *evolving* — `vault/state/**` and `vault/verification.json`: `cellmode` rewrites them by design and you approve checks in the contract with the `verification` command, so they are reported **evolved (expected)**, listed for audit (`--verbose` uncaps the list), and are never drift, partial or `repair`. *user/referenced* — a file somebody else owns is never drift.
 
-The next action is **detection only**: there is no repair and no upgrade automation, and a re-run never silently reinstalls — an existing manifest makes `new` and `existing` refuse with exit 3 and zero writes. Exit 0 healthy or uninstalled-with-residue · 2 drift or partial.
+The next action is **detection**, and exactly one of the actions it names is automated: `upgrade` (below). There is still no repair, and a re-run never silently reinstalls — an existing manifest makes `new` and `existing` refuse with exit 3 and zero writes. Exit 0 healthy or uninstalled-with-residue · 2 drift or partial.
+
+## Upgrade — `upgrade <dir> --dry-run` first, then `--confirm`
+
+**It replaces only what it still owns, and it refuses as a whole.** `upgrade <dir>` reads `vault/install-manifest.json`, re-reads this checkout, and plans by ownership class (H3): an *immutable* file whose bytes still equal the record is **replaced** when the source has moved on and re-**added** when it is gone; a path the catalog gained (a new skill, say) is **added**; a file **you changed** refuses the **whole** upgrade with that path named, exit 3 and zero writes — keep your edit, or remove the file with `uninstall --force-modified` first. *Evolving* `vault/state/**` and `vault/verification.json` are never touched, with one additive exception: a skeleton file the current source defines and your target lacks is created, and `log.md` never is. A *generated* file (`AGENTS.md`, a managed block) is left alone and listed, because it was rendered from your project's own facts; nothing is ever deleted. `--dry-run` prints the plan and writes **zero bytes** (a test hashes the whole tree before and after); without `--confirm` the plan is printed and the exit is 5; `--verbose` uncaps the lists. With `--confirm`, every replace re-hashes the file one statement before an atomic rename, each write is guarded on its own (a refused step is reported and exits 2), and the manifest is rewritten **last, from what succeeded**: new source version and revision, the instant, the new digests, and this upgrade recorded in `approvals`. Then `status <dir>` reads healthy.
 
 ## Uninstall — `uninstall <dir> --dry-run` first, then `--confirm`
 
@@ -161,19 +165,11 @@ The next action is **detection only**: there is no repair and no upgrade automat
 
 ## Optional components are optional here too
 
-Cellular Adaptive and the Prompt Builder may be absent from this checkout. If a profile you asked for names a
-component whose source is not here, the profile is refused **whole**, with `COMPONENT_UNAVAILABLE` (exit 2), naming
-the component and the missing path, and suggesting `--profile custom` without it: installing less than a profile
-promises would be the worse failure. Components you did not select being absent changes nothing, and `status` and
-`uninstall` need no component source at all — they work from the manifest in the target. The Prompt Builder is reached
-through its **own CLI as a subprocess**, never imported.
+Cellular Adaptive and the Prompt Builder may be absent from this checkout. If a profile you asked for names a component whose source is not here, the profile is refused **whole**, with `COMPONENT_UNAVAILABLE` (exit 2), naming the component and the missing path, and suggesting `--profile custom` without it: installing less than a profile promises would be the worse failure. Components you did not select being absent changes nothing, and `status` and `uninstall` need no component source at all — they work from the manifest in the target. An `upgrade` does need it: a component the source here cannot describe refuses the upgrade (exit 3). The Prompt Builder is reached through its **own CLI as a subprocess**, never imported.
 
 ## What Bootstrap never does on its own
 
-Create the target directory · replace an existing file · edit or delete a CI workflow · write into another tool's hook
-configuration · set anything `--global` · run a command it merely discovered · mark a check mandatory · activate a
-cell · touch git history · open a network connection · install a smaller profile than the one you named · repair,
-upgrade or reinstall · fix a pre-existing failure.
+Create the target directory · replace a file you wrote or changed · edit or delete a CI workflow · write into another tool's hook configuration · set anything `--global` · run a command it merely discovered · mark a check mandatory · activate a cell · touch git history · open a network connection · install a smaller profile than the one you named · repair or reinstall · upgrade without `--confirm` · fix a pre-existing failure.
 
 **Exit codes:** `0` ok · `1` usage or bad arguments · `2` validation, drift or analysis findings · `3` refused because
 of state that already exists (an install is present, or the target overlaps the source) · `5` confirmation required.

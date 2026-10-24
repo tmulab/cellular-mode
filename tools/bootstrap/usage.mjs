@@ -32,6 +32,15 @@ Commands:
   status <target-dir>     installed version, components, drift and the next action. Writes NOTHING.
       --verbose           list every path instead of a capped sample (evolved paths included)
                           Exit 0 healthy · 2 drift or a partial install · no record here: 0
+  upgrade <target-dir>    carry a NEWER source into an install that is already there
+      --dry-run           print the plan and write nothing at all
+      --confirm           perform the plan; without it the plan is shown and the exit is 5
+      --verbose           list every path instead of a capped sample
+                          Replaces only immutable files that still hash to the record. A file you
+                          CHANGED refuses the whole upgrade (exit 3), never overwritten. Adds what
+                          the catalog gained. Never touches vault/state/** except to create a
+                          skeleton file that is absent, never log.md, and never deletes anything.
+                          A generated file (AGENTS.md, a managed block) is left alone and listed.
   uninstall <target-dir>  remove what Bootstrap created, and only that
       --dry-run           print the plan and remove nothing at all
       --confirm           perform the plan; without it the plan is shown and the exit is 5
