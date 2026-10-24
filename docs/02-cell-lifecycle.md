@@ -142,13 +142,18 @@ A cell that is **not** in `Planned cells` is not the orchestrator's to open. It 
 human's yes, recorded as an amendment to the pack, and the amendment never touches the
 finish line.
 
-**Decided, and partly built** (VERIFIED 2026-10-24). The model above replaces the "no
-mechanical multi-agent locking" gap this file used to list as an open question. Built:
-`op open|pause|complete|status`, the `Operation:`/`Base commit:` fields written by `open`,
-the `max-active-cells` ceiling, the amendment entry via `--amend-pack --confirm`, and a
-`check` that reports `two-active` only outside an operation (`over-ceiling` inside).
-**PROPOSED:** the mechanical crossing above (cell R4b) — until it lands the orchestrator
-names the conflicts by hand — and the remaining `check` findings (cell R5).
+**Decided, and built** (VERIFIED 2026-10-24). The model above replaces the "no mechanical
+multi-agent locking" gap this file used to list as an open question. Built: `op
+open|pause|complete|status`, the `Operation:`/`Base commit:` fields written by `open`, the
+`max-active-cells` ceiling, the amendment entry via `--amend-pack --confirm`, a `check`
+that reports `two-active` only outside an operation (`over-ceiling` inside), and the
+MECHANICAL crossing of this section (cell R4b): `cellmode conflicts <cell>` prints the
+`| Cell | Overlapping paths | Shared resources | Verdict |` table read-only, and `open`
+inside an operation runs the same crossing before it writes anything — an overlapping
+in-path is a refusal (exit 3) unless the human adds `--confirm`, a shared resource is a
+warning, and the verdict is recorded as `**Conflicts:** …` in the operation's log entry
+for that opening. The SEMANTIC half is still the orchestrator's sentence, by construction:
+no crossing of fields can see it. **PROPOSED:** the remaining `check` findings (cell R5).
 
 ## What this lifecycle does NOT specify — open issues
 

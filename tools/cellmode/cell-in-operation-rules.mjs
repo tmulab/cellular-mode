@@ -11,6 +11,7 @@ import { CliError, EXIT } from './errors.mjs';
 import { ceilingOf } from './check.mjs';
 import { readCell } from './state.mjs';
 import { requireOption, optionalOption } from './args.mjs';
+import { crossState, conflictsField, worst } from './conflicts.mjs';
 import { gitHead, amendPack } from './cell-in-operation-state.mjs';
 
 /** @typedef {import('./types.mjs').Cell} Cell */
@@ -74,6 +75,28 @@ export function requireBoundary(options, prior) {
       + ' cells reads it (--in "<what is in>" --out "<what is NOT in>")', EXIT.USAGE);
   }
   return value;
+}
+
+/** The MECHANICAL conflict crossing, run BEFORE `open` writes anything (`conflicts.mjs`).
+ * An `overlap` — the same path inside two boundaries — is exit 3 naming the cells and the
+ * paths, because two cells holding one file is the human's call, and `--confirm` IS that
+ * call. (`--confirm` keeps its other meaning next to `--amend-pack`: one flag, two
+ * questions, and when both are open it answers both.) `shared` and `none` never refuse,
+ * and `crossed` is false when there was NOBODY to cross: the first cell of an operation
+ * crosses nothing, so its opening still writes no log entry at all.
+ * @param {string} root @param {State} st @param {Operation} op @param {string} name
+ * @param {string} slug @param {Record<string, unknown>} cell @param {Options} options
+ * @returns {{ verdict: string, field: string, crossed: boolean }} */
+export function crossOpen(root, st, op, name, slug, cell, options) {
+  const rows = crossState(root, st.indexRows, op, name, slug, cell);
+  const field = conflictsField(rows);
+  const verdict = worst(rows);
+  if (verdict === 'overlap' && options.confirm !== true) {
+    throw new CliError(`${field.replace(' — accepted by human', '')
+      .replace('**Conflicts:** ', `cell "${name}" `)} — the same path inside two boundaries`
+      + ' is the human\'s call: re-run with --confirm to open it anyway', EXIT.ACTIVE_CELL);
+  }
+  return { verdict, field, crossed: rows.length > 0 };
 }
 
 /** Which 🔵 cell a `[name]` means. With exactly one active cell the name may be omitted —

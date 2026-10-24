@@ -19,8 +19,9 @@ Commands:
               --in --out --done --next
               --deps "a, b"]              new cell or 📋 -> 🔵 (an opening, not a resume)
                                           --next "<action>" records the FIRST STEP
-                                          in an operation: --in/--out REQUIRED, and an
-                                          unplanned cell needs --amend-pack --confirm
+                                          in an operation: --in/--out REQUIRED, an
+                                          unplanned cell needs --amend-pack --confirm,
+                                          and an overlapping boundary needs --confirm
   resume <name>                           ⏸ -> 🔵 (fuzzy, case-insensitive)
   pause [name] --facts F --next N
         [--decisions D --build B
@@ -33,6 +34,10 @@ Commands:
   park <idea>                             append an idea to parking-lot.md
   status                                  <=5-line reconnection, or the waiting list
   check                                   integrity guard over log + projections
+  conflicts <cell>                        read-only: cross that cell against every other
+                                          🔵 cell of the active operation and print the
+                                          | Cell | Overlapping paths | Shared resources |
+                                          Verdict | table (overlap / shared / none)
   op open <name> --finish-line "a; b"
           --pack "<key>: <value> · …"
           --bar "<text>" --cells "a, b"   open (or resume ⏸) the ONE active operation
@@ -41,7 +46,8 @@ Commands:
   op status                               the active operation, or the paused ones
 
 Exit codes: 0 ok · 1 usage/bad args · 2 integrity findings · 3 another cell or
-            operation is active, or the pack's max-active-cells is reached ·
+            operation is active, the pack's max-active-cells is reached, or a boundary
+            overlaps another 🔵 cell's ·
             4 ambiguous name · 5 human confirmation required`;
 
 /**

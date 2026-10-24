@@ -1,15 +1,17 @@
 // cell-in-operation.mjs — the four cell transitions AS THEY BEHAVE INSIDE AN ACTIVE
 // OPERATION. `commands.mjs` picks between this file and `transitions.mjs` by one fact
 // read from disk: is any operation 🔵? With none, nothing here runs and the old
-// one-active-cell law applies byte for byte; with one, four rules are added and only
-// four — the pack's ceiling instead of "one", a boundary that may not be `—`, the
-// `Operation:`/`Base commit:` link on every write, and `Planned cells` as the line
-// between what the orchestrator may open alone and what needs the human's yes. The
-// rules themselves are in ./cell-in-operation-rules.mjs.
+// one-active-cell law applies byte for byte; with one, five rules are added and only
+// five — the pack's ceiling instead of "one", a boundary that may not be `—`, the
+// `Operation:`/`Base commit:` link on every write, `Planned cells` as the line between
+// what the orchestrator may open alone and what needs the human's yes, and the conflict
+// crossing against the other 🔵 cells, recorded at every opening. The rules themselves
+// are in ./cell-in-operation-rules.mjs, the crossing in ./conflicts.mjs.
 //
 // The writes are NOT reimplemented here: `activate()` and `close()` stay the single
 // activation and closing paths, so a cell opened inside an operation and one opened
 // outside it are the same file written by the same code.
+import { now } from './clock.mjs';
 import { slugify, findCell } from './slug.mjs';
 import { CliError, EXIT } from './errors.mjs';
 import { ceilingOf } from './check.mjs';
@@ -24,8 +26,9 @@ import {
 import { gitHead } from './cell-in-operation-state.mjs';
 import {
   activeRows, assertCeiling, assertPlanned, requireBoundary, resolveActive,
-  keepBaseCommit, closePatch,
+  keepBaseCommit, closePatch, crossOpen,
 } from './cell-in-operation-rules.mjs';
+import { recordConflicts } from './conflicts.mjs';
 
 /** @typedef {import('./types.mjs').ParsedArgs} ParsedArgs */
 /** @typedef {import('./types.mjs').Operation} Operation */
@@ -54,14 +57,25 @@ export function openInOperation(root, { positional, options }, env, op) {
     throw new CliError(`cell "${row.name}" is paused — use: cellmode resume "${row.name}"`,
       EXIT.USAGE);
   }
-  const boundary = requireBoundary(options, readCell(root, slug));
-  // Ceiling BEFORE the amendment: an opening about to be refused must not have appended
-  // an amendment entry to the log first.
+  const prior = readCell(root, slug);
+  const boundary = requireBoundary(options, prior);
+  const label = row?.name || name;
+  const deps = options.deps === undefined ? prior?.dependencies : renderDependencies(options.deps);
+  // Ceiling and crossing BEFORE the amendment: an opening about to be refused must not
+  // have appended an amendment entry to the log first.
   assertCeiling(st, op);
-  assertPlanned(root, op, row?.name || name, slug, options, env);
+  const crossing = crossOpen(root, st, op, label, slug, {
+    boundaryIn: boundary.in, boundaryOut: boundary.out, dependencies: deps,
+    inputs: prior?.inputs, outputs: prior?.outputs,
+  }, options);
+  assertPlanned(root, op, label, slug, options, env);
+  // The crossing is RECORDED, in all three verdicts: the sentence belongs in the log
+  // entry of the opening (docs/02), and the log is written before the projections. A
+  // first cell crossed nobody, and writes nothing — an opening is not a closure.
+  if (crossing.crossed) recordConflicts(root, op, label, crossing.field, now(env));
   const cell = activate(root, st, {
     row,
-    name: row?.name || name,
+    name: label,
     slug,
     env,
     patch: {
@@ -82,6 +96,10 @@ export function openInOperation(root, { positional, options }, env, op) {
       `Opened "${cell.name}" (${slug}) · 🔵${promoted}`,
       `Operation: ${cell.operation} · base commit ${cell.baseCommit} · `
       + `${activeRows(st).length + 1}/${ceilingOf(op)} active`,
+      // A `none` says itself in the record and needs no line here; the other two are
+      // what the human has to see at the moment of opening.
+      ...(crossing.verdict === 'none' ? []
+        : [`WARNING: conflicts — ${crossing.field.replace('**Conflicts:** ', '')}`]),
       `NEXT STEP: ${cell.nextStep}`,
     ],
   };

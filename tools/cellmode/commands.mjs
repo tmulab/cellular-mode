@@ -21,6 +21,7 @@ import {
   cmdOpen, cmdResume, cmdPause, cmdComplete,
 } from './transitions.mjs';
 import { cmdOp } from './operation-commands.mjs';
+import { crossState, renderTable, worst } from './conflicts.mjs';
 import {
   openInOperation, resumeInOperation, pauseInOperation, completeInOperation,
 } from './cell-in-operation.mjs';
@@ -98,6 +99,37 @@ export function cmdStatus(root, { positional, options }) {
   return { lines: reconnectLines(cell) };
 }
 
+/**
+ * `conflicts <cell>` — the mechanical crossing of one cell against every OTHER 🔵 cell of
+ * the active operation (`conflicts.mjs`). READ-ONLY: it writes nothing, ever, and a
+ * verdict is a report rather than a refusal — the refusal is `open`'s (exit 3).
+ * @param {string} root @param {ParsedArgs} args @returns {CommandResult}
+ */
+export function cmdConflicts(root, { positional, options }) {
+  assertAllowed(options, ['root'], 'conflicts');
+  const name = requireName(positional, 'conflicts');
+  const st = readState(root);
+  if (st.operation === null) {
+    throw new CliError('no operation is 🔵 — the crossing is between the cells of ONE '
+      + 'operation (see `cellmode op status`)', EXIT.USAGE);
+  }
+  const slug = slugify(name);
+  const cell = readCell(root, slug);
+  if (cell === null) {
+    throw new CliError(`no cell file for "${name}" (${slug}) — \`plan\` or \`open\` it first`,
+      EXIT.USAGE);
+  }
+  const rows = crossState(root, st.indexRows, st.operation, cell.name || name, slug, cell);
+  return {
+    lines: [
+      `Conflicts for "${cell.name || name}" (${slug}) · operation `
+      + `"${oneLine(st.operation.name, 'unnamed')}" · ${rows.length} other 🔵 cell(s)`,
+      ...renderTable(rows),
+      `Verdict: ${worst(rows)}`,
+    ],
+  };
+}
+
 /** @param {string} root @param {ParsedArgs} args @returns {CommandResult} */
 export function cmdCheck(root, { positional, options }) {
   assertAllowed(options, ['root'], 'check');
@@ -143,5 +175,6 @@ export const COMMANDS = {
   park: cmdPark,
   status: cmdStatus,
   check: cmdCheck,
+  conflicts: cmdConflicts,
   op: cmdOp,
 };

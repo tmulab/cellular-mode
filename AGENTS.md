@@ -16,7 +16,7 @@ This project is developed in **cells**: small bounded units of work whose state 
 
 `vault/state/` — `log.md` (append-only, the source of truth) · `INDEX.md` · `CURRENT-CELL.md` · `operations/<slug>.md` · `cells/<slug>.md` · `parking-lot.md`.
 
-**Operation layer, today (VERIFIED 2026-10-24):** `node tools/cellmode/cli.mjs op open|pause|complete|status` manages `operations/<slug>.md`; inside an active operation `open` requires a boundary (`--in`/`--out`), writes `Operation:` and `Base commit:`, allows cells up to the pack's `max-active-cells`, and refuses an unplanned cell without `--amend-pack --confirm`; `check` reports `two-active` only outside an operation. Still PROPOSED: the conflict crossing between cells and the other new `check` findings.
+**Operation layer, today (VERIFIED 2026-10-24):** `node tools/cellmode/cli.mjs op open|pause|complete|status` manages `operations/<slug>.md`; inside an active operation `open` requires a boundary (`--in`/`--out`), writes `Operation:` and `Base commit:`, allows cells up to the pack's `max-active-cells`, refuses an unplanned cell without `--amend-pack --confirm`, and crosses the cell it is about to open against every other 🔵 cell — an overlapping boundary path refuses unless the human adds `--confirm`, a shared resource warns, every verdict is recorded as `**Conflicts:** …`, and `cellmode conflicts <cell>` prints the same crossing read-only (the SEMANTIC conflicts stay the orchestrator's sentence); `check` reports `two-active` only outside an operation. Still PROPOSED: the other new `check` findings.
 
 ## Entry points
 

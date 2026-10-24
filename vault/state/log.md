@@ -774,3 +774,19 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** One commit for R9, R10b and R6: verify:final signs the whole tree, and splitting would require reverting files between commits, which the operation denies
 **Build:** green on main after integration (typecheck clean; node --test 1537 pass / 0 fail / 0 skipped; gates clean; verify:final runs next)
 **Next step:** —
+
+---
+## 2026-10-24 11:32 · Cell: R8 observer operation view
+**Status:** ⏸
+**Facts:** Worker finished in its worktree (branch op/r8-observer at babc86e, outside the repository, uncommitted): observer-state reads operations/<slug>.md through each cell's Operation field (no list port), exposes operation and activeCells; overview and api/openapi.json gain both fields additively; audit test A21 for over-ceiling; apps/observer operation header and active-cells table, hidden when there is no operation; 14 new tests pass. Worktree suite 1532 / 1528 pass / 4 fail: 2 are the worktree .git file in the leaks scan, 2 are the boundaries gate refusing observer imports of tools/cellmode/operation-file.mjs, which is not in OBSERVER_PURE_IMPORTS of tools/gates/allowlists.mjs. Not integrated into main.
+**Decisions:** Gate allowlist change needs the human: the pack never changes a gate; work kept intact in the worktree
+**Build:** red in worktree (boundaries gate: observer import not allow-listed; leaks: worktree .git file); not run on main
+**Next step:** Ask the human whether to add tools/cellmode/operation-file.mjs to OBSERVER_PURE_IMPORTS in tools/gates/allowlists.mjs (a gate configuration change, outside the pack); on yes, copy the worktree diff into main, add the line, run the full suite and verify:final
+
+---
+## 2026-10-24 11:58 · Cell: R4b conflicts between cells
+**Status:** ✔
+**Facts:** New tools/cellmode/conflicts.mjs (199) + 10 tests: conflicts <cell> crosses Boundary in-paths (equal, directory prefix at a segment boundary, glob), NOT-in holes, Dependencies and pack batches against every other active cell of the operation and prints an overlap/shared/none table; open inside an operation runs it before any write: overlap exits 3 unless confirmed, recorded as 'accepted by human'; shared warns and is recorded; none is recorded. cell-in-operation.mjs 174, -rules 141, commands.mjs 180, main.mjs 95, README.md 200; AGENTS.md:19 and docs/02 updated: crossing built, only the remaining check findings PROPOSED. Integrated from a worker worktree outside the repository, byte-identical copy.
+**Decisions:** A crossing against nobody is not a crossing: the first cell of an operation writes no Conflicts entry (keeps an existing assertion in operation-status.test.mjs green); a declared dependency between cells is shared, never a refusal
+**Build:** green on main (typecheck clean; node --test 1547 pass / 0 fail / 0 skipped; gates clean; verify:final next)
+**Next step:** —
