@@ -160,10 +160,10 @@ If (1) fails — the log holds less than the index implies — **stop**, report 
 naming the cells with no entry, reconstruct them from `INDEX.md` + `cells/*.md` marked
 `[reconstructed]`, and only then continue: a reconstruction is never a normal entry.
 
-`node tools/cellmode/cli.mjs check` implements all four checks: exit 0 when clean,
-exit 2 with the findings printed when not. **Today it knows nothing about operations**
-(VERIFIED 2026-10-23): check (2) is still the flat "at most one 🔵 cell", so a second active
-cell inside an operation is reported as a finding. Operation-aware checks are PROPOSED.
+`node tools/cellmode/cli.mjs check` implements the four checks plus the operation layer
+(VERIFIED 2026-10-24): `over-ceiling`, `finish-line-moved`, `pack-missing`, `pack-grants-forbidden`,
+`spend-over-ceiling`, `cell-stale`, `merge-unrecorded`; exit 0 clean, 2 with findings. Without
+git the last two print an UNKNOWN notice, never a pass (`tools/cellmode/README.md`).
 
 ## Pause and resume, step by step
 

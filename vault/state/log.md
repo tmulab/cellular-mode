@@ -790,3 +790,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** A crossing against nobody is not a crossing: the first cell of an operation writes no Conflicts entry (keeps an existing assertion in operation-status.test.mjs green); a declared dependency between cells is shared, never a refusal
 **Build:** green on main (typecheck clean; node --test 1547 pass / 0 fail / 0 skipped; gates clean; verify:final next)
 **Next step:** —
+
+---
+## 2026-10-24 12:40 · Cell: R5 new check findings
+**Status:** ✔
+**Facts:** check learns the operation layer through new check-operation.mjs (181), check-git.mjs (163) and check-layer.mjs (52), composed into readState so check.mjs (131) stays pure for the Observer: finish-line-moved, pack-missing, pack-grants-forbidden, spend-over-ceiling, cell-stale (Base commit not an ancestor of HEAD, or unrecorded) and merge-unrecorded (op/ or worktree-agent- merges with no log entry); 16 new tests; a vault without operations gives byte-identical output; state.mjs 200 gains listOperationTexts and skips a pack that throws. Orchestrator fixed the docs/03 guard paragraph under the human pack. check is green on this repository's live vault with the operation open. Integrated from a worker worktree outside the repository.
+**Decisions:** Environment UNKNOWN (no git, no repo, no commit) prints a notice and keeps exit 0; data UNKNOWN with git present is a finding (human to confirm, parked); operations already done are exempt; merge range starts at the opening timestamp (INFERRED)
+**Build:** green on main (typecheck clean; node --test 1563 pass / 0 fail / 0 skipped; gates clean; verify:final next)
+**Next step:** —

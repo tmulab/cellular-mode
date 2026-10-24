@@ -144,16 +144,32 @@ finish line.
 
 **Decided, and built** (VERIFIED 2026-10-24). The model above replaces the "no mechanical
 multi-agent locking" gap this file used to list as an open question. Built: `op
-open|pause|complete|status`, the `Operation:`/`Base commit:` fields written by `open`, the
-`max-active-cells` ceiling, the amendment entry via `--amend-pack --confirm`, a `check`
-that reports `two-active` only outside an operation (`over-ceiling` inside), and the
-MECHANICAL crossing of this section (cell R4b): `cellmode conflicts <cell>` prints the
-`| Cell | Overlapping paths | Shared resources | Verdict |` table read-only, and `open`
-inside an operation runs the same crossing before it writes anything — an overlapping
-in-path is a refusal (exit 3) unless the human adds `--confirm`, a shared resource is a
-warning, and the verdict is recorded as `**Conflicts:** …` in the operation's log entry
-for that opening. The SEMANTIC half is still the orchestrator's sentence, by construction:
-no crossing of fields can see it. **PROPOSED:** the remaining `check` findings (cell R5).
+open|pause|complete|status`, the `Operation:`/`Base commit:` fields written by `open`,
+the `max-active-cells` ceiling, the amendment entry via `--amend-pack --confirm`, a
+`check` that reports `two-active` only outside an operation (`over-ceiling` inside), and
+the MECHANICAL crossing of this section (cell R4b): `cellmode conflicts <cell>` prints
+the `| Cell | Overlapping paths | Shared resources | Verdict |` table read-only, and
+`open` inside an operation runs the same crossing before it writes anything — an
+overlapping in-path is a refusal (exit 3) unless the human adds `--confirm`, a shared
+resource is a warning, and the verdict is recorded as `**Conflicts:** …` in the
+operation's log entry for that opening. The SEMANTIC half is still the orchestrator's
+sentence, by construction: no crossing of fields can see it. **Built too (cell R5), the
+six operation findings of `check`:** `finish-line-moved` (the file's `Fingerprint`, or
+the hash of its `Finish line`, is not what the opening log entry recorded),
+`pack-missing` (a 🔵 operation whose pack is `—`), `pack-grants-forbidden` (a pack the
+CLOSED vocabulary rejects, named with the model's own error instead of crashing the
+command), `spend-over-ceiling` (the cells' `Spend` past a NUMERIC `spend ceiling`; a
+value like `2k tokens` is skipped, never guessed), `cell-stale` (a 🔵 cell whose `Base
+commit` is unrecorded, unknown to git, or no longer an ancestor of HEAD) and
+`merge-unrecorded` (a merge of an `op/…` or `worktree-agent-…` branch, after the
+operation's opening entry, that no log entry mentions). A ✔ operation is exempt from all
+six: its pack expired with it and an append-only entry cannot be rewritten, so the
+finding could never be cleared. Without git, or outside a work tree, the last two are
+UNKNOWN and SAY so — one notice line in the output, never silence and never a pass; they
+are deliberately not findings there, because "there is no repository here" is a fact
+about the environment and would leave every vault in a plain directory red with nothing
+to fix. When git does answer, an UNKNOWN answer is the vault's own gap and IS a finding
+(exit 2). **PROPOSED:** `map-stale` and the operation-aware report (cell R7).
 
 ## What this lifecycle does NOT specify — open issues
 

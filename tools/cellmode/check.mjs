@@ -38,11 +38,12 @@ export function ceilingOf(operation) {
 
 /**
  * @param {{ indexRows?: ReadonlyArray<IndexRow>, logEntries?: ReadonlyArray<LogEntry>,
- *   current?: CurrentCell | null, operation?: Operation | null }} [state]
+ *   current?: CurrentCell | null, operation?: Operation | null,
+ *   layerFindings?: ReadonlyArray<Finding> }} [state]
  * @returns {Finding[]}
  */
 export function checkState({
-  indexRows = [], logEntries = [], current = null, operation = null,
+  indexRows = [], logEntries = [], current = null, operation = null, layerFindings = [],
 } = {}) {
   /** @type {Finding[]} */
   const findings = [];
@@ -113,6 +114,13 @@ export function checkState({
         + `but the last log entry says ${last.status}`);
     }
   }
+
+  // 5. The OPERATION layer, appended AFTER the four above so their codes, messages and
+  //    order are the bytes they always were. `readState` composes them (check-layer.mjs:
+  //    the operation file against the log entry that opened it, the pack, the spend, and
+  //    the git facts) and hands them in — this module reads no file and starts no process,
+  //    which is what lets the Observer import it as the one pure integrity verdict.
+  findings.push(...layerFindings);
 
   return findings;
 }

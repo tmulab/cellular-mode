@@ -1,6 +1,5 @@
-// state.mjs — the ONLY module that touches the filesystem for vault state.
-// Everything else is pure, so it can be tested without a disk.
-// The log is appended with fs.appendFileSync and never rewritten.
+// state.mjs — the ONLY module that touches the filesystem for vault state. Everything
+// else is pure, so it can be tested without a disk; the log is appended, never rewritten.
 import {
   existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, appendFileSync,
 } from 'node:fs';
@@ -14,13 +13,13 @@ import { parseOperationFile, renderOperationFile } from './operation-file.mjs';
 import {
   parseCurrentCell, renderCurrentCell, renderNoActive, byRecency,
 } from './projections.mjs';
+import { operationLayerFindings } from './check-layer.mjs';
 import { skeletonFiles } from './skeleton.mjs';
 import { CliError, EXIT } from './errors.mjs';
 
-/** @typedef {import('./types.mjs').Cell} Cell */
-/** @typedef {import('./types.mjs').IndexRow} IndexRow */
-/** @typedef {import('./types.mjs').LogDraft} LogDraft */
-/** @typedef {import('./types.mjs').Operation} Operation */
+/** @typedef {import('./types.mjs').Cell} Cell @typedef {import('./types.mjs').IndexRow} IndexRow
+ * @typedef {import('./types.mjs').LogDraft} LogDraft
+ * @typedef {import('./types.mjs').Operation} Operation */
 
 /** @type {(file: string) => string} */
 const read = (file) => (existsSync(file) ? readFileSync(file, 'utf8') : '');
@@ -34,9 +33,8 @@ export function isInitialized(root) {
 export function requireState(root) {
   const p = statePaths(root);
   if (!existsSync(p.index) || !existsSync(p.log)) {
-    throw new CliError(
-      `no cellular-mode state in ${STATE_REL} — run \`cellmode init\` first`, EXIT.USAGE,
-    );
+    throw new CliError(`no cellular-mode state in ${STATE_REL} — run \`cellmode init\` first`,
+      EXIT.USAGE);
   }
   return p;
 }
@@ -72,17 +70,21 @@ export function readState(root) {
   const indexText = read(p.index);
   const logText = read(p.log);
   const currentText = read(p.current);
+  const indexRows = parseIndex(indexText);
   return {
-    paths: p,
-    indexText,
-    logText,
-    currentText,
-    indexRows: parseIndex(indexText),
+    paths: p, indexText, logText, currentText, indexRows,
     logEntries: parseLog(logText),
     current: parseCurrentCell(currentText),
-    // The operation layer, for the guard: `check` needs the 🔵 operation to know which
-    // ceiling applies, and the state it reads is the state on disk, never a parameter.
+    // The operation layer, for the guard: the 🔵 operation says which ceiling applies, and
+    // the state it reads is the state on disk, never a parameter.
     operation: activeOperation(root),
+    // The guard's operation findings, composed in `check-layer.mjs` from the reads of THIS
+    // module, injected: `check.mjs` stays pure and this stays the only module that opens a
+    // vault file. A vault with no operation file produces none.
+    layerFindings: operationLayerFindings({
+      root, logText, rows: indexRows, texts: listOperationTexts(root),
+      operations: listOperations(root), cell: (slug) => readCell(root, slug),
+    }),
   };
 }
 
@@ -104,18 +106,26 @@ export function writeIndex(root, rows) {
   writeFileSync(statePaths(root).index, renderIndex(rows), 'utf8');
 }
 
-/** Every operation on disk, README skipped. @param {string} root @returns {Operation[]} */
-export function listOperations(root) {
+/** Every operation file as raw TEXT, README skipped: what the guard reads to name a pack no
+ * parser accepts. @param {string} root @returns {Array<{ slug: string, text: string }>} */
+export function listOperationTexts(root) {
   const dir = statePaths(root).operations;
   if (!existsSync(dir)) return [];
-  /** @type {Operation[]} */
-  const ops = [];
-  for (const file of readdirSync(dir).sort()) {
-    if (!file.endsWith('.md') || file === 'README.md') continue;
-    const op = parseOperationFile(readFileSync(join(dir, file), 'utf8'));
-    if (op) ops.push(op);
-  }
-  return ops;
+  return readdirSync(dir).sort().filter((f) => f.endsWith('.md') && f !== 'README.md')
+    .map((f) => ({ slug: f.slice(0, -'.md'.length), text: readFileSync(join(dir, f), 'utf8') }));
+}
+
+/** A file whose pack is outside the CLOSED vocabulary makes `parseOperationFile` throw
+ * (`PACK_FORBIDDEN_GRANT: <key>`): it is SKIPPED here and reported as a
+ * `pack-grants-forbidden` finding by the guard, so one bad pack cannot crash every command
+ * — and is never silently accepted either. @param {string} text @returns {Operation|null} */
+const parsedOperation = (text) => {
+  try { return parseOperationFile(text); } catch { return null; }
+};
+
+/** Every operation on disk. @param {string} root @returns {Operation[]} */
+export function listOperations(root) {
+  return listOperationTexts(root).flatMap(({ text }) => parsedOperation(text) ?? []);
 }
 
 /** @param {string} root @param {string} slug @returns {Operation | null} */
@@ -136,9 +146,9 @@ export function activeOperation(root) {
   return listOperations(root).find((o) => o.status === '🔵') ?? null;
 }
 
-/** The projection of the cell that is active NOW, plus — inside an operation with more
- * than one 🔵 cell — the table of all of them. `rows` is the INDEX as it has just been
- * written, so the table and the row statuses cannot disagree.
+/** The projection of the cell that is active NOW, plus — inside an operation with more than
+ * one 🔵 cell — the table of all of them. `rows` is the INDEX as just written, so the table
+ * and the row statuses cannot disagree.
  * @param {string} root @param {Cell} cell @param {ReadonlyArray<IndexRow>} [rows] */
 export function writeCurrentActive(root, cell, rows = []) {
   const active = rows.filter((r) => r.status === '🔵').map((r) => ({
@@ -158,13 +168,13 @@ export function writeCurrentIdle(root, rows) {
 }
 
 /** Rewrite CURRENT-CELL.md from what is on disk now: the operation header follows the
- * operation's own status, so an `op` command refreshes the projection without knowing
- * anything about the cell layer. @param {string} root */
+ * operation's own status, so an `op` command refreshes the projection without knowing anything
+ * about the cell layer. @param {string} root */
 export function refreshCurrent(root) {
   const p = requireState(root);
   const rows = parseIndex(read(p.index));
-  // With several 🔵 cells the file projects the most recently visited one (ties keep the
-  // INDEX order), which is the one a reader at Level 3 is most likely to be returning to.
+  // With several 🔵 cells the file projects the most recently visited one (ties keep the INDEX
+  // order): the one a reader at Level 3 is most likely to be returning to.
   const row = byRecency(rows.filter((r) => r.status === '🔵'))[0];
   const cell = row ? readCell(root, row.slug || slugify(row.name)) : null;
   if (cell) writeCurrentActive(root, cell, rows);
@@ -178,7 +188,7 @@ export function appendLog(root, entry) {
 }
 
 // APPEND-ONLY, for an entry rendered elsewhere (the operation entries of
-// `operation-log.mjs`, which are not cell closures and so are not LogDrafts).
+// `operation-log.mjs`: not cell closures, so not LogDrafts).
 /** @param {string} root @param {string} text */
 export function appendLogText(root, text) {
   appendFileSync(statePaths(root).log, text, 'utf8');
