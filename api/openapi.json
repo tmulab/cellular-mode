@@ -886,6 +886,15 @@
         "required": [],
         "additionalProperties": false
       },
+      "ObserverPackBatch": {
+        "type": "object",
+        "properties": {
+          "op": { "type": "string", "maxLength": 4000 },
+          "limit": { "type": "string", "maxLength": 4000 }
+        },
+        "required": ["op", "limit"],
+        "additionalProperties": false
+      },
       "ObserverOverview": {
         "type": "object",
         "properties": {
@@ -908,6 +917,63 @@
             },
             "required": ["id", "name"],
             "additionalProperties": false
+          },
+          "operation": {
+            "properties": {
+              "name": { "type": "string", "maxLength": 4000 },
+              "id": { "type": "string", "minLength": 1, "maxLength": 80 },
+              "status": { "type": "string", "maxLength": 8 },
+              "finishLine": {
+                "type": "array",
+                "items": { "type": "string", "maxLength": 4000 },
+                "maxItems": 500
+              },
+              "fingerprint": { "type": "string", "maxLength": 64 },
+              "pack": {
+                "type": "object",
+                "properties": {
+                  "spendCeiling": { "type": "string", "maxLength": 4000 },
+                  "publisher": { "type": "string", "maxLength": 4000 },
+                  "batches": {
+                    "type": "array",
+                    "items": { "$ref": "#/components/schemas/ObserverPackBatch" },
+                    "maxItems": 500
+                  },
+                  "requiresYes": {
+                    "type": "array",
+                    "items": { "type": "string", "maxLength": 4000 },
+                    "maxItems": 500
+                  },
+                  "denied": {
+                    "type": "array",
+                    "items": { "type": "string", "maxLength": 4000 },
+                    "maxItems": 500
+                  },
+                  "maxActiveCells": { "type": "string", "maxLength": 4000 }
+                },
+                "required": [
+                  "spendCeiling", "publisher", "batches", "requiresYes", "denied", "maxActiveCells"
+                ],
+                "additionalProperties": false
+              },
+              "qualityBar": { "type": "string", "maxLength": 4000 },
+              "spendSoFar": { "type": "string", "maxLength": 4000 },
+              "plannedCells": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1, "maxLength": 80 },
+                "maxItems": 500
+              }
+            },
+            "required": [
+              "name", "id", "status", "finishLine", "fingerprint", "pack", "qualityBar",
+              "spendSoFar", "plannedCells"
+            ],
+            "additionalProperties": false
+          },
+          "activeCells": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ObserverCellSummary" },
+            "maxItems": 500
           },
           "recent": {
             "type": "array",
@@ -933,7 +999,9 @@
             "additionalProperties": false
           }
         },
-        "required": ["counts", "active", "recent", "warnings", "integrity"],
+        "required": [
+          "counts", "active", "operation", "activeCells", "recent", "warnings", "integrity"
+        ],
         "additionalProperties": false
       },
       "ObserverCells": {

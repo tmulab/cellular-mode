@@ -15,6 +15,7 @@ import { parseIndex } from '../../../tools/cellmode/index-table.mjs';
 import { parseLog } from '../../../tools/cellmode/log.mjs';
 import { parseCurrentCell } from '../../../tools/cellmode/projections.mjs';
 import { slugify } from '../../../tools/cellmode/slug.mjs';
+import { readOperation } from './operation.mjs';
 
 /** @typedef {import('../../../tools/cellmode/types.mjs').Cell} Cell */
 /** @typedef {import('../../../tools/cellmode/types.mjs').LogEntry} LogEntry */
@@ -151,14 +152,25 @@ export async function readModel(read, list) {
     }
   }
 
-  // The integrity verdict is the CLI's own guard, run on the parsed state.
-  const findings = checkState({ indexRows, logEntries, current });
+  // The operation the cells name, if any cell names one. It is read AFTER the entries
+  // because the cells are what point at it: there is no index of operations.
+  const found = await readOperation(read, entries.map((entry) => entry.cell?.operation));
+  warnings.push(...found.warnings);
+
+  // The integrity verdict is the CLI's own guard, run on the parsed state. The
+  // operation goes IN: inside one, several active cells are the pack's own ceiling and
+  // not the old "two active" breach, and that distinction belongs to `checkState`.
+  const findings = checkState({
+    indexRows, logEntries, current, operation: found.operation,
+  });
   return {
     entries,
     byId,
     logEntries,
     missing,
     warnings,
+    operation: found.operation,
+    activeCells: entries.filter((entry) => entry.status === 'active'),
     integrity: { ok: findings.length === 0, findings: findings.map((f) => ({ ...f })) },
   };
 }

@@ -19,7 +19,7 @@ const TEXT = 'text/plain; charset=utf-8';
 
 /** Browser modules, served from `web/`. */
 const WEB_MODULES = [
-  'main.mjs', 'data-client.mjs', 'dom.mjs', 'project-area.mjs', 'cells-table.mjs',
+  'main.mjs', 'data-client.mjs', 'dom.mjs', 'project-area.mjs', 'operation-area.mjs', 'cells-table.mjs',
   'cell-detail.mjs', 'timeline-list.mjs', 'graph-view.mjs', 'zoom-2d.mjs',
   'interaction-2d.mjs', 'scene-3d.mjs', 'camera-3d.mjs', 'orbit.mjs', 'labels.mjs',
   'audit-area.mjs', 'advisor-area.mjs', 'advisor-rows.mjs', 'mode-badge.mjs',
@@ -29,7 +29,7 @@ const WEB_MODULES = [
 const VIEW_MODULES = [
   'tokens.mjs', 'fields.mjs', 'view-model.mjs', 'selection.mjs', 'svg-2d.mjs', 'fit-2d.mjs',
   'availability.mjs', 'audit-view.mjs', 'advisor-view.mjs', 'advisor-presence.mjs',
-  'mode-view.mjs',
+  'mode-view.mjs', 'operation-view.mjs',
 ];
 
 /** The vendored three.js build. Both files: the module only re-exports from the core. */

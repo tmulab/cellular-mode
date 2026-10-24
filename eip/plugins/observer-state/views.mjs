@@ -6,6 +6,7 @@
 // not recorded, and here is its name" is the only honest third option.
 import { slugify } from '../../../tools/cellmode/slug.mjs';
 import { STATUS_BY_SYMBOL, field, nextStepState } from './model.mjs';
+import { operationView } from './operation.mjs';
 
 /** @typedef {import('../../../tools/cellmode/types.mjs').LogEntry} LogEntry */
 /** @typedef {import('./types.mjs').Entry} Entry */
@@ -82,10 +83,29 @@ export function timeline(model, { limit = DEFAULT_TIMELINE_LIMIT, cell } = {}) {
   return { events: scoped.slice(0, limit), notRecorded: [...NOT_RECORDED] };
 }
 
+/** PURE. One cell, as `CellSummary`. `cells` and `overview.activeCells` publish the
+ * SAME shape through this one function: a second mapping would be a second contract.
+ * @param {Entry} entry */
+const summaryOf = (entry) => ({
+  id: entry.id,
+  name: entry.name,
+  area: entry.area,
+  status: entry.status,
+  statusSymbol: entry.statusSymbol,
+  lastVisit: entry.lastVisit,
+  nextStep: entry.nextStep,
+  nextStepState: entry.nextStepState,
+  dependencies: [...entry.dependencies],
+});
+
 /** @param {Model} model */
 export function overview(model) {
   /** @type {(status: string) => number} */
   const count = (status) => model.entries.filter((e) => e.status === status).length;
+  // `active` is the FIRST active cell, as it always was; inside an operation several
+  // cells may be 🔵 and `activeCells` is the complete answer. Both are published: a
+  // caller written against one active cell keeps working, and keeps being honest,
+  // because the list beside it says how many there really are.
   const active = model.entries.find((e) => e.status === 'active');
   return {
     counts: {
@@ -96,6 +116,8 @@ export function overview(model) {
       done: count('done'),
     },
     active: active === undefined ? null : { id: active.id, name: active.name },
+    operation: operationView(model.operation),
+    activeCells: model.activeCells.map(summaryOf),
     recent: events(model).slice(0, RECENT_LIMIT),
     warnings: model.warnings.map((w) => ({ ...w })),
     integrity: { ok: model.integrity.ok, findings: model.integrity.findings.map((f) => ({ ...f })) },
@@ -104,19 +126,7 @@ export function overview(model) {
 
 /** @param {Model} model */
 export function cells(model) {
-  return {
-    cells: model.entries.map((entry) => ({
-      id: entry.id,
-      name: entry.name,
-      area: entry.area,
-      status: entry.status,
-      statusSymbol: entry.statusSymbol,
-      lastVisit: entry.lastVisit,
-      nextStep: entry.nextStep,
-      nextStepState: entry.nextStepState,
-      dependencies: [...entry.dependencies],
-    })),
-  };
+  return { cells: model.entries.map(summaryOf) };
 }
 
 /** The last log entry for this cell, which is the cell's EVIDENCE: the detail view

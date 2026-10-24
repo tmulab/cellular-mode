@@ -97,6 +97,6 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [R9 data-aware light gate](cells/r9-data-aware-light-gate.md) | gates | ✔ | 2026-10-24 | — |
 | [R6 operation and worker skills](cells/r6-operation-and-worker-skills.md) | skills | ✔ | 2026-10-24 | — |
 | [R10b bootstrap upgrade](cells/r10b-bootstrap-upgrade.md) | bootstrap | ✔ | 2026-10-24 | — |
-| [R8 observer operation view](cells/r8-observer-operation-view.md) | observer | ⏸ | 2026-10-24 | Ask the human whether to add tools/cellmode/operation-file.mjs to OBSERVER_PURE_IMPORTS in tools/gates/allowlists.mjs (a gate configuration change, outside the pack); on yes, copy the worktree diff into main, add the line, run the full suite and verify:final |
+| [R8 observer operation view](cells/r8-observer-operation-view.md) | observer | ✔ | 2026-10-24 | — |
 | [R4b conflicts between cells](cells/r4b-conflicts-between-cells.md) | tools-cellmode | ✔ | 2026-10-24 | — |
 | [R5 new check findings](cells/r5-new-check-findings.md) | tools-cellmode | ✔ | 2026-10-24 | — |

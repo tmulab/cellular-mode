@@ -40,6 +40,8 @@ else. Rendering by a real browser is NOT machine-verifiable here: it lives in
 | D16 | Browser code is type-checked | `npm run typecheck` runs both configurations; the browser configuration uses `lib: DOM + ES2023` with the same four strict flags; the three.js subset is declared by hand, with no `@types/three` dependency |
 | D17 | 3D is optional and secondary | the 2D view is the default; the 3D modules are imported only when the toggle asks for them; no 3D module computes a node position |
 
+| D25 | The OPERATION area says what an operation authorized, and disappears when there is none | `operation === null` ⇒ `operationHeader()` answers **null**, the area is hidden and emptied, and every existing view is byte-identical — a project worked one cell at a time is not missing anything. With an operation: the name with its status symbol and the state in words, the finish line **numbered** with its **fingerprint** beside it (the evidence that it did not move), every one of the pack's six grants in the pack's own order **including the grants nobody wrote** (`not recorded`, never dropped), the planned cells, and one table row per 🔵 cell — never only the first, because inside an operation several cells are legitimately active. A malformed payload is an empty table, never a thrown page |
+
 ## Mutations that must turn a specific criterion red
 
 | Mutation | Must fail |

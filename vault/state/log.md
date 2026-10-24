@@ -798,3 +798,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Environment UNKNOWN (no git, no repo, no commit) prints a notice and keeps exit 0; data UNKNOWN with git present is a finding (human to confirm, parked); operations already done are exempt; merge range starts at the opening timestamp (INFERRED)
 **Build:** green on main (typecheck clean; node --test 1563 pass / 0 fail / 0 skipped; gates clean; verify:final next)
 **Next step:** —
+
+---
+## 2026-10-24 13:21 · Cell: R8 observer operation view
+**Status:** ✔
+**Facts:** Observer shows the operation: observer-state/operation.mjs (105) finds it through each cell's Operation field (no list port, O2 kept), model.mjs/views.mjs/schemas.mjs expose operation and activeCells, api/openapi.json gains both additively (plus ObserverPackBatch), audit test A21 for over-ceiling, apps/observer operation-view.mjs (124) and web/operation-area.mjs (97) render the header and active-cells table, hidden without an operation; read-port allows operations/<slug>.md read-only. 14 new tests. With the human's yes, tools/gates/allowlists.mjs lists tools/cellmode/operation-file.mjs among OBSERVER_PURE_IMPORTS (checked pure: node:crypto, fields, slug). Integrated from a worker worktree outside the repository, byte-identical copy.
+**Decisions:** Gate allowlist entry approved by the human in conversation on 2026-10-24; an operation no cell references stays invisible to the Observer (documented)
+**Build:** green on main (typecheck clean; node --test 1577 pass / 0 fail / 0 skipped; gates clean; verify:final next)
+**Next step:** —

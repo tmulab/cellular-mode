@@ -122,3 +122,12 @@ produce the same ids.
   `tools/gates/scan.mjs`. Mutation-proved on each shape.
 - **A20** `readEvidence` can reach exactly one file, `.cellular/evidence/trilateral.json`,
   and answers `null` when it is absent or not valid JSON of `schema: 1`.
+
+### The operation layer
+
+- **A21** Inside an operation the ceiling is the pack's, and the auditor still owns no
+  rule: `cell-state` carries whatever `checkState` says. Two active cells under
+  `max-active-cells: 4` (and four, the boundary itself) ⇒ one `PASS` and never the code
+  `two-active`; five ⇒ one `FAIL` citing `code over-ceiling` and naming the ceiling.
+  Outside an operation, or under a paused one, or with a pack that grants no ceiling
+  (fail closed at one), the old rule stands. Both sides asserted, on exact codes.

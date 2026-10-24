@@ -10,6 +10,7 @@ import { presenceOf } from '../view/availability.mjs';
 import { presentationMode, readCurrent } from '../view/mode-view.mjs';
 import { renderModeBadge } from './mode-badge.mjs';
 import { renderOverview, renderOverviewFailure } from './project-area.mjs';
+import { renderOperationArea } from './operation-area.mjs';
 import { markSelectedRow, renderCellsTable } from './cells-table.mjs';
 import { hideCellDetail, renderCellDetail, renderDetailFailure } from './cell-detail.mjs';
 import { renderTimeline } from './timeline-list.mjs';
@@ -106,6 +107,9 @@ async function start() {
       activity: must('activity'),
       integrity: must('integrity'),
     }, overview.value);
+    // The operation area reads the SAME payload: `operation` and `activeCells` arrive with
+    // the counts, so there is no second request and no second truth about what is active.
+    renderOperationArea(must('operation'), overview.value, (id) => { void openCell(id); });
   } else {
     renderOverviewFailure(must('tiles'), /** @type {{ error: { code: string, message: string } }} */ (overview).error);
   }

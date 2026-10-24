@@ -39,6 +39,7 @@ export const OBSERVER_PURE_IMPORTS = Object.freeze([
   'tools/cellmode/fields.mjs',
   'tools/cellmode/index-table.mjs',
   'tools/cellmode/log.mjs',
+  'tools/cellmode/operation-file.mjs',
   'tools/cellmode/projections.mjs',
   'tools/cellmode/slug.mjs',
   'tools/cellmode/types.mjs',

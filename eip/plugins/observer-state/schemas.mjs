@@ -97,6 +97,24 @@ export const GRAPH_NODE = obj({
 }, ['id', 'name', 'status', 'column', 'layer', 'x', 'y', 'z']);
 /** @type {Schema} */
 export const GRAPH_EDGE = obj({ from: ID, to: ID }, ['from', 'to']);
+/** @type {Schema} */ const TEXTS = { type: 'array', items: TEXT, maxItems: 500 };
+/** One authorized batch operation and the limit that makes it a grant. @type {Schema} */
+const PACK_BATCH = obj({ op: TEXT, limit: TEXT }, ['op', 'limit']);
+const PACK_KEYS = ['spendCeiling', 'publisher', 'batches', 'requiresYes', 'denied', 'maxActiveCells'];
+const OPERATION_KEYS = ['name', 'id', 'status', 'finishLine', 'fingerprint', 'pack', 'qualityBar', 'spendSoFar', 'plannedCells'];
+/** The operation the active cells belong to, OR null. `status` is the protocol SYMBOL:
+ * the operation statuses are not the cell statuses, and `finishLine` carries its own
+ * `fingerprint` so a caller can see a moved finish line rather than infer it.
+ * @type {Schema} */
+export const OPERATION = orNull({
+  name: TEXT, id: ID, status: { type: 'string', maxLength: 8 },
+  finishLine: TEXTS, fingerprint: { type: 'string', maxLength: 64 },
+  pack: obj({
+    spendCeiling: TEXT, publisher: TEXT, maxActiveCells: TEXT, requiresYes: TEXTS, denied: TEXTS,
+    batches: { type: 'array', items: PACK_BATCH, maxItems: 500 },
+  }, PACK_KEYS),
+  qualityBar: TEXT, spendSoFar: TEXT, plannedCells: IDS,
+}, OPERATION_KEYS);
 
 const DETAIL_FIELDS = [
   'objective', 'inputs', 'outputs', 'allowedOperations', 'prohibitedOperations',
@@ -116,13 +134,15 @@ export const CAPABILITIES = {
         total: COUNT, planned: COUNT, active: COUNT, paused: COUNT, done: COUNT,
       }, ['total', 'planned', 'active', 'paused', 'done']),
       active: orNull({ id: ID, name: TEXT }, ['id', 'name']),
+      operation: OPERATION,
+      activeCells: { type: 'array', items: CELL_SUMMARY, maxItems: 500 },
       recent: { type: 'array', items: EVENT, maxItems: RECENT_LIMIT },
       warnings: { type: 'array', items: WARNING, maxItems: 2000 },
       integrity: obj({
         ok: { type: 'boolean' },
         findings: { type: 'array', items: FINDING, maxItems: 2000 },
       }, ['ok', 'findings']),
-    }, ['counts', 'active', 'recent', 'warnings', 'integrity']),
+    }, ['counts', 'active', 'operation', 'activeCells', 'recent', 'warnings', 'integrity']),
   },
   cells: {
     description: 'One summary per row of INDEX.md, with the dependencies each cell file declares.',

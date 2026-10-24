@@ -8,6 +8,7 @@
 /** @typedef {import('../../../tools/cellmode/types.mjs').Cell} Cell */
 /** @typedef {import('../../../tools/cellmode/types.mjs').LogEntry} LogEntry */
 /** @typedef {import('../../../tools/cellmode/types.mjs').Finding} Finding */
+/** @typedef {import('../../../tools/cellmode/types.mjs').Operation} Operation */
 
 /** One thing the observer noticed and refuses to hide. `cell` is present only when
  * the warning is about one cell.
@@ -27,10 +28,13 @@
  *   nextStepState: NextStepState, dependencies: string[], cell: Cell | null }} Entry
  */
 
-/** The whole vault, read once.
+/** The whole vault, read once. `operation` is the one ACTIVE operation the cells name,
+ * `null` when no cell names one (an operation nobody references is invisible here, by
+ * design: see `operation.mjs`). `activeCells` is every 🔵 entry — one outside an
+ * operation, up to the pack's `max-active-cells` inside one.
  * @typedef {{ entries: Entry[], byId: Map<string, Entry>, logEntries: LogEntry[],
- *   missing: string[], warnings: Warning[],
- *   integrity: { ok: boolean, findings: Finding[] } }} Model
+ *   missing: string[], warnings: Warning[], operation: Operation | null,
+ *   activeCells: Entry[], integrity: { ok: boolean, findings: Finding[] } }} Model
  */
 
 /** One recorded closure, as the API publishes it. `kind` is derived from the logged

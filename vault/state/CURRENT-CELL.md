@@ -3,6 +3,6 @@ Finish line: 1. R4b conflicts between cells · 2. R5 new check findings · 3. R6
 
 # Current cell
 
-No active cell · 1 paused — see INDEX.md
+No active cell · 0 paused — see INDEX.md
 
-- **R8 observer operation view** → Ask the human whether to add tools/cellmode/operation-file.mjs to OBSERVER_PURE_IMPORTS in tools/gates/allowlists.mjs (a gate configuration change, outside the pack); on yes, copy the worktree diff into main, add the line, run the full suite and verify:final
+Cells know how to wait.

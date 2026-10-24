@@ -19,6 +19,8 @@ const modelWith = (entries) => ({
   })),
   missing: [],
   warnings: [],
+  operation: null,
+  activeCells: [],
   integrity: { ok: true, findings: [] },
 });
 

@@ -131,3 +131,19 @@ the plugin still CANNOT do is claim authority: a thrown `APPROVAL_*` or
 - **O17** `--deps` is rejected on every other command (`unknown option --deps`), and an
   omitted `--deps` never erases a `Dependencies` field already in the cell file.
   Mutation-proved.
+
+### The operation layer
+
+- **O26** `overview` publishes `operation` and `activeCells`. The operation is
+  DISCOVERED from the cells that name it — each cell file's `**Operation:**` field,
+  slugified into `operations/<slug>.md`, read through the same confined port and parsed
+  by `tools/cellmode/operation-file.mjs`, never a second parser — and the 🔵 one is the
+  active operation; an operation no cell references is invisible here, by design. A
+  named operation with no readable file is a `operation-file-missing` WARNING and
+  `operation: null`, never a guess. `activeCells` is every 🔵 cell in `CellSummary`
+  shape, and `active` still answers the first of them. The operation goes into
+  `checkState`, so inside one the integrity verdict speaks of the pack's ceiling
+  (`over-ceiling`) instead of `two-active`. `operation.status` is the protocol SYMBOL:
+  the operation statuses are not the cell statuses. The read port's closed set gains
+  `operations/<slug>.md` under the same safe-segment and slug guards, and no list port
+  is added — the cells are the index.

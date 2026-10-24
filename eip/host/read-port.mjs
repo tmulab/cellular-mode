@@ -2,9 +2,10 @@
 //
 // A plugin declares `permissions: ['fs.read']`; this decides what that sentence is
 // worth. The readable surface of the process is ONE directory — `<root>/vault/state`
-// — and inside it a CLOSED SET of names: the four protocol files and
-// `cells/<slug>.md`. A plugin cannot ask for "any file under the vault", because the
-// method's file list is known and an open-ended reader is an open-ended reader.
+// — and inside it a CLOSED SET of names: the four protocol files, `cells/<slug>.md`
+// and `operations/<slug>.md`. A plugin cannot ask for "any file under the vault",
+// because the method's file list is known and an open-ended reader is an open-ended
+// reader.
 //
 // Two guards, in this order, exactly as the write port does it: the name is checked
 // without touching the disk (pure, cheap, testable), then the resolved target is
@@ -20,8 +21,18 @@ import { assertSafeSegment, confinedTarget, refuseAccess } from './write-port.mj
 /** The four files the protocol defines at the root of `vault/state/`. */
 export const VAULT_FILES = Object.freeze(['INDEX.md', 'CURRENT-CELL.md', 'log.md', 'parking-lot.md']);
 
-/** A cell id, and therefore a cell file name. The same shape the API contract declares. */
+/** A cell id, and therefore a cell file name. The same shape the API contract declares.
+ * An operation id is the same shape: both are `slugify`'d names. */
 export const CELL_SLUG = /^[a-z0-9-]{1,80}$/;
+
+/** The two per-unit file families of the method, as the only readable subdirectories.
+ * A unit of the method is a cell or an operation; the value of each key is the word
+ * its refusals use, so one guard can name the right thing.
+ * @type {Readonly<Record<string, { one: string, article: string }>>} */
+export const VAULT_DIRS = Object.freeze({
+  cells: { one: 'cell', article: 'a' },
+  operations: { one: 'operation', article: 'an' },
+});
 
 /** A vault file is Markdown written by hand or by the CLI, never a payload. */
 export const MAX_READ_BYTES = 4 * 1024 * 1024;
@@ -43,16 +54,21 @@ export function assertVaultName(name) {
   if (VAULT_FILES.includes(name)) return [name];
   const parts = name.split('/');
   const [dir, leaf] = parts;
-  if (parts.length !== 2 || dir !== 'cells' || leaf === undefined) {
+  const family = dir === undefined ? undefined : VAULT_DIRS[dir];
+  if (parts.length !== 2 || dir === undefined || family === undefined || leaf === undefined) {
+    // The sentence names the cell form only, which is the wording criterion O12 froze
+    // (`eip/host/read-port.test.mjs`); `operations/<slug>.md` passes the same guard.
     refuse(name, `must be one of ${VAULT_FILES.join(', ')} or cells/<slug>.md`);
   }
-  if (!leaf.endsWith('.md')) refuse(name, 'a cell file must end in .md');
+  if (!leaf.endsWith('.md')) refuse(name, `${family.article} ${family.one} file must end in .md`);
   const slug = leaf.slice(0, -'.md'.length);
   // `assertSafeSegment` refuses separators, traversal, absolute and drive-letter
   // forms; `CELL_SLUG` then narrows it to the id shape the API contract declares.
   assertSafeSegment(slug);
-  if (!CELL_SLUG.test(slug)) refuse(name, 'a cell slug must match ^[a-z0-9-]{1,80}$');
-  return ['cells', leaf];
+  if (!CELL_SLUG.test(slug)) {
+    refuse(name, `${family.article} ${family.one} slug must match ${CELL_SLUG.source}`);
+  }
+  return [dir, leaf];
 }
 
 /**
