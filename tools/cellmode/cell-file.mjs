@@ -15,7 +15,17 @@ const DEFAULTS = {
   dependencies: '—', doneCriterion: '—', lastFact: '—',
   build: '—', decisions: '—', openIssues: '—', minimalContext: '—',
   nextStep: '—',
+  // The operation layer (addition, OPTIONAL): these three default to the EMPTY
+  // string, not to '—', and an empty one renders no line at all. A cell file
+  // written before the operation layer existed therefore round-trips byte for byte.
+  operation: '', baseCommit: '', spend: '',
 };
+
+/** The optional operation-layer lines, in file order, omitted when empty.
+ * @type {ReadonlyArray<[keyof typeof DEFAULTS, string]>} */
+const OPTIONAL_LINES = Object.freeze([
+  ['operation', 'Operation'], ['baseCommit', 'Base commit'], ['spend', 'Spend'],
+]);
 
 /** @param {Record<string, unknown>} [patch] @returns {Cell} */
 export function makeCell(patch = {}) {
@@ -38,11 +48,15 @@ export function renderCellFile(input) {
   const c = makeCell(input);
   /** @type {(v: unknown) => string} */
   const f = (v) => oneLine(v, '—');
+  const optional = OPTIONAL_LINES
+    .filter(([field]) => oneLine(c[field], '') !== '')
+    .map(([field, label]) => `**${label}:** ${f(c[field])}`);
   return [
     `# Cell: ${oneLine(c.name, 'unnamed')}`,
     `**ID:** ${f(c.id)}`,
     `**Area:** ${f(c.area)}`,
     `**Opened:** ${f(c.opened)} · **Status:** ${c.status}`,
+    ...optional,
     `**Objective:** ${f(c.objective)}`,
     `**Boundary:** in: ${f(c.boundaryIn)} | NOT in: ${f(c.boundaryOut)}`,
     `**Inputs:** ${f(c.inputs)} · **Outputs:** ${f(c.outputs)}`,
@@ -96,6 +110,9 @@ export function parseCellFile(text) {
     decisions: f.Decisions,
     openIssues: f['Open issues'],
     minimalContext: f['Minimal context (≤5 lines)'],
+    operation: f.Operation,
+    baseCommit: f['Base commit'],
+    spend: f.Spend,
     nextStep: parseSection(src, '## ➜') || '—',
   });
 }

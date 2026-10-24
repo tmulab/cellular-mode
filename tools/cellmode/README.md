@@ -101,11 +101,49 @@ a disk. `state.mjs` is the only module that reads or writes vault files.
 | `index-table.mjs` | Parse/render `INDEX.md` (escaped pipes, link-form names, several tables). |
 | `log.mjs` | Render/parse log entries; append-only by construction. |
 | `cell-file.mjs` | Render/parse `cells/<slug>.md`. |
+| `operation-file.mjs` | Render/parse `operations/<slug>.md`, the pack and the finish-line fingerprint — pure, and read by no command yet. |
 | `projections.mjs` | `CURRENT-CELL.md` and the reconnection/summary text. |
 | `check.mjs` | The integrity guard, pure. |
 | `skeleton.mjs` | The empty state, shared with `templates/vault/state/`. |
 | `clock.mjs` `paths.mjs` `slug.mjs` `fields.mjs` `args.mjs` `errors.mjs` | Small pure helpers. |
 | `helpers.mjs` | Test plumbing (not a test file). |
+
+## Operation files (model only, no commands yet)
+
+`operation-file.mjs` is the data model of `vault/state/operations/<slug>.md`. **No CLI
+command reads or writes an operation file** (VERIFIED 2026-10-24): `check` still enforces
+the old one-active-cell rule and knows nothing about operations. A command surface — `op
+open|status|amend`, the conflict check, the spend roll-up — is PROPOSED for R3–R5. Until
+then operation files are written by hand by the orchestrator, and this module exists so
+that the hand-written file and a future command cannot drift into two formats.
+
+```markdown
+# Operation: Go live
+**ID:** go-live · **Opened:** 2026-10-24 · **Status:** 🔵
+**Finish line (frozen):** 1. ship the v2 rules · 2. publish the guide
+**Fingerprint:** <sha256 of the normalized finish line, 64 hex>
+**Authorization pack:** spend ceiling: 2k tokens · publisher: the maintainer · batches: deploy → 1 per day · requires-yes: push to main · denied: rm -rf · max-active-cells: 3
+**Quality bar:** every claim carries an epistemic label
+**Planned cells:** r2-operation-model, r3-op-command
+**Spend so far:** 1.2k tokens
+```
+
+`parseOperationFile` / `renderOperationFile` round-trip it; `parsePack` / `renderPack` do the
+pack line alone. The pack's vocabulary is **closed** — `PACK_GRANTS`: `spend ceiling`,
+`publisher`, `batches` (each `op → limit`; a batch with no limit is rejected), `requires-yes`,
+`denied`, `max-active-cells`. Any other key throws `PACK_UNKNOWN_GRANT: <key>`. The deny-list
+`PACK_FORBIDDEN_GRANTS` (`skip-gate(s)`, `skip-test(s)`, `skip-build`, `skip-typecheck`,
+`destructive`, `destructive-operations`, `protected-resources`, `protected-resource-mutation`,
+`force-push`, `delete-data`, `schema-change`) throws `PACK_FORBIDDEN_GRANT: <key>`: skipping a
+gate or a test, a destructive operation and a protected-resource mutation are not grants and a
+pack cannot make them ones. `fingerprintFinishLine` is sha256 over the finish line after
+dropping the `N.` numbering, collapsing whitespace, trimming, lowercasing and sorting — so
+renumbering or reordering the same items keeps the fingerprint and a reworded, added or
+removed item changes it.
+
+The cell file gained three OPTIONAL fields for the same layer — `**Operation:**`,
+`**Base commit:**`, `**Spend:**` — rendered only when they carry a value, so a cell file
+written before the operation layer round-trips byte for byte.
 
 ## Tests
 

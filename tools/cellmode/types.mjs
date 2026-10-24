@@ -14,7 +14,26 @@
  *   objective: string, boundaryIn: string, boundaryOut: string, inputs: string,
  *   outputs: string, allowed: string, prohibited: string, dependencies: string,
  *   doneCriterion: string, lastFact: string, build: string, decisions: string,
- *   openIssues: string, minimalContext: string, nextStep: string }} Cell
+ *   openIssues: string, minimalContext: string, nextStep: string,
+ *   operation: string, baseCommit: string, spend: string }} Cell
+ */
+
+/** One batch grant of an authorization pack: the operation and ITS limit.
+ * @typedef {{ op: string, limit: string }} PackBatch
+ */
+
+/** An authorization pack, the CLOSED vocabulary of `operation-file.mjs`: nothing
+ * outside these six grants is an authorization, and nothing here can grant a
+ * destructive operation, a protected-resource mutation or skipping a gate.
+ * @typedef {{ spendCeiling: string, publisher: string, batches: PackBatch[],
+ *   requiresYes: string[], denied: string[], maxActiveCells: string }} Pack
+ */
+
+/** One operation: the human's unit of attention, above the cells. `finishLine` is
+ * frozen at opening and `fingerprint` is the sha256 that proves it did not move.
+ * @typedef {{ name: string, id: string, opened: string, status: string,
+ *   finishLine: string[], fingerprint: string, pack: Pack, qualityBar: string,
+ *   plannedCells: string[], spendSoFar: string }} Operation
  */
 
 /** One row of INDEX.md. `slug` is `null` for a hand-written row with no link.

@@ -717,3 +717,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Model (c): several active cells inside one active operation; unplanned cell needs the human's yes as a pack amendment; pack never grants destructive ops, protected resources or gate/test skipping; human widened R1 to tools/adaptive/README.md to land the boundaries line
 **Build:** green (typecheck clean; node --test 1478 pass / 0 fail / 0 skipped after the coder's last write; verify:final runs next as the last action before commit)
 **Next step:** —
+
+---
+## 2026-10-24 07:13 · Cell: R2 operation model
+**Status:** ✔
+**Facts:** Plan v2 cell R2: tools/cellmode/operation-file.mjs (200 lines) parses/renders operations/<slug>.md — Opened, Status, Finish line (frozen) + Fingerprint, Authorization pack, Quality bar, Planned cells, Spend so far — with the closed pack vocabulary PACK_GRANTS (spend ceiling, publisher, batches with limits, requires-yes, denied, max-active-cells), the deny-list PACK_FORBIDDEN_GRANTS checked first, named errors PACK_FORBIDDEN_GRANT / PACK_UNKNOWN_GRANT / PACK_BATCH_WITHOUT_LIMIT, and fingerprintFinishLine (normalize, sort, sha256). cell-file.mjs (118) and types.mjs (82) gained optional Operation/Base commit/Spend; old cell files render byte-identically (tested). README.md (169) documents the model and that no command uses it yet. operation-file.test.mjs: 10 tests. Parked: init + templates for operations/README.md (R3).
+**Decisions:** Reuse fields.mjs parseFields; fingerprint normalization drops numbering/whitespace/case and sorts; empty new fields render nothing; deny-list named in code
+**Build:** green (typecheck clean; node --test 1488 pass / 0 fail / 0 skipped; npm run gates clean; verify:final runs next as the last action before commit)
+**Next step:** —
