@@ -25,7 +25,7 @@ test('the committed vault replays byte-for-byte from the script', () => {
   // Exit 0 means identical; the script itself ends with `cellmode check`, so this
   // also proves the replayed state passes the protocol's own integrity guard.
   const out = execFileSync(process.execPath, [join(HERE, '..', 'reproduce.mjs')], { encoding: 'utf8' });
-  assert.match(out, /vault reproduced: 9 files identical/);
+  assert.match(out, /vault reproduced: 10 files identical/);
   assert.match(out, new RegExp(`${SCRIPT.length} commands, check exit 0`));
 });
 

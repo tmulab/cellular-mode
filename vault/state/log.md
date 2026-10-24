@@ -725,3 +725,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Reuse fields.mjs parseFields; fingerprint normalization drops numbering/whitespace/case and sorts; empty new fields render nothing; deny-list named in code
 **Build:** green (typecheck clean; node --test 1488 pass / 0 fail / 0 skipped; npm run gates clean; verify:final runs next as the last action before commit)
 **Next step:** —
+
+---
+## 2026-10-24 10:17 · Cell: R3 operation commands
+**Status:** ✔
+**Facts:** Plan v2 cell R3: CLI family op open/pause/complete/status in tools/cellmode/operation-commands.mjs (151), operation-lookup.mjs (116), operation-log.mjs (39); state.mjs (173) reads/writes operations/<slug>.md and stays the only vault-I/O module; projections.mjs (90) adds a plain-text operation header to CURRENT-CELL.md; skeleton/init creates operations/README.md with templates/vault/state/operations/README.md identical; examples/*/vault/state regenerated; two skeleton-count assertions updated 9->10 (eip/plugins/observer-http.test.mjs, examples/observer-demo/test/reproduce.test.mjs); AGENTS.md:19 and docs/03:198 now state what the CLI does today. op open requires --finish-line --pack --bar --cells (exit 1 otherwise), writes the Operation log entry with the fingerprint, refuses a second active operation (exit 3); op complete needs --confirm (exit 5); op pause/complete refuse while a cell of the operation is active (exit 3). 22 new tests.
+**Decisions:** Operation log heading 'Operation:' is invisible to log.parseLog/check by design; op pause refuses instead of cascading (docs/02 text to reconcile in R4/R6); resume keeps the frozen finish line; human widened scope to the two count assertions, example vaults and two doc lines
+**Build:** green (typecheck clean; node --test 1500 pass / 0 fail / 0 skipped; gates 882 files clean; verify:final runs next as the last action before commit)
+**Next step:** —

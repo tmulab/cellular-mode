@@ -19,6 +19,7 @@ import {
 import {
   cmdOpen, cmdResume, cmdPause, cmdComplete,
 } from './transitions.mjs';
+import { cmdOp } from './operation-commands.mjs';
 
 /** @typedef {import('./types.mjs').ParsedArgs} ParsedArgs */
 /** @typedef {import('./types.mjs').CommandResult} CommandResult */
@@ -121,4 +122,5 @@ export const COMMANDS = {
   park: cmdPark,
   status: cmdStatus,
   check: cmdCheck,
+  op: cmdOp,
 };

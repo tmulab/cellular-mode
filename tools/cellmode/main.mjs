@@ -27,9 +27,15 @@ Commands:
   park <idea>                             append an idea to parking-lot.md
   status                                  <=5-line reconnection, or the waiting list
   check                                   integrity guard over log + projections
+  op open <name> --finish-line "a; b"
+          --pack "<key>: <value> · …"
+          --bar "<text>" --cells "a, b"   open (or resume ⏸) the ONE active operation
+  op pause [name] --facts F --next N      🔵 -> ⏸ (refuses while a cell of it is 🔵)
+  op complete [name] --facts F --confirm  🔵 -> ✔ (requires human confirmation)
+  op status                               the active operation, or the paused ones
 
-Exit codes: 0 ok · 1 usage/bad args · 2 integrity findings · 3 another cell is active
-            4 ambiguous cell name · 5 human confirmation required`;
+Exit codes: 0 ok · 1 usage/bad args · 2 integrity findings · 3 another cell or
+            operation is active · 4 ambiguous name · 5 human confirmation required`;
 
 /**
  * @param {string[]} [argv]

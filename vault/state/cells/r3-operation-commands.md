@@ -1,0 +1,18 @@
+# Cell: R3 operation commands
+**ID:** r3-operation-commands
+**Area:** tools-cellmode
+**Opened:** 2026-10-24 · **Status:** ✔
+**Objective:** CLI commands op open / op pause / op complete / op status over operations/<slug>.md (plan v2 cell R3): opening requires the four declarations and writes a log entry with the finish-line fingerprint; one active operation at a time; op complete refuses with an active cell; init creates operations/README.md
+**Boundary:** in: tools/cellmode/{commands,main,args,state,log,projections,skeleton}.mjs, new tools/cellmode/operation-*.mjs modules and tests, tools/cellmode/README.md, templates/vault/state/operations/README.md, plus (scope widened by the human 2026-10-24) the two skeleton-count assertions in eip/plugins/observer-http.test.mjs and examples/observer-demo/test/reproduce.test.mjs, the regenerated examples/*/vault/state/operations, and the truth lines AGENTS.md:19 and docs/03:198 | NOT in: cell open/resume/pause/complete semantics (R4), check.mjs findings (R5), skills, docs/, apps/observer, eip/*, conflict checks, pack amendments
+**Inputs:** — · **Outputs:** —
+**Allowed operations:** — · **Prohibited operations:** —
+**Dependencies:** r2-operation-model
+**Done criterion (binary):** op open without --finish-line/--pack/--bar/--cells exits 1 with a usage message; with them writes operations/<slug>.md, an Operation log entry carrying the fingerprint, and refuses a second active operation (exit 3); op pause and op complete --confirm append log entries, op complete refuses while a cell of the operation is active and without --confirm (exit 5); op status prints the operation header; init creates vault/state/operations/README.md byte-identical to templates; every file <= 200 lines; node --test green with real counts; verify:final green
+**Last fact:** Plan v2 cell R3: CLI family op open/pause/complete/status in tools/cellmode/operation-commands.mjs (151), operation-lookup.mjs (116), operation-log.mjs (39); state.mjs (173) reads/writes operations/<slug>.md and stays the only vault-I/O module; projections.mjs (90) adds a plain-text operation header to CURRENT-CELL.md; skeleton/init creates operations/README.md with templates/vault/state/operations/README.md identical; examples/*/vault/state regenerated; two skeleton-count assertions updated 9->10 (eip/plugins/observer-http.test.mjs, examples/observer-demo/test/reproduce.test.mjs); AGENTS.md:19 and docs/03:198 now state what the CLI does today. op open requires --finish-line --pack --bar --cells (exit 1 otherwise), writes the Operation log entry with the fingerprint, refuses a second active operation (exit 3); op complete needs --confirm (exit 5); op pause/complete refuse while a cell of the operation is active (exit 3). 22 new tests.
+**Build/typecheck:** green (typecheck clean; node --test 1500 pass / 0 fail / 0 skipped; gates 882 files clean; verify:final runs next as the last action before commit)
+**Decisions:** Operation log heading 'Operation:' is invisible to log.parseLog/check by design; op pause refuses instead of cascading (docs/02 text to reconcile in R4/R6); resume keeps the frozen finish line; human widened scope to the two count assertions, example vaults and two doc lines
+**Open issues:** op pause/op complete refuse instead of cascading to active cells — docs/02 still says pause cascades; reconcile text or code in R4/R6; R4 must make cell open write Operation and Base commit
+**Minimal context (≤5 lines):** cell-side support (Operation on open, N active cells, conflicts) is R4; check findings are R5; nothing committed; verify:final only after the scope decision
+
+## ➜ NEXT STEP (doable in <5 min, without thinking)
+—

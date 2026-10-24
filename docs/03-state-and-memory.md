@@ -195,6 +195,6 @@ active cells, a pause with no next step, a completion without `--confirm`), docu
 codes, and a `CELLMODE_NOW` override for byte-identical state in examples and tests.
 Hand-editing the files is fully supported and gives the same result.
 
-**The operation layer is not in the CLI yet** (VERIFIED 2026-10-23): no `op` command, no
-conflict check, no amendment command. Operation files, `Operation`, `Base commit`, `Spend`,
-the `CURRENT-CELL.md` header and the amendment are **written by hand by the orchestrator**.
+**The operation layer in the CLI, today** (VERIFIED 2026-10-24): `op open|pause|complete|status`
+write the operation file, its log entries and the `CURRENT-CELL.md` header. Not yet: the cell
+`Operation`/`Base commit`/`Spend` fields on open, the conflict check and the amendment — by hand.

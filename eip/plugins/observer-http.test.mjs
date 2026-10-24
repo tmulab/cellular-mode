@@ -154,7 +154,7 @@ test('O13 a full API session leaves every vault byte identical', async () => {
   const h = await startObserverHost();
   try {
     const before = hashTree(h.state);
-    assert.equal(Object.keys(before).length, 9, 'the replayed vault has nine files');
+    assert.equal(Object.keys(before).length, 10, 'the replayed vault has ten files');
     for (const cap of CAPABILITY_IDS) {
       await h.post(cap, sampleFor(cap));
       await h.post(cap, sampleFor(cap));

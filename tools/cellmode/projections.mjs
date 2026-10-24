@@ -8,12 +8,30 @@ import { oneLine } from './fields.mjs';
 /** @typedef {import('./types.mjs').Cell} Cell */
 /** @typedef {import('./types.mjs').IndexRow} IndexRow */
 /** @typedef {import('./types.mjs').CurrentCell} CurrentCell */
+/** @typedef {import('./types.mjs').Operation} Operation */
 
 export const PAUSED_SHOWN = 3;
 
-/** @param {Cell} cell @returns {string} */
-export function renderCurrentCell(cell) {
-  return renderCellFile(cell);
+/** The header an ACTIVE operation adds above the cell projection (docs/03 §5). Plain
+ * text on purpose: no `**Key:**` field, so `parseCurrentCell` still reads the cell
+ * below it and no operation value can be mistaken for a cell value.
+ * @param {Operation | null} [op] @returns {string[]} */
+export function operationHeaderLines(op) {
+  if (!op || op.status !== '🔵') return [];
+  const ceiling = oneLine(op.pack.spendCeiling, '');
+  const spend = `spend ${oneLine(op.spendSoFar)}${ceiling === '' ? '' : `/${ceiling}`}`;
+  const items = op.finishLine.map((t, i) => `${i + 1}. ${t}`).join(' · ');
+  return [
+    `# Operation: ${oneLine(op.name, 'unnamed')} · ${op.status} · ${spend}`,
+    `Finish line: ${items === '' ? '—' : items}`,
+    '',
+  ];
+}
+
+/** @param {Cell} cell @param {Operation | null} [op] @returns {string} */
+export function renderCurrentCell(cell, op = null) {
+  const head = operationHeaderLines(op);
+  return head.length === 0 ? renderCellFile(cell) : `${head.join('\n')}\n${renderCellFile(cell)}`;
 }
 
 /** @param {ReadonlyArray<IndexRow>} rows @returns {IndexRow[]} */
@@ -21,11 +39,13 @@ export function byRecency(rows) {
   return rows.slice().sort((a, b) => String(b.lastVisit).localeCompare(String(a.lastVisit)));
 }
 
-/** @param {ReadonlyArray<IndexRow>} pausedRows @returns {string} */
-export function renderNoActive(pausedRows) {
+/** @param {ReadonlyArray<IndexRow>} pausedRows @param {Operation | null} [op]
+ * @returns {string} */
+export function renderNoActive(pausedRows, op = null) {
   const paused = byRecency(pausedRows);
   /** @type {string[]} */
   const lines = [
+    ...operationHeaderLines(op),
     '# Current cell',
     '',
     `No active cell · ${paused.length} paused — see INDEX.md`,

@@ -24,6 +24,17 @@ export const CELLS_README = [
   '',
 ].join('\n');
 
+export const OPERATIONS_README = [
+  '# Operations',
+  '',
+  'One file per operation: `<slug>.md`, where the slug is the operation ID.',
+  'The operation is the unit of attention above the cells: one finish line,',
+  'frozen and fingerprinted at opening, one authorization pack, several cells.',
+  'At most one operation is 🔵 at a time; `cellmode op status` reads this folder.',
+  'These files are projections of `../log.md` — if they disagree, the log wins.',
+  '',
+].join('\n');
+
 // Relative POSIX paths -> file content. Keys are relative to the state folder.
 /** @returns {Record<string, string>} */
 export function skeletonFiles() {
@@ -33,5 +44,6 @@ export function skeletonFiles() {
     'CURRENT-CELL.md': renderNoActive([]),
     'parking-lot.md': PARKING_LOT_HEADER,
     'cells/README.md': CELLS_README,
+    'operations/README.md': OPERATIONS_README,
   };
 }
