@@ -865,3 +865,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Reason recorded in the existing limitations and approvals fields instead of a new manifest key (closed key set); a kept file never receives method updates, stated in usage, plan and docs
 **Build:** green (typecheck clean; node --test 1604 pass / 0 fail / 0 skipped; gates clean; verify:final next)
 **Next step:** —
+
+---
+## 2026-10-25 08:29 · Cell: R11 field pilot
+**Status:** ✔
+**Facts:** Field pilot of the v2 method on the field project (2026-10-25), every write approved by the human step by step: bootstrap upgrade --keep-modified from c96448c (15 replaced, 18 added, 1 skeleton; 8 adopter-changed gate and hook files kept as the project's own); v2 AGENTS.md (28 lines changed); D1 policy revised for operations with parallel cells, worktrees outside the repo, generated panel; a [reconstructed] reconciliation of 22-23/10 appended to its log (earlier bytes unchanged by hash); data-aware light gate (a staged file under cursos/ runs the 58 unit tests that read it, fails closed with no reader; 4 pure tests). Field typecheck, 3077 unit tests, build and verify:final green; e2e 447 passed after one intermittent push-gate failure; field commit 0e6d23a pushed, field CI green.
+**Decisions:** Upgrade keeps adopter-modified files instead of overwriting them (new --keep-modified); generated AGENTS.md updated by hand because upgrade never re-renders it; red case of the new light gate with a broken JSON not run in the field (INFERRED from R9)
+**Build:** green in the field (typecheck, unit tests, build, verify:final, e2e, CI); cellular-mode unchanged except the vault; verify:final next
+**Next step:** —
