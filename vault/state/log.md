@@ -873,3 +873,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Upgrade keeps adopter-modified files instead of overwriting them (new --keep-modified); generated AGENTS.md updated by hand because upgrade never re-renders it; red case of the new light gate with a broken JSON not run in the field (INFERRED from R9)
 **Build:** green in the field (typecheck, unit tests, build, verify:final, e2e, CI); cellular-mode unchanged except the vault; verify:final next
 **Next step:** —
+
+---
+## 2026-10-25 08:47 · Cell: AGENTS template v2
+**Status:** ✔
+**Facts:** bootstrap/templates/agents-md.md (68 lines) now renders the v2 rules 1–6, operations/ in state, the operation and worker skills in the entry points and the two new approval items; rule 7 kept generic (pinned by the pause tests). agents-block.md (13 lines) points to operations and the operation skill. Verified by a fresh bootstrap new --profile minimal in a temp folder: 70-line AGENTS.md with the v2 rules, no unfilled placeholder, operation and worker skills installed. Parked: a test pinning the template rules to this repository's AGENTS.md.
+**Decisions:** Already-generated AGENTS.md files are not re-rendered by upgrade; adopters edit by hand
+**Build:** green (node --test 1604 pass / 0 fail / 0 skipped; verify:final next)
+**Next step:** —

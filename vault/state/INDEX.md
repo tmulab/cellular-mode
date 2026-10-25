@@ -105,3 +105,4 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [No-git UNKNOWN rationale](cells/no-git-unknown-rationale.md) | method-docs | ✔ | 2026-10-24 | — |
 | [R11 field pilot](cells/r11-field-pilot.md) | field | ✔ | 2026-10-25 | — |
 | [Bootstrap upgrade keeps adopter files](cells/bootstrap-upgrade-keeps-adopter-files.md) | bootstrap | ✔ | 2026-10-25 | — |
+| [AGENTS template v2](cells/agents-template-v2.md) | bootstrap | ✔ | 2026-10-25 | — |
