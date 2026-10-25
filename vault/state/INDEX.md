@@ -108,3 +108,4 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [AGENTS template v2](cells/agents-template-v2.md) | bootstrap | ✔ | 2026-10-25 | — |
 | [Manuals v2](cells/manuals-v2.md) | docs | ✔ | 2026-10-25 | — |
 | [Release 2.0.0](cells/release-2-0-0.md) | release | ✔ | 2026-10-25 | — |
+| [Post-release docs 2.0](cells/post-release-docs-2-0.md) | docs | ✔ | 2026-10-25 | — |

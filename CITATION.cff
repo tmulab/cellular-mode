@@ -5,8 +5,14 @@ title: Cellular Mode
 version: 2.0.0
 date-released: "2026-10-25"
 license: Apache-2.0
-# Concept DOI (all versions). The 2.0.0 version DOI is added here once Zenodo mints it.
-doi: 10.5281/zenodo.23239313
+doi: 10.5281/zenodo.23642223
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.23642223
+    description: Version DOI of Cellular Mode 2.0.0
+  - type: doi
+    value: 10.5281/zenodo.23239313
+    description: Concept DOI, all versions of Cellular Mode
 authors:
   - family-names: Bonomo
     given-names: Hudson A. R.
@@ -14,8 +20,7 @@ authors:
     affiliation: "TMU-LAB — The Machine Unconscious Lab, Rio de Janeiro, Brazil"
 repository-code: "https://github.com/tmulab/cellular-mode"
 url: "https://github.com/tmulab/cellular-mode/releases/tag/v2.0.0"
-# The 2.0.0 release commit is the commit that carries this file; its full hash is
-# added here, like the version DOI, once the tag exists.
+commit: 0c8a90cfada0dcc08a00eb03e04f15063b3f879d
 abstract: >-
   Cellular Mode is an open-source method and software architecture for
   bounded, resumable, auditable, and verifiable agent-assisted software

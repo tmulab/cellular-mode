@@ -905,3 +905,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Human approved each draft before assembly; Word PDF with the real Aptos font; field project anonymised; [13] cited in both preprints; completion approved by the human 2026-10-25
 **Build:** not applicable (no repository files changed)
 **Next step:** —
+
+---
+## 2026-10-25 11:36 · Cell: Post-release docs 2.0
+**Status:** ✔
+**Facts:** CITATION.cff carries the 2.0.0 version DOI 10.5281/zenodo.23642223, the concept DOI as an identifier and release commit 0c8a90c; README DOI table, documentation line and citation point to the 2.0 records (software 23642223, EN preprint 23643014, PT preprint 23643326, EN guide 23642707, PT guide 23642839); docs/PUBLISHED-ARTIFACTS.md maps both editions of every record with the relations verified on the Zenodo API, including the EN preprint 'Is original form of' the PT preprint. Typecheck 0 errors, 1604/1604 tests, gates no findings.
+**Decisions:** Diff approved by the human 2026-10-25; CHANGELOG and RELEASE_CHECKLIST left as release records (parked)
+**Build:** —
+**Next step:** —
