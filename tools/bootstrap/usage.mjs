@@ -36,6 +36,12 @@ Commands:
       --dry-run           print the plan and write nothing at all
       --confirm           perform the plan; without it the plan is shown and the exit is 5
       --verbose           list every path instead of a capped sample
+      --keep-modified     do NOT refuse because of files you changed: keep each one byte-identical,
+                          list it in the plan under \`kept\`, and record it as this project's own —
+                          so \`status\` stops calling it drift and \`uninstall\` never deletes it.
+                          The cost, and it is permanent: a kept file receives NO method update, now
+                          or later; the newer upstream version of it is not installed. The plan
+                          names exactly which files are kept — read it before you confirm.
                           Replaces only immutable files that still hash to the record. A file you
                           CHANGED refuses the whole upgrade (exit 3), never overwritten. Adds what
                           the catalog gained. Never touches vault/state/** except to create a

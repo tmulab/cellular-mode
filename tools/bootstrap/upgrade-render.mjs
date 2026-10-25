@@ -12,13 +12,14 @@
 import { capList, plural, sanitize } from './display.mjs';
 import { INSTALL_MANIFEST } from './plan-constants.mjs';
 import { PATH_CAP } from './status.mjs';
-import { changeCount } from './upgrade-plan.mjs';
+import { KEPT_REASON, changeCount } from './upgrade-plan.mjs';
 
 /** @typedef {import('./upgrade-plan.mjs').UpgradePlan} UpgradePlan */
 /** @typedef {import('./upgrade-plan.mjs').Change} Change */
 /** @typedef {import('./status.mjs').Identity} Identity */
 /** @typedef {{ replaced: ReadonlyArray<string>, added: ReadonlyArray<string>,
- *   skeleton: ReadonlyArray<string>, failed: ReadonlyArray<{ path: string, reason: string }>,
+ *   skeleton: ReadonlyArray<string>, kept: ReadonlyArray<string>,
+ *   failed: ReadonlyArray<{ path: string, reason: string }>,
  *   manifest: string }} UpgradeOutcome */
 
 /** PURE. An identity as one line, with UNKNOWN said rather than hidden. @param {Identity | null}
@@ -59,8 +60,21 @@ export function upgradeLines(input) {
   out.push(...group(plan.add, 'add', -1));
   out.push(...group(plan.skeleton, 'skeleton', -1));
   if (plan.current > 0) out.push(`  ${'current'.padEnd(12)} ${String(plan.current).padStart(3)} (already the bytes this source installs)`);
+  out.push(...keptLines(plan));
   out.push(...untouchedLines(plan, cap));
   return out;
+}
+
+/** PURE. The files `--keep-modified` leaves exactly as they are: named in full, never capped —
+ * this is the list the human is authorising, and the consequence is said in the same breath.
+ * @param {UpgradePlan} plan @returns {string[]} */
+export function keptLines(plan) {
+  if (plan.kept.length === 0) return [];
+  return [`  ${'kept'.padEnd(12)} ${String(plan.kept.length).padStart(3)} (${KEPT_REASON})`,
+    ...plan.kept.map((entry) => `      ${sanitize(entry.path)}`),
+    '      --keep-modified: each of these keeps YOUR bytes, is recorded as this project\'s own'
+      + ' (referenced), and receives NO further method update — the newer upstream version of it'
+      + ' is NOT installed, now or by a later upgrade.'];
 }
 
 /** PURE. The files this verb will not touch, with the reason, grouped by reason. @param
@@ -104,6 +118,11 @@ export function outcomeLines(input) {
     `Added: ${plural(outcome.added.length, 'file')}`,
     `Skeleton files created: ${outcome.skeleton.length}`,
     `${INSTALL_MANIFEST}: ${sanitize(outcome.manifest, 300)}`];
+  if (outcome.kept.length > 0) {
+    out.push('', `Kept, untouched, now this project's own (--keep-modified): ${plural(outcome.kept.length, 'file')}`,
+      ...outcome.kept.map((path) => `  = ${sanitize(path)}`),
+      'They receive no further method update: the newer upstream version is NOT installed.');
+  }
   if (outcome.failed.length > 0) {
     out.push('', `${plural(outcome.failed.length, 'step')} was refused and did NOT happen:`);
     for (const entry of outcome.failed) out.push(`  - ${sanitize(entry.path)} — ${sanitize(entry.reason, 300)}`);

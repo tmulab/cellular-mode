@@ -12,6 +12,13 @@
 // describes. Refusing is the only honest third option, and the human then chooses: keep the edit,
 // or remove the file with `uninstall --force-modified` and upgrade afterwards.
 //
+// `--keep-modified` IS THE THIRD CHOICE, AND IT IS THE HUMAN'S. With it, a file they changed is no
+// longer a refusal: it is KEPT byte-identical, listed in the plan under `kept`, and recorded as the
+// project's own, so `status` stops calling it drift, `uninstall` never deletes it and no later
+// upgrade touches it — which is also the cost, said in the plan: that file receives no method
+// update ever again. Every OTHER refusal stands: a component this source cannot describe, an
+// overlap between source and target, a stale digest at the moment of the write.
+//
 // WHAT IT DOES NOT DO. It does not re-render a GENERATED file (an `AGENTS.md` is written from the
 // target's own facts, and a project may have grown a managed block in it), it does not touch
 // `vault/state/**` beyond CREATING a skeleton file that is absent — never `log.md` — and it never
@@ -80,7 +87,8 @@ export function unknownComponents(name, unknown) {
 /**
  * Runs `upgrade`.
  * @param {{ sourceRoot: string, targetArg: string, dryRun?: boolean | undefined,
- *   confirm?: boolean | undefined, verbose?: boolean | undefined, now: string,
+ *   confirm?: boolean | undefined, verbose?: boolean | undefined,
+ *   keepModified?: boolean | undefined, now: string,
  *   env?: NodeJS.ProcessEnv | undefined }} input @returns {FlowResult}
  */
 export function runUpgrade(input) {
@@ -101,6 +109,7 @@ export function runUpgrade(input) {
     sourceDigest: (rel) => digestOf(source, rel),
     present: (rel) => presentIn(targetRoot, rel),
     skeleton,
+    keepModified: input.keepModified === true,
   });
   const rendered = upgradeLines({ plan, name, installed: facts.source, source: facts.sourceNow,
     verbose: input.verbose === true });

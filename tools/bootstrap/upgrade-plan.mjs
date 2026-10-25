@@ -10,6 +10,10 @@
 //   IMMUTABLE and MODIFIED by the adopter — the whole upgrade is REFUSED, by returning it as a
 //     finding. Not skipped, not overwritten, not "merged": somebody edited an installed file, and
 //     a tool that proceeded would either destroy that work or leave an install it cannot describe.
+//     UNLESS the human says `--keep-modified`, and then that one file is KEPT: its bytes are left
+//     exactly as they are, it is listed under `kept` with the reason, and the rest of the plan
+//     proceeds. That is not a softer refusal — it is the human declaring the file theirs, which is
+//     recorded, so the file stops receiving method updates instead of silently diverging.
 //   EVOLVING (`vault/state/**`, `vault/verification.json`) — never touched. The one exception is
 //     ADDITIVE: a skeleton file the current source defines and the target does NOT have (a new
 //     `operations/README.md`, say) is created, because an absent file holds no history. `log.md` is
@@ -28,9 +32,11 @@ import { STATE_REL } from '../cellmode/paths.mjs';
  *   next: string }} Change */
 /** @typedef {{ path: string, reason: string }} Untouched */
 /** @typedef {{ path: string, why: string }} Finding */
+/** One file the adopter changed that `--keep-modified` leaves alone, with the digest it holds now.
+ * @typedef {{ path: string, reason: string, sha256: string | null }} Kept */
 /** @typedef {{ replace: ReadonlyArray<Change>, add: ReadonlyArray<Change>,
  *   skeleton: ReadonlyArray<Change>, untouched: ReadonlyArray<Untouched>,
- *   findings: ReadonlyArray<Finding>, current: number }} UpgradePlan */
+ *   kept: ReadonlyArray<Kept>, findings: ReadonlyArray<Finding>, current: number }} UpgradePlan */
 
 /** The skeleton files this verb will NEVER create, however absent they are. The log is the
  * project's source of truth; a tool that can write one is a tool that can forge one. */
@@ -47,6 +53,10 @@ export const REASONS = Object.freeze({
   unknownSource: 'the current source does not hold the file it was copied from',
 });
 
+/** Why a modified immutable file is KEPT when the human asked for it — the words the plan prints
+ * under `kept`, and the sentence the record carries afterwards. */
+export const KEPT_REASON = "changed here after install — the project's own now";
+
 /** Why a modified immutable file refuses the whole upgrade. @param {string} path
  * @returns {string} */
 const modifiedWhy = (path) => `${path} was changed after it was installed: an upgrade would`
@@ -58,7 +68,8 @@ const modifiedWhy = (path) => `${path} was changed after it was installed: an up
  *   targets: Readonly<Record<string, string>>,
  *   sourceDigest: (sourceRel: string) => string | null,
  *   present: (targetRel: string) => boolean,
- *   skeleton: Readonly<Record<string, string>> }} UpgradeInput
+ *   skeleton: Readonly<Record<string, string>>,
+ *   keepModified?: boolean | undefined }} UpgradeInput
  */
 
 /**
@@ -75,6 +86,8 @@ export function planUpgrade(input) {
   const add = [];
   /** @type {Untouched[]} */
   const untouched = [];
+  /** @type {Kept[]} */
+  const kept = [];
   /** @type {Finding[]} */
   const findings = [];
   let current = 0;
@@ -99,8 +112,10 @@ export function planUpgrade(input) {
     }
     const change = { path: entry.path, source: sourceRel, recorded: entry.sha256After, next };
     if (fact.state === 'missing') add.push(change);
-    else if (fact.state === 'modified') findings.push({ path: entry.path, why: modifiedWhy(entry.path) });
-    else if (next !== entry.sha256After) replace.push(change);
+    else if (fact.state === 'modified') {
+      if (input.keepModified === true) kept.push({ path: entry.path, reason: KEPT_REASON, sha256: fact.sha256 });
+      else findings.push({ path: entry.path, why: modifiedWhy(entry.path) });
+    } else if (next !== entry.sha256After) replace.push(change);
     else current += 1;
   }
   const recorded = new Set(input.files.map((fact) => fact.entry.path));
@@ -116,6 +131,7 @@ export function planUpgrade(input) {
   return Object.freeze({
     replace: sorted(replace), add: sorted(add), skeleton: sorted(skeleton),
     untouched: Object.freeze([...untouched].sort((a, b) => (a.path < b.path ? -1 : 1))),
+    kept: Object.freeze([...kept].sort((a, b) => (a.path < b.path ? -1 : 1))),
     findings: Object.freeze(findings), current,
   });
 }

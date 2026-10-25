@@ -103,3 +103,5 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [R7 generated map](cells/r7-generated-map.md) | tools-cellmode | ✔ | 2026-10-24 | — |
 | [R10 swarm rehearsal](cells/r10-swarm-rehearsal.md) | tools-cellmode | ✔ | 2026-10-24 | — |
 | [No-git UNKNOWN rationale](cells/no-git-unknown-rationale.md) | method-docs | ✔ | 2026-10-24 | — |
+| [R11 field pilot](cells/r11-field-pilot.md) | field | ⏸ | 2026-10-25 | After the upgrade --keep cell is done and committed, rerun bootstrap upgrade on the field repo with --dry-run and the keep option and show the exact plan to the human |
+| [Bootstrap upgrade keeps adopter files](cells/bootstrap-upgrade-keeps-adopter-files.md) | bootstrap | ✔ | 2026-10-25 | — |

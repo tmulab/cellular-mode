@@ -33,7 +33,7 @@ export const SOURCE_ROOT = fileURLToPath(new URL('../../', import.meta.url));
 
 /** Options that are present-or-absent rather than key-and-value, rewritten before cellmode's
  * parser sees them — one parser, no second opinion about what an option looks like. */
-export const FLAGS = Object.freeze(['confirm', 'dry-run', 'verbose', 'analyze', 'json', 'save-report']);
+export const FLAGS = Object.freeze(['confirm', 'dry-run', 'verbose', 'analyze', 'json', 'save-report', 'keep-modified']);
 
 /** The commands this CLI implements. `status`, `upgrade` and `uninstall` act on an install already
  * there; none reinstalls, and only `upgrade` may replace a file Bootstrap wrote. */
@@ -95,9 +95,9 @@ function dispatch(args, env) {
       verbose: flag(parsed.options, 'verbose') }), root };
   }
   if (command === 'upgrade') {
-    return { ...runUpgrade({ sourceRoot: SOURCE_ROOT, targetArg,
+    return { ...runUpgrade({ sourceRoot: SOURCE_ROOT, targetArg, now: instantOf(env), env,
       dryRun: flag(parsed.options, 'dry-run'), confirm: flag(parsed.options, 'confirm'),
-      verbose: flag(parsed.options, 'verbose'), now: instantOf(env), env }), root };
+      verbose: flag(parsed.options, 'verbose'), keepModified: flag(parsed.options, 'keep-modified') }), root };
   }
   if (command === 'uninstall') {
     return { ...runUninstall({ sourceRoot: SOURCE_ROOT, targetArg,

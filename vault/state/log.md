@@ -849,3 +849,19 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Human kept the no-git rule on 2026-10-24: UNKNOWN notice and exit 0 without git; with git, an unknown Base commit stays a finding
 **Build:** green (typecheck clean; node --test 1599 pass / 0 fail / 0 skipped; gates clean; verify:final next)
 **Next step:** —
+
+---
+## 2026-10-25 06:23 · Cell: R11 field pilot
+**Status:** ⏸
+**Facts:** Field read-only and upgrade dry-run done (zero writes): 34 paths to write, 8 adopter-modified installed files make upgrade refuse the whole run. Human chose (a) on 2026-10-25: first teach upgrade to keep adopter-modified files, then a new dry-run.
+**Decisions:** —
+**Build:** not applicable (no code changed in this cell)
+**Next step:** After the upgrade --keep cell is done and committed, rerun bootstrap upgrade on the field repo with --dry-run and the keep option and show the exact plan to the human
+
+---
+## 2026-10-25 06:42 · Cell: Bootstrap upgrade keeps adopter files
+**Status:** ✔
+**Facts:** bootstrap upgrade gained --keep-modified: an adopter-changed immutable file is no longer a refusal; it is left byte-identical, listed under the plan section kept, and after --confirm recorded as created:false, mode reference, its current hash, a limitation sentence and the approval 'upgrade --confirm --keep-modified', so status counts it healthy, uninstall keeps it and a later upgrade leaves it alone. Without the flag the refusal is unchanged. Modules upgrade-plan 171, -record 110, -apply 143, -render 132, upgrade 156, main 200, usage 91; docs/12 195; 5 new tests. Also redacted the field project's private name from the R11 cell file (leaks gate).
+**Decisions:** Reason recorded in the existing limitations and approvals fields instead of a new manifest key (closed key set); a kept file never receives method updates, stated in usage, plan and docs
+**Build:** green (typecheck clean; node --test 1604 pass / 0 fail / 0 skipped; gates clean; verify:final next)
+**Next step:** —

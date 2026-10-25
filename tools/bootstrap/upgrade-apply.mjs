@@ -23,10 +23,37 @@ import { bytesIfPresent, sha256, writeNew } from './writer.mjs';
 
 /** @typedef {import('./upgrade-plan.mjs').UpgradePlan} UpgradePlan */
 /** @typedef {import('./upgrade-record.mjs').Written} Written */
+/** @typedef {import('./upgrade-record.mjs').Kept} Kept */
 /** @typedef {import('./upgrade-render.mjs').UpgradeOutcome} UpgradeOutcome */
 
 /** @param {unknown} error @returns {string} */
 const why = (error) => (error instanceof Error ? error.message : 'unknown failure');
+
+/**
+ * The kept files, re-hashed HERE and not taken from the plan: the record must carry the digest of
+ * the bytes on disk now, or `status` would report a drift the adopter never caused. Nothing is
+ * written for a kept file — it is only described — and a kept file that has since disappeared is a
+ * refused step rather than a recorded one.
+ * @param {string} targetRoot @param {UpgradePlan} plan
+ * @param {{ path: string, reason: string }[]} failed @returns {Kept[]}
+ */
+export function keptRecords(targetRoot, plan, failed) {
+  /** @type {Kept[]} */
+  const out = [];
+  for (const entry of plan.kept) {
+    try {
+      const present = bytesIfPresent(targetRoot, entry.path);
+      if (present === null) {
+        failed.push({ path: entry.path, reason: 'it is not there any more, so nothing was recorded about it' });
+        continue;
+      }
+      out.push({ path: entry.path, sha256: sha256(present) });
+    } catch (error) {
+      failed.push({ path: entry.path, reason: why(error) });
+    }
+  }
+  return out;
+}
 
 /**
  * Performs the plan. Returns what happened; it never throws for a refused step, because a refusal
@@ -84,14 +111,17 @@ export function applyUpgrade(input) {
       failed.push({ path: change.path, reason: why(error) });
     }
   }
-  return { replaced, added, skeleton, failed, manifest: rewriteManifest({ ...input, written }) };
+  const kept = keptRecords(targetRoot, plan, failed);
+  return { replaced, added, skeleton, kept: kept.map((entry) => entry.path), failed,
+    manifest: rewriteManifest({ ...input, written, kept }) };
 }
 
 /**
  * Rewrites the install record, through the same guarded door as any other replace: the manifest on
  * disk must still be the manifest this upgrade read. The amended document is validated BEFORE it
  * is written, so a record this tool could not read back never reaches the target.
- * @param {Parameters<typeof applyUpgrade>[0] & { written: ReadonlyArray<Written> }} input
+ * @param {Parameters<typeof applyUpgrade>[0] & { written: ReadonlyArray<Written>,
+ *   kept?: ReadonlyArray<Kept> | undefined }} input
  * @returns {string} one line saying what happened to the record
  */
 export function rewriteManifest(input) {
@@ -100,11 +130,13 @@ export function rewriteManifest(input) {
   try {
     const amended = assertInstallManifest(upgradedManifest({
       manifest: input.manifest, written: input.written, source: input.source,
-      componentVersions: input.componentVersions, now: input.now,
+      componentVersions: input.componentVersions, now: input.now, kept: input.kept ?? [],
     }));
     replaceRecorded(input.targetRoot, INSTALL_MANIFEST, `${JSON.stringify(amended, null, 2)}\n`,
       sha256(present));
-    return `rewritten: source ${input.source.name} ${input.source.version}, this upgrade recorded as an approval`;
+    const keptCount = (input.kept ?? []).length;
+    return `rewritten: source ${input.source.name} ${input.source.version}, this upgrade recorded as an approval`
+      + (keptCount === 0 ? '' : `, ${keptCount} changed file(s) recorded as this project's own`);
   } catch (error) {
     return `NOT rewritten: ${why(error)} — the previous record still stands, and \`status\` will report the difference`;
   }
