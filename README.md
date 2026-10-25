@@ -3,19 +3,20 @@
 **An agent-assisted development method.** Work in **cells** — small, bounded units with an explicit contract — and keep their state recorded, so that stopping is cheap and resuming is almost instant, whether the next session is tomorrow, in three weeks, or with another agent.
 
 Plain Markdown. Zero runtime dependencies. No runtime required. Node 22 or 24 (the two lines CI verifies; `engines.node` is `^22 || ^24`). Apache-2.0.
-**Cellular Mode v1.0.0 — released and complete.** Public repository, Apache-2.0, verified on Node 22 and Node 24. Tag [`v1.0.0`](https://github.com/tmulab/cellular-mode/releases/tag/v1.0.0) identifies the released artifact: it stays on release commit `1070dcd` and does not move, while `main` may carry later post-release documentation commits. That final state is independently verified by GitHub Actions run [`37777098948`](https://github.com/tmulab/cellular-mode/actions/runs/37777098948) on `1070dcd`: typecheck **0 errors**, **287 modules**, **1478 tests discovered · 1477 passed · 0 failed · 1 skipped** — the skip is one Windows-only runtime test (H7), skipped on Linux by design — gates **no findings**, release gate **no blockers**, Article-8 `Verified-State` trailer **MATCH** and the CI fingerprint and tree **MATCH**. What v1.0.0 includes and what it does **not** imply — the release boundary: [`CHANGELOG.md`](CHANGELOG.md) · history of the decisions: [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) · security scope: [`SECURITY.md`](SECURITY.md).
+**Cellular Mode v2.0.0 — released: the operation layer.** Public repository, Apache-2.0, verified on Node 22 and Node 24. v2 puts an **operation** above the cell — one active operation at a time, several bounded cells running inside it, conflicts named before each one opens — and carries it through the CLI (`op`, `conflicts`, `report`, six new `check` findings), the Observer, the skills and `bootstrap upgrade`. Final state on this commit: typecheck **0 errors**, **1604 tests · 1604 passed · 0 failed**, gates **no findings**, release gate **no blockers**. Tag [`v2.0.0`](https://github.com/tmulab/cellular-mode/releases/tag/v2.0.0) identifies the released artifact and does not move; tag [`v1.0.0`](https://github.com/tmulab/cellular-mode/releases/tag/v1.0.0) stays on release commit `1070dcd`. What v2.0.0 includes, what is **breaking for adopters** and what it does **not** imply — the release boundary: [`CHANGELOG.md`](CHANGELOG.md) · history of the decisions: [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) · security scope: [`SECURITY.md`](SECURITY.md).
 
 ## Published artifacts
 
 | Artifact | Language | DOI |
 |---|---|---|
+| Cellular Mode 2.0.0 software | — | <https://doi.org/10.5281/zenodo.23239313> (concept — version DOI after deposit) |
 | Cellular Mode v1.0.0 software | — | <https://doi.org/10.5281/zenodo.23239314> |
-| Technical preprint | English | <https://doi.org/10.5281/zenodo.23240653> |
-| Technical preprint | Português | <https://doi.org/10.5281/zenodo.23244321> |
-| User Guide | English | <https://doi.org/10.5281/zenodo.23246099> |
-| Guia do Usuário | Português | <https://doi.org/10.5281/zenodo.23246221> |
+| Technical preprint (v1 documentation) | English | <https://doi.org/10.5281/zenodo.23240653> |
+| Technical preprint (v1 documentation) | Português | <https://doi.org/10.5281/zenodo.23244321> |
+| User Guide (v1 documentation) | English | <https://doi.org/10.5281/zenodo.23246099> |
+| Guia do Usuário (documentação da v1) | Português | <https://doi.org/10.5281/zenodo.23246221> |
 
-The software DOI identifies the released artifact; the papers describe the method; the user guides are operational documentation for v1.0.0. Concept DOIs and the relations between the records: [`docs/PUBLISHED-ARTIFACTS.md`](docs/PUBLISHED-ARTIFACTS.md).
+The concept DOI resolves to the newest deposit of the software record; the 2.0.0 **version** DOI is added here once Zenodo mints it. The papers and the user guides describe **1.0.0** and have not yet been revised for v2. Concept DOIs and the relations between the records: [`docs/PUBLISHED-ARTIFACTS.md`](docs/PUBLISHED-ARTIFACTS.md).
 
 ## The problem
 
@@ -145,8 +146,8 @@ Agent-neutral: a tool needs only to read `AGENTS.md` and write under `vault/stat
 | [`docs/adr/`](docs/adr/) · [`docs/upp/`](docs/upp/SPEC.md) · [`SECURITY.md`](SECURITY.md) | five architecture decision records (all approved) · the language-neutral host↔plugin protocol, UPP 1.0, implemented and **experimental** · supported scope, threat model, what is and is not enforced |
 
 Templates: [`templates/`](templates/) — user profile, cell contract (with the full worked form: question → pre-committed decisions → declared scope → mechanical criteria with red-proof → verdict), handoff package, project policy. **Example:** [`examples/text-stats/`](examples/text-stats/) — a small project built through three cells, with its vault, code, tests and a reproduce script. [`vault/state/`](vault/state/) here is *this* repository's own development record, written by the real CLI; adopters run `init` in their own project.
-**Published documentation and papers:** User Guide — <https://doi.org/10.5281/zenodo.23246099> (English) · <https://doi.org/10.5281/zenodo.23246221> (Português) · technical preprint — <https://doi.org/10.5281/zenodo.23240653> (English) · <https://doi.org/10.5281/zenodo.23244321> (Português). Full map: [`docs/PUBLISHED-ARTIFACTS.md`](docs/PUBLISHED-ARTIFACTS.md).
-Release: [`CHANGELOG.md`](CHANGELOG.md) — the v1.0.0 entry and the release boundary. Reports: [`CONTEXT_AUDIT.md`](CONTEXT_AUDIT.md) · [`MIGRATION_REPORT.md`](MIGRATION_REPORT.md) · [`ARCHITECTURE_REPORT.md`](ARCHITECTURE_REPORT.md) · [`ADAPTIVE_REPORT.md`](ADAPTIVE_REPORT.md) · [`BOOTSTRAP_REPORT.md`](BOOTSTRAP_REPORT.md) · [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md).
+**Published documentation and papers** (they describe **1.0.0**, until their v2 editions): User Guide — <https://doi.org/10.5281/zenodo.23246099> (English) · <https://doi.org/10.5281/zenodo.23246221> (Português) · technical preprint — <https://doi.org/10.5281/zenodo.23240653> (English) · <https://doi.org/10.5281/zenodo.23244321> (Português). Full map: [`docs/PUBLISHED-ARTIFACTS.md`](docs/PUBLISHED-ARTIFACTS.md).
+Release: [`CHANGELOG.md`](CHANGELOG.md) — the 2.0.0 entry, what is breaking for adopters, and the release boundary. Reports: [`CONTEXT_AUDIT.md`](CONTEXT_AUDIT.md) · [`MIGRATION_REPORT.md`](MIGRATION_REPORT.md) · [`ARCHITECTURE_REPORT.md`](ARCHITECTURE_REPORT.md) · [`ADAPTIVE_REPORT.md`](ADAPTIVE_REPORT.md) · [`BOOTSTRAP_REPORT.md`](BOOTSTRAP_REPORT.md) · [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md).
 
 ## Tests and gates
 
@@ -180,7 +181,7 @@ this English, project-agnostic form. See [`NOTICE`](NOTICE).
 
 ## Citation
 
-For software citation, use `CITATION.cff` or: Bonomo, H. A. R. (2026). Cellular Mode (Version 1.0.0) [Computer software]. Zenodo. <https://doi.org/10.5281/zenodo.23239314>
+For software citation, use `CITATION.cff` or: Bonomo, H. A. R. (2026). Cellular Mode (Version 2.0.0) [Computer software]. Zenodo. <https://doi.org/10.5281/zenodo.23239313>
 
 ## License
 

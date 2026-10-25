@@ -2,18 +2,20 @@ cff-version: 1.2.0
 message: "If you use Cellular Mode in research or software development, please cite this software."
 type: software
 title: Cellular Mode
-version: 1.0.0
-date-released: "2026-10-08"
+version: 2.0.0
+date-released: "2026-10-25"
 license: Apache-2.0
-doi: 10.5281/zenodo.23239314
+# Concept DOI (all versions). The 2.0.0 version DOI is added here once Zenodo mints it.
+doi: 10.5281/zenodo.23239313
 authors:
   - family-names: Bonomo
     given-names: Hudson A. R.
     orcid: "https://orcid.org/0000-0003-0656-7641"
     affiliation: "TMU-LAB — The Machine Unconscious Lab, Rio de Janeiro, Brazil"
 repository-code: "https://github.com/tmulab/cellular-mode"
-url: "https://github.com/tmulab/cellular-mode/releases/tag/v1.0.0"
-commit: 1070dcdb3d64442593a3f7540cd5ed86d8092e54
+url: "https://github.com/tmulab/cellular-mode/releases/tag/v2.0.0"
+# The 2.0.0 release commit is the commit that carries this file; its full hash is
+# added here, like the version DOI, once the tag exists.
 abstract: >-
   Cellular Mode is an open-source method and software architecture for
   bounded, resumable, auditable, and verifiable agent-assisted software

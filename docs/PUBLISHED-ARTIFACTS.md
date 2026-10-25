@@ -1,10 +1,24 @@
 # Published artifacts
 
-Canonical map of what has been published for Cellular Mode v1.0.0: the software artifact, the
-technical paper in two languages, and the user guide in two languages. Every record has a
-**version DOI** (one specific deposit) and a **concept DOI** (all versions of that record).
+Canonical map of what has been published for Cellular Mode: the software artifact, the technical
+paper in two languages, and the user guide in two languages. Every record has a **version DOI** (one
+specific deposit) and a **concept DOI** (all versions of that record). The papers and the guides
+below describe **1.0.0** and keep doing so until their v2 editions are published; only the software
+record has a 2.0.0 deposit.
 
-## Software
+## Software 2.0.0
+
+- Name: **Cellular Mode**, version 2.0.0
+- Version DOI: **assigned at deposit** — not yet minted
+- Concept DOI: <https://doi.org/10.5281/zenodo.23239313>
+- GitHub release: <https://github.com/tmulab/cellular-mode/releases/tag/v2.0.0>
+- Release commit: the commit that carries this file
+
+The concept DOI resolves to the newest deposit of the software record, so it is the citable
+identifier for 2.0.0 until the version DOI exists. What 2.0.0 changes, and what is breaking for
+adopters: [`../CHANGELOG.md`](../CHANGELOG.md).
+
+## Software 1.0.0
 
 - Name: **Cellular Mode**, version 1.0.0
 - Version DOI: <https://doi.org/10.5281/zenodo.23239314>
@@ -61,7 +75,10 @@ Portuguese User Guide — is variant form of — English User Guide (10.5281/zen
 
 ## Software citation
 
-Bonomo, H. A. R. (2026). Cellular Mode (Version 1.0.0) [Computer software]. Zenodo.
+Bonomo, H. A. R. (2026). Cellular Mode (Version 2.0.0) [Computer software]. Zenodo.
+<https://doi.org/10.5281/zenodo.23239313>
+
+To cite 1.0.0 specifically, use its version DOI instead:
 <https://doi.org/10.5281/zenodo.23239314>
 
 Machine-readable metadata: `CITATION.cff` in the repository root.

@@ -2,7 +2,7 @@
 
 ## Supported scope
 
-**Cellular Mode v1.0.0 is released.** The release does not widen this scope: the
+**Cellular Mode v2.0.0 is released.** The release does not widen this scope: the
 **experimental runtime surfaces** — the `eip/` runtime and its HTTP host, the UPP host
 adapters, and the optional Adaptive module — stay **experimental** and keep exactly the
 security scope documented below. This repository is supported for **local development use

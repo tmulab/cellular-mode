@@ -1,18 +1,8 @@
 # Release checklist — public release
 
-**Current verdict (2026-10-08): Cellular Mode v1.0.0 is released and Stage 8 is complete.** Release commit
-`1070dcd`; final release CI [`37777098948`](https://github.com/tmulab/cellular-mode/actions/runs/37777098948)
-green on Node 22 and Node 24; the repository is **public**, so publication is done (item 29). Stage 8 implementation
-commit: `45c69dd` (CI `37771618776`). Article-8 final evidence was valid for each committed tree (`45c69dd`: 865 files,
-`1070dcd`: 867 files byte-equivalent), removal rehearsals BS1 · AD29 · PB3 VERIFIED for both. **npm is NOT published and is not required for v1** —
-`private: true` is deliberate. **Tag `v1.0.0` and GitHub Release `v1.0.0` were published 2026-10-08 on release commit
-`1070dcd`**; post-release docs (`CITATION.cff`, the published DOIs) live on `main`. **Branch protection on `main` is
-NOT enabled** — GitHub API answers "Branch not protected" — so item 47 stays a recommendation, not a blocker. R-1 was
-resolved on 2026-10-02 (item 15) and `check-all.mjs --release` exits 0; the security contact (6)
-was set and the first commit and push (26–28) authorized on 2026-10-02. **Nothing below is
-rewritten:** every row keeps its evidence, including the failed CI runs and every UNKNOWN. Labels:
-✅ VERIFIED (a command was run, or a file was read end to end) · ⚠️ partial / caveated · ❌ not
-satisfied · UNKNOWN (not established — and UNKNOWN is never green).
+**Current verdict (2026-10-25): Cellular Mode 2.0.0 — the operation layer — is PREPARED on `main` and verified.** The release files (`package.json` and the lock at 2.0.0, `CHANGELOG.md` 2.0.0 with the breaking notes and the release boundary, `CITATION.cff`, `README.md`, `SECURITY.md`, `docs/PUBLISHED-ARTIFACTS.md`, `api/openapi.json` info 1.1.0 for the additive Observer fields) are written in the release commit itself. Verified before it: typecheck 0 errors, `node --test` **1604 passed · 0 failed**, `npm run gates` no findings, `check-all.mjs --release` no blockers. 👤 **Tag `v2.0.0`, the GitHub Release and the Zenodo deposit are human-only** and are not done by an agent — so is the 2.0.0 **version DOI**, which does not exist yet; the concept DOI `10.5281/zenodo.23239313` stands in for it in `CITATION.cff`, `README.md` and `docs/PUBLISHED-ARTIFACTS.md` until the deposit. Items below are **not re-litigated** by this release: every row keeps its v1.0.0 evidence, and nothing in 2.0.0 widens the security scope or the supported deployment. Labels: ✅ VERIFIED (a command was run, or a file was read end to end) · ⚠️ partial / caveated · ❌ not satisfied · UNKNOWN (not established — and UNKNOWN is never green).
+
+**History — verdict of 2026-10-08: Cellular Mode v1.0.0 is released and Stage 8 is complete.** Release commit `1070dcd`; final release CI [`37777098948`](https://github.com/tmulab/cellular-mode/actions/runs/37777098948) green on Node 22 and Node 24; the repository is **public**, so publication is done (item 29). Stage 8 implementation commit: `45c69dd` (CI `37771618776`). Article-8 final evidence was valid for each committed tree (`45c69dd`: 865 files, `1070dcd`: 867 files byte-equivalent), removal rehearsals BS1 · AD29 · PB3 VERIFIED for both. **npm is NOT published and is not required for v1** — `private: true` is deliberate. **Tag `v1.0.0` and GitHub Release `v1.0.0` were published 2026-10-08 on release commit `1070dcd`**; post-release docs (`CITATION.cff`, the published DOIs) live on `main`. **Branch protection on `main` is NOT enabled** — GitHub API answers "Branch not protected" — so item 47 stays a recommendation, not a blocker. R-1 was resolved on 2026-10-02 (item 15) and `check-all.mjs --release` exits 0; the security contact (6) was set and the first commit and push (26–28) authorized on 2026-10-02. **Nothing below is rewritten:** every row keeps its evidence, including the failed CI runs and every UNKNOWN.
 
 👤 marks an item only a human can close. An agent may prepare it and must then wait.
 

@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EIP host API",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "summary": "Local HTTP edge over the Everything Is a Plugin runtime.",
     "description": "Hand-written contract: it is the source, not a generated artefact. Every schema below is written in the SDK schema subset (type, properties, required, additionalProperties:false, items, enum, minLength, maxLength, minimum, maximum, maxItems) so the contract test can validate real responses against this document with the runtime's own validator. The host binds 127.0.0.1 only and sends no CORS headers: a browser application consumes this API through its own server-side route handler, never directly. Consequential capabilities need a verdict from a human approver the host supplies; an HTTP caller can never approve its own call, so a host started without an approver answers 403 APPROVAL_REQUIRED. Diagnostics pages under /dev are deliberately NOT part of this contract.",
     "license": { "name": "Apache-2.0", "identifier": "Apache-2.0" }

@@ -881,3 +881,19 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Already-generated AGENTS.md files are not re-rendered by upgrade; adopters edit by hand
 **Build:** green (node --test 1604 pass / 0 fail / 0 skipped; verify:final next)
 **Next step:** —
+
+---
+## 2026-10-25 08:56 · Cell: Manuals v2
+**Status:** ⏸
+**Facts:** PT guide v1 read and plan drafted; human chose (a) on 2026-10-25: release the software as 2.0.0 first, the guide cites that release
+**Decisions:** —
+**Build:** not applicable (no repository files changed)
+**Next step:** After the 2.0.0 release cell, draft chapter 7 (operations) of the PT guide v2 for approval
+
+---
+## 2026-10-25 09:06 · Cell: Release 2.0.0
+**Status:** ✔
+**Facts:** Release 2.0.0 prepared and approved by the human: package.json and lock 2.0.0; openapi info 1.1.0; CHANGELOG 2.0.0 section; CITATION.cff 2.0.0 with the concept DOI (abstract kept as is, by the human's choice); README, SECURITY, RELEASE_CHECKLIST, docs/PUBLISHED-ARTIFACTS updated; release notes drafted outside the repo. Two wrong claims fixed before approval (upgrade syntax; CI per push).
+**Decisions:** Version 2.0.0 because rule 1 changed in kind; plugin manifest versions unchanged (own contracts); version DOI and release hash added to CITATION.cff after the Zenodo deposit
+**Build:** green (typecheck 0 errors; node --test 1604/1604; gates clean; release gate no blockers; verify:final next)
+**Next step:** —
