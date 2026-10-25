@@ -106,5 +106,5 @@ Status: 📋 planned · 🔵 active (max ONE) · ⏸ paused · ✔ done.
 | [R11 field pilot](cells/r11-field-pilot.md) | field | ✔ | 2026-10-25 | — |
 | [Bootstrap upgrade keeps adopter files](cells/bootstrap-upgrade-keeps-adopter-files.md) | bootstrap | ✔ | 2026-10-25 | — |
 | [AGENTS template v2](cells/agents-template-v2.md) | bootstrap | ✔ | 2026-10-25 | — |
-| [Manuals v2](cells/manuals-v2.md) | docs | ⏸ | 2026-10-25 | After the 2.0.0 release cell, draft chapter 7 (operations) of the PT guide v2 for approval |
+| [Manuals v2](cells/manuals-v2.md) | docs | ✔ | 2026-10-25 | — |
 | [Release 2.0.0](cells/release-2-0-0.md) | release | ✔ | 2026-10-25 | — |

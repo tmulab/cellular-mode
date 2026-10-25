@@ -897,3 +897,11 @@ never ran, and inventing one would be fiction in an append-only record.
 **Decisions:** Version 2.0.0 because rule 1 changed in kind; plugin manifest versions unchanged (own contracts); version DOI and release hash added to CITATION.cff after the Zenodo deposit
 **Build:** green (typecheck 0 errors; node --test 1604/1604; gates clean; release gate no blockers; verify:final next)
 **Next step:** —
+
+---
+## 2026-10-25 11:10 · Cell: Manuals v2
+**Status:** ✔
+**Facts:** Four 2.0 documents written in the main session, assembled from their v1 .docx sources, checked page by page and saved beside the originals: PT guide (24 p), EN guide (23 p), EN preprint (16 p), PT preprint (17 p); v1 files untouched. Human published all on Zenodo with the software 2.0.0; VERIFIED on the Zenodo API 2026-10-25: software 23642223, EN guide 23642707, PT guide 23642839, EN preprint 23643014, PT preprint 23643326, every md5 matching the local file.
+**Decisions:** Human approved each draft before assembly; Word PDF with the real Aptos font; field project anonymised; [13] cited in both preprints; completion approved by the human 2026-10-25
+**Build:** not applicable (no repository files changed)
+**Next step:** —
